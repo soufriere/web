@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Two-Tap Budget App</title>
+  <style>
+    /* Global styles */
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      color: #333;
+      line-height: 1.4;
+    }
+    
+    /* Header and Total display */
+    #mainHeader {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      position: relative; /* For responsive settings button */
+    }
+
+    #totalDisplayContainer {
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    #totalDisplay {
+      font-size: 5.5rem; /* Even larger font size */
+      font-weight: 300;
+      color: #000;
+      line-height: 1; /* Adjust line height for large text */
+      display: flex; /* Use flex to align amount and percentage */
+      justify-content: center;
+      align-items: baseline; /* Align text baselines */
+      gap: 10px; /* Space between amount and percentage */
+    }
+
+    #totalAmount { /* Span for the actual amount */
+      font-size: inherit; /* Inherit font size from parent */
+    }
+
+    #percentageUsed { /* Span for the percentage */
+      font-size: 1.8rem; /* Smaller than main total, but still prominent */
+      font-weight: 400;
+      color: #666;
+    }
+
+    #targetStatus {
+      font-size: 1rem;
+      font-weight: 500;
+      margin-top: 5px;
+      color: #666;
+    }
+    
+    h2 {
+      font-size: 1.1rem;
+      font-weight: 500;
+      margin: 30px 0 15px 0;
+      color: #666;
+    }
+    
+    /* Grid layout for buttons */
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    
+    .grid button {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 12px 16px;
+      font-size: 0.9rem;
+      color: #333;
+      cursor: pointer;
+      transition: background-color 0.2s, border-color 0.2s;
+      font-family: inherit;
+      position: relative;
+      overflow: hidden;
+      flex-grow: 1; /* Allows buttons to grow and fill space */
+      min-width: 80px; /* Minimum width for buttons */
+    }
+    
+    .grid button:hover {
+      background: #e5e5e5;
+    }
+    
+    .grid button.selected {
+      background: #333;
+      color: white;
+      border-color: #333;
+    }
+    
+    .grid button .progress-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: #000;
+      transition: width 0.3s ease;
+    }
+    
+    .grid button.selected .progress-bar {
+      background: #fff;
+    }
+    
+    /* Amount grid specific styles */
+    #amountGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); /* Adjusted min-width for better fit */
+      gap: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      padding: 8px;
+      margin-bottom: 15px;
+    }
+    
+    #amountGrid button {
+      padding: 10px 14px; /* Adjusted padding */
+      font-size: 0.9rem; /* Consistent font size */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    /* Input field styles */
+    input {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      font-family: inherit;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #333;
+    }
+
+    input.invalid {
+      border-color: #f44336; /* Red border for invalid input */
+    }
+    
+    /* Button styles */
+    .btn {
+      background: #333;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background-color 0.2s;
+    }
+    
+    .btn:hover:not(:disabled) {
+      background: #555;
+    }
+
+    .btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 0.85rem;
+    }
+
+    .btn-icon {
+      background: none;
+      border: none;
+      color: #333;
+      font-size: 1.5rem;
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .btn-icon:hover {
+      color: #000;
+    }
+    
+    /* Form row layout */
+    .form-row {
+      display: flex;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .form-row.stacked {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .form-row.stacked input,
+    .form-row.stacked button {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .form-row.stacked .btn:last-child {
+      margin-bottom: 0;
+    }
+    
+    .form-row input {
+      flex: 1;
+      margin-bottom: 0;
+    }
+    
+    /* Table styles */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+      font-size: 0.9rem;
+    }
+    
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    
+    th {
+      font-weight: 500;
+      color: #666;
+      background: #f9f9f9;
+    }
+    
+    /* Utility classes */
+    .hidden {
+      display: none;
+    }
+    
+    /* Quick amounts buttons */
+    .quick-amounts {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    
+    .quick-amounts button {
+      background: #333;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    
+    .quick-amounts button:hover {
+      background: #555;
+    }
+    
+    .recurring-label {
+      font-style: italic;
+      color: #666;
+      font-size: 0.85em; /* Slightly smaller for recurring notes */
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #888;
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px dashed #eee;
+      border-radius: 8px;
+    }
+
+    /* Modal styles (used for custom confirms) */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .modal-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      width: 90%;
+      text-align: center;
+      transform: translateY(-20px);
+      transition: transform 0.3s ease;
+      position: relative; /* For close button positioning */
+    }
+
+    /* Settings content specific styling for wider modal */
+    .settings-content {
+      max-width: 600px; 
+      text-align: left; 
+    }
+
+    .settings-content .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #888;
+    }
+    .settings-content .close-btn:hover {
+      color: #333;
+    }
+
+    .modal-overlay.visible .modal-content {
+      transform: translateY(0);
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      color: #333;
+      font-size: 1.2rem;
+    }
+
+    .modal-content p {
+      margin-bottom: 25px;
+      color: #555;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+    }
+
+    .modal-buttons button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: background-color 0.2s;
+    }
+
+    .modal-buttons .confirm-btn {
+      background: #333;
+      color: white;
+    }
+
+    .modal-buttons .confirm-btn:hover {
+      background: #555;
+    }
+
+    .modal-buttons .cancel-btn {
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .modal-buttons .cancel-btn:hover {
+      background: #e0e0e0;
+    }
+
+    /* Toast Notification Styles */
+    #toastContainer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1001; /* Above modals */
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 300px;
+    }
+
+    .toast {
+      background-color: #333;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      opacity: 0;
+      transform: translateX(100%);
+      animation: slideIn 0.3s forwards, fadeOut 0.5s 4.5s forwards; /* Slide in, then fade out after 4.5s (total 5s) */
+    }
+
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes fadeOut {
+      from {
+        opacity: 1;
+      }
+      to {
+        opacity: 0;
+      }
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 600px) {
+      #totalDisplay {
+        font-size: 4rem; 
+      }
+      
+      .form-row {
+        flex-direction: column;
+      }
+      
+      .form-row input {
+        margin-bottom: 10px;
+      }
+
+      .grid button {
+        min-width: unset; 
+        flex-basis: calc(50% - 4px); 
+      }
+
+      #mainHeader {
+        flex-direction: column;
+        align-items: center;
+      }
+      #mainHeader .btn-icon {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+      }
+
+      #toastContainer {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        max-width: unset;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="mainHeader">
+    <div id="totalDisplayContainer">
+      <div id="totalDisplay">
+        <span id="totalAmount">€0</span>
+        <span id="percentageUsed"></span>
+      </div>
+      <div id="targetStatus">Set a monthly target below!</div>
+    </div>
+    <button class="btn-icon" onclick="App.openSettings()">⚙️</button>
+  </div>
+
+  <h2>Categories</h2>
+  <div class="grid" id="categoryGridMain"></div>
+  
+  <div id="amountSection" class="hidden">
+    <h2>Add Expense</h2>
+    <div class="quick-amounts">
+      <button onclick="App.quickAdd(5)">5</button>
+      <button onclick="App.quickAdd(10)">10</button>
+      <button onclick="App.quickAdd(20)">20</button>
+      <button onclick="App.quickAdd(50)">50</button>
+      <button onclick="App.quickAdd(100)">100</button>
+    </div>
+    <div id="amountGrid"></div>
+    <div class="form-row stacked">
+      <input type="text" id="expenseLabel" placeholder="Optional label/description" />
+      <input type="number" id="customAmount" placeholder="Custom amount" step="0.01" />
+      <input type="date" id="dailyDate" />
+      <button class="btn" id="addCustomAmountBtn" onclick="App.addCustomAmount()">Add</button>
+    </div>
+  </div>
+
+  <div style="display: flex; gap: 10px; margin: 20px 0;">
+    <button class="btn" onclick="App.downloadCSV()">Export CSV</button>
+    <button class="btn" style="background: #f44336;" onclick="App.resetAllData()">Reset All Data</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Label</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="entryList"></tbody>
+  </table>
+
+  <!-- Custom Confirmation Modal HTML -->
+  <div id="customModal" class="modal-overlay">
+    <div class="modal-content">
+      <h3 id="modalTitle"></h3>
+      <p id="modalMessage"></p>
+      <div class="modal-buttons">
+        <button class="btn confirm-btn" id="modalConfirmBtn">OK</button>
+        <button class="btn cancel-btn hidden" id="modalCancelBtn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Overlay HTML -->
+  <div id="settingsOverlay" class="modal-overlay">
+    <div class="modal-content settings-content">
+      <button class="close-btn" onclick="App.closeSettings()">&times;</button>
+      <h2>Categories</h2>
+      <div class="grid" id="categoryGridSettings"></div>
+      <input type="text" id="categoryInput" placeholder="Add categories (comma separated)" />
+      <button class="btn" onclick="App.saveCustomCategories()">Save Categories</button>
+
+      <h2>Monthly Recurring Expenses</h2>
+      <div class="form-row">
+        <input type="text" id="recurringNote" placeholder="Description" />
+        <input type="number" id="recurringAmount" placeholder="€" step="0.01" />
+        <button class="btn" id="addRecurringEntryBtn" onclick="App.addRecurringEntry()">Add</button>
+      </div>
+
+      <h2>Monthly Target</h2>
+      <div class="form-row">
+        <input type="number" id="targetInput" placeholder="Set monthly target (€)" step="1" />
+        <button class="btn" id="saveTargetBtn" onclick="App.saveTarget()">Save Target</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer"></div>
+
+  <script>
+    // Self-executing anonymous function to encapsulate the application logic
+    (() => {
+      // Define constants for localStorage keys
+      const DAILY_STORAGE_KEY = 'quickBudgetDailyEntries';
+      const RECURRING_STORAGE_KEY = 'quickBudgetRecurringEntries';
+      const CATEGORY_KEY = 'budgetCategories';
+      const TARGET_KEY = 'budgetMonthlyTarget'; 
+
+      // Internal state variables
+      let selectedCategory = null; 
+      let modalConfirmCallback = null; 
+
+      // Default categories and amounts for quick selection
+      const defaultCategories = ['Food', 'Transport', 'Health', 'Fun', 'Clothes', 'Bills', 'Other'];
+      const amounts = Array.from({length: 100}, (_, i) => i + 1); 
+
+      // Get references to frequently used DOM elements
+      const els = {
+        // Main App Elements
+        totalDisplay: document.getElementById('totalDisplay'),
+        totalAmount: document.getElementById('totalAmount'), // NEW
+        percentageUsed: document.getElementById('percentageUsed'), // NEW
+        targetStatus: document.getElementById('targetStatus'), 
+        categoryGridMain: document.getElementById('categoryGridMain'),
+        amountSection: document.getElementById('amountSection'),
+        amountGrid: document.getElementById('amountGrid'),
+        expenseLabel: document.getElementById('expenseLabel'), 
+        customAmount: document.getElementById('customAmount'),
+        dailyDate: document.getElementById('dailyDate'),
+        addCustomAmountBtn: document.getElementById('addCustomAmountBtn'),
+        entryList: document.getElementById('entryList'),
+        toastContainer: document.getElementById('toastContainer'),
+
+        // Settings Overlay Elements
+        settingsOverlay: document.getElementById('settingsOverlay'), 
+        categoryGridSettings: document.getElementById('categoryGridSettings'),
+        categoryInput: document.getElementById('categoryInput'), 
+        recurringNote: document.getElementById('recurringNote'),
+        recurringAmount: document.getElementById('recurringAmount'),
+        addRecurringEntryBtn: document.getElementById('addRecurringEntryBtn'),
+        targetInput: document.getElementById('targetInput'), 
+        saveTargetBtn: document.getElementById('saveTargetBtn'), 
+
+        // Custom Modal Elements (for alerts/confirms)
+        customModal: document.getElementById('customModal'),
+        modalTitle: document.getElementById('modalTitle'),
+        modalMessage: document.getElementById('modalMessage'),
+        modalConfirmBtn: document.getElementById('modalConfirmBtn'),
+        modalCancelBtn: document.getElementById('modalCancelBtn'),
+      };
+
+      // --- Utility Functions for Local Storage ---
+
+      /**
+       * Retrieves categories from localStorage or returns defaults.
+       * Also updates the category input field in settings.
+       * @returns {string[]} An array of category strings.
+       */
+      function getCategories() {
+        const saved = localStorage.getItem(CATEGORY_KEY);
+        try {
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            const filtered = parsed.filter(Boolean);
+            if (els.categoryInput) {
+                els.categoryInput.value = filtered.join(', ');
+            }
+            return filtered;
+          }
+        } catch (e) {
+          console.error("Error parsing categories from localStorage, using default.", e);
+        }
+        if (els.categoryInput) {
+            els.categoryInput.value = defaultCategories.join(', ');
+        }
+        return defaultCategories;
+      }
+
+      /**
+       * Saves an array of daily expense entries to localStorage.
+       * @param {object[]} data - Array of daily expense objects.
+       */
+      function saveDailyEntries(data) {
+        localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(data));
+      }
+
+      /**
+       * Loads daily expense entries from localStorage.
+       * Ensures 'label' field is present, defaulting to empty string.
+       * @returns {object[]} An array of daily expense objects.
+       */
+      function loadDailyEntries() {
+        const saved = localStorage.getItem(DAILY_STORAGE_KEY);
+        try {
+          const loadedData = saved ? JSON.parse(saved) : [];
+          // Ensure all loaded entries have a 'label' property
+          return loadedData.map(entry => ({ ...entry, label: entry.label || '' }));
+        } catch (e) {
+          console.error("Error parsing daily entries from localStorage, returning empty array.", e);
+          return [];
+        }
+      }
+
+      /**
+       * Saves an array of recurring expense entries to localStorage.
+       * @param {object[]} data - Array of recurring expense objects.
+       */
+      function saveRecurringEntries(data) {
+        localStorage.setItem(RECURRING_STORAGE_KEY, JSON.stringify(data));
+      }
+
+      /**
+       * Loads recurring expense entries from localStorage.
+       * @returns {object[]} An array of recurring expense objects.
+       */
+      function loadRecurringEntries() {
+        const saved = localStorage.getItem(RECURRING_STORAGE_KEY);
+        try {
+          return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+          console.error("Error parsing recurring entries from localStorage, returning empty array.", e);
+          return [];
+        }
+      }
+
+      /**
+       * Saves the monthly target spend to localStorage.
+       * @param {number} target - The monthly target amount.
+       */
+      function saveTargetSpend(target) {
+        localStorage.setItem(TARGET_KEY, JSON.stringify(target));
+      }
+
+      /**
+       * Loads the monthly target spend from localStorage.
+       * @returns {number|null} The target amount or null if not set.
+       */
+      function loadTargetSpend() {
+        const saved = localStorage.getItem(TARGET_KEY);
+        try {
+          const parsed = saved ? JSON.parse(saved) : null;
+          return (typeof parsed === 'number' && !isNaN(parsed)) ? parsed : null;
+        } catch (e) {
+          console.error("Error parsing target spend from localStorage, returning null.", e);
+          return null;
+        }
+      }
+
+      // --- Core Application Logic Functions ---
+
+      /**
+       * Saves custom categories entered by the user.
+       */
+      function saveCustomCategories() {
+        const input = els.categoryInput.value;
+        if (!input.trim()) {
+          showToast('Please enter at least one category.', 'error');
+          return;
+        }
+        const custom = input.split(',').map(c => c.trim()).filter(Boolean);
+        localStorage.setItem(CATEGORY_KEY, JSON.stringify(custom));
+        renderCategories(); 
+        updateUI(); 
+        showToast('Categories saved!', 'success');
+      }
+
+      /**
+       * Calculates the extrapolated monthly total for a given category based on daily expenses.
+       * @param {string} category - The category to calculate the total for.
+       * @returns {number} The estimated monthly total for the category.
+       */
+      function getCategoryTotal(category) {
+        const data = loadDailyEntries();
+        const categoryEntries = data.filter(e => e.category === category);
+        if (categoryEntries.length === 0) return 0;
+        
+        const dates = categoryEntries.map(e => new Date(e.date));
+        const min = new Date(Math.min(...dates));
+        const max = new Date(Math.max(...dates));
+        const spanDays = Math.max(1, Math.ceil((max - min) / (1000 * 60 * 60 * 24)) + 1);
+        
+        const total = categoryEntries.reduce((sum, e) => sum + e.amount, 0);
+        
+        return Math.round((total / spanDays) * 30);
+      }
+
+      /**
+       * Renders the category buttons (in main view or settings).
+       */
+      function renderCategories() {
+        const categories = getCategories(); 
+        
+        // Render for main category grid (for selection)
+        els.categoryGridMain.innerHTML = '';
+        if (categories.length === 0) {
+            els.categoryGridMain.innerHTML = '<div class="empty-state">No categories added yet. Open settings (⚙️) to add some!</div>';
+        } else {
+            const totalsMain = categories.map(cat => ({ category: cat, total: getCategoryTotal(cat) }));
+            const maxTotalMain = Math.max(...totalsMain.map(t => t.total), 1);
+            totalsMain.forEach(({category, total}) => {
+                const btn = document.createElement('button');
+                btn.textContent = total > 0 ? `${category} (€${total})` : category;
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                progressBar.style.width = `${(total / maxTotalMain) * 100}%`;
+                btn.appendChild(progressBar);
+                btn.onclick = () => selectCategory(category);
+                els.categoryGridMain.appendChild(btn);
+            });
+        }
+
+        // Render for settings category grid (for display/management)
+        els.categoryGridSettings.innerHTML = ''; 
+        if (categories.length === 0) {
+            els.categoryGridSettings.innerHTML = '<div class="empty-state">No categories added yet. Add some below!</div>';
+        } else {
+            const totalsSettings = categories.map(cat => ({ category: cat, total: getCategoryTotal(cat) }));
+            const maxTotalSettings = Math.max(...totalsSettings.map(t => t.total), 1);
+            totalsSettings.forEach(({category, total}) => {
+                const btn = document.createElement('button');
+                btn.textContent = total > 0 ? `${category} (€${total})` : category;
+                const progressBar = document.createElement('div');
+                progressBar.className = 'progress-bar';
+                progressBar.style.width = `${(total / maxTotalSettings) * 100}%`;
+                btn.appendChild(progressBar);
+                els.categoryGridSettings.appendChild(btn);
+            });
+        }
+      }
+
+      /**
+       * Handles selection of a category, showing the amount input section in the main view.
+       * @param {string} category - The selected category.
+       */
+      function selectCategory(category) {
+        selectedCategory = category;
+        els.amountSection.classList.remove('hidden'); 
+        
+        document.querySelectorAll('#categoryGridMain button').forEach(btn => {
+          btn.classList.remove('selected');
+          if (btn.textContent.startsWith(category)) {
+            btn.classList.add('selected');
+          }
+        });
+        // Set default date to today for the new expense
+        els.dailyDate.valueAsDate = new Date();
+        els.expenseLabel.value = ''; // Clear label when category is selected
+        validateInputs(); 
+      }
+
+      /**
+       * Renders the grid of quick amount buttons.
+       */
+      function renderAmounts() {
+        els.amountGrid.innerHTML = ''; 
+        
+        amounts.forEach(val => {
+          const btn = document.createElement('button');
+          btn.textContent = val;
+          btn.onclick = () => quickAdd(val); // This now triggers auto-split too
+          els.amountGrid.appendChild(btn);
+        });
+      }
+
+      /**
+       * Adds a daily expense entry using a predefined quick amount.
+       * This function now also handles the automatic splitting logic.
+       * @param {number} amount - The amount to add.
+       */
+      function quickAdd(amount) {
+        if (!selectedCategory) {
+          showToast('Please select a category first.', 'error');
+          return;
+        }
+        const label = els.expenseLabel.value.trim(); // Get label
+        const date = new Date().toISOString().split('T')[0]; // Use today's date
+
+        // Automatic split logic: if amount > 20, split it
+        if (amount > 20) {
+          autoSplitAmount(selectedCategory, amount, date, label);
+        } else {
+          addDailyEntry(selectedCategory, amount, date, label);
+        }
+        
+        // Clear inputs and hide section after processing
+        els.expenseLabel.value = '';
+        els.customAmount.value = ''; // Clear custom amount input if it was used before quick add
+        resetAmountSection(); 
+      }
+
+      /**
+       * Adds a custom daily expense entry.
+       * This function now also handles the automatic splitting logic.
+       */
+      function addCustomAmount() {
+        const amount = parseFloat(els.customAmount.value);
+        const date = els.dailyDate.value; 
+        const label = els.expenseLabel.value.trim(); // Get label
+
+        if (!selectedCategory) {
+          showToast('Please select a category first.', 'error');
+          return;
+        }
+        if (isNaN(amount) || amount <= 0) {
+          showToast('Please enter a valid positive amount.', 'error');
+          els.customAmount.classList.add('invalid');
+          return;
+        } else {
+          els.customAmount.classList.remove('invalid');
+        }
+        if (!date) {
+            showToast('Please select a date for the expense.', 'error');
+            els.dailyDate.classList.add('invalid');
+            return;
+        } else {
+            els.dailyDate.classList.remove('invalid');
+        }
+        
+        // Automatic split logic: if amount > 20, split it
+        if (amount > 20) {
+          autoSplitAmount(selectedCategory, amount, date, label);
+        } else {
+          addDailyEntry(selectedCategory, amount, date, label);
+        }
+
+        els.customAmount.value = ''; 
+        els.expenseLabel.value = ''; // Clear label after processing
+        resetAmountSection(); 
+      }
+
+      /**
+       * Automatically splits an amount into multiple daily entries based on "mod 20" logic.
+       * The amount is split across ceil(totalAmount / 20) days.
+       * @param {string} category - The category for the expense.
+       * @param {number} totalAmount - The total amount to split.
+       * @param {string} startDateString - The start date for the first entry (YYYY-MM-DD format).
+       * @param {string} label - The optional label/description for the expense.
+       */
+      function autoSplitAmount(category, totalAmount, startDateString, label) {
+        const numDays = Math.ceil(totalAmount / 20); // Calculate number of days based on "mod 20"
+        const amountPerDay = Math.round((totalAmount / numDays) * 100) / 100; // Round to 2 decimal places
+
+        const startDate = new Date(startDateString);
+        let entriesAdded = 0;
+
+        for (let i = 0; i < numDays; i++) {
+          const currentDate = new Date(startDate);
+          currentDate.setDate(startDate.getDate() + i); // Add i days to the start date
+          const dateString = currentDate.toISOString().split('T')[0];
+          addDailyEntry(category, amountPerDay, dateString, label);
+          entriesAdded++;
+        }
+        
+        showToast(`Amount of €${totalAmount} automatically split into ${entriesAdded} entries of €${amountPerDay} starting from ${new Date(startDateString).toLocaleDateString()}.`, 'info');
+      }
+
+
+      /**
+       * Resets the amount input section and category selection.
+       */
+      function resetAmountSection() {
+        selectedCategory = null;
+        els.amountSection.classList.add('hidden'); 
+        els.expenseLabel.value = ''; // Clear label field
+        els.customAmount.value = '';
+        els.dailyDate.value = ''; 
+        els.customAmount.classList.remove('invalid');
+        els.dailyDate.classList.remove('invalid');
+
+        document.querySelectorAll('#categoryGridMain button').forEach(btn => {
+          btn.classList.remove('selected');
+        });
+        validateInputs(); 
+      }
+
+      /**
+       * Adds a new daily expense entry to storage.
+       * @param {string} category - The category of the expense.
+       * @param {number} amount - The amount of the expense.
+       * @param {string} date - The date of the expense (YYYY-MM-DD format).
+       * @param {string} label - The optional label/description for the expense.
+       */
+      function addDailyEntry(category, amount, date, label = '') { 
+        const data = loadDailyEntries();
+        data.push({ category, amount, date, isRecurring: false, note: '', label }); 
+        saveDailyEntries(data);
+        updateUI(); 
+      }
+
+      /**
+       * Adds a new monthly recurring expense entry to storage.
+       */
+      function addRecurringEntry() {
+        const note = els.recurringNote.value.trim();
+        const amount = parseFloat(els.recurringAmount.value);
+        
+        if (!note) {
+          showToast('Please provide a description for the recurring expense.', 'error');
+          els.recurringNote.classList.add('invalid');
+          return;
+        } else {
+          els.recurringNote.classList.remove('invalid');
+        }
+        if (isNaN(amount) || amount <= 0) {
+          showToast('Please enter a valid positive amount for the recurring expense.', 'error');
+          els.recurringAmount.classList.add('invalid');
+          return;
+        } else {
+          els.recurringAmount.classList.remove('invalid');
+        }
+        
+        const recurringData = loadRecurringEntries();
+        recurringData.push({ category: 'Recurring', amount, date: new Date().toISOString().split('T')[0], note, isRecurring: true });
+        saveRecurringEntries(recurringData);
+        
+        els.recurringNote.value = ''; 
+        els.recurringAmount.value = '';
+        els.recurringNote.classList.remove('invalid');
+        els.recurringAmount.classList.remove('invalid');
+        updateUI(); 
+        showToast('Recurring expense added!', 'success');
+      }
+
+      /**
+       * Saves the monthly target from the input field.
+       */
+      function saveTarget() {
+        const target = parseFloat(els.targetInput.value);
+        if (isNaN(target) || target < 0) {
+          showToast('Please enter a valid non-negative number for your monthly target.', 'error');
+          els.targetInput.classList.add('invalid');
+          return;
+        } else {
+          els.targetInput.classList.remove('invalid');
+        }
+        saveTargetSpend(target);
+        updateUI(); 
+        showToast(`Monthly target set to €${target}.`, 'success');
+      }
+
+      /**
+       * Deletes an entry from either daily or recurring expenses.
+       * @param {number} index - The index of the entry to delete within its respective array.
+       * @param {boolean} isRecurring - True if deleting a recurring entry, false for daily.
+       */
+      function deleteEntry(index, isRecurring) {
+        showConfirm('Are you sure you want to delete this entry?', () => {
+          if (isRecurring) {
+            const data = loadRecurringEntries();
+            if (index >= 0 && index < data.length) {
+              data.splice(index, 1);
+              saveRecurringEntries(data);
+            }
+          } else {
+            const data = loadDailyEntries();
+            if (index >= 0 && index < data.length) {
+              data.splice(index, 1);
+              saveDailyEntries(data);
+            }
+          }
+          updateUI(); 
+          showToast('Entry deleted successfully.', 'info');
+        });
+      }
+
+      /**
+       * Updates the entire UI: re-renders categories, calculates total, and displays entries in the table.
+       * Also updates the target status.
+       */
+      function updateUI() {
+        renderCategories(); 
+        const dailyData = loadDailyEntries();
+        const recurringData = loadRecurringEntries();
+        const targetSpend = loadTargetSpend(); 
+
+        els.entryList.innerHTML = ''; 
+        
+        // --- Calculate Monthly Total ---
+        let monthlyFromDaily = 0;
+        if (dailyData.length > 0) {
+          const dates = dailyData.map(e => new Date(e.date));
+          const min = new Date(Math.min(...dates));
+          const max = new Date(Math.max(...dates));
+          const spanDays = Math.max(1, Math.ceil((max - min) / (1000 * 60 * 60 * 24)) + 1);
+          const totalDaily = dailyData.reduce((sum, e) => sum + e.amount, 0);
+          monthlyFromDaily = Math.round((totalDaily / spanDays) * 30);
+        }
+        
+        const monthlyRecurring = recurringData.reduce((sum, e) => sum + e.amount, 0);
+        const totalMonthly = monthlyFromDaily + monthlyRecurring;
+        
+        els.totalAmount.textContent = `€${totalMonthly}`; // Update only the amount span
+
+        // --- Update Percentage Used and Target Status ---
+        if (targetSpend !== null && targetSpend > 0) {
+          const percentage = Math.round((totalMonthly / targetSpend) * 100);
+          els.percentageUsed.textContent = `(${percentage}%)`;
+          els.targetInput.value = targetSpend; 
+          if (totalMonthly > targetSpend) {
+            els.targetStatus.textContent = `€${targetSpend} Target: Above! 🥵`;
+            els.targetStatus.style.color = '#f44336'; 
+          } else if (totalMonthly < targetSpend) {
+            els.targetStatus.textContent = `€${targetSpend} Target: Below! 👍`;
+            els.targetStatus.style.color = '#4CAF50'; 
+          } else {
+            els.targetStatus.textContent = `€${targetSpend} Target: On Target! 👌`;
+            els.targetStatus.style.color = '#FFA500'; 
+          }
+        } else {
+          els.targetInput.value = ''; 
+          els.percentageUsed.textContent = ''; // Clear percentage if no target or target is zero
+          if (targetSpend === 0) {
+            els.targetStatus.textContent = 'Monthly target is zero.';
+            els.targetStatus.style.color = '#666';
+          } else {
+            els.targetStatus.textContent = 'Set a monthly target in settings!';
+            els.targetStatus.style.color = '#666';
+          }
+        }
+
+        // --- Render Table Entries ---
+        const allEntries = [
+          ...dailyData.map((e, idx) => ({ ...e, originalIndex: idx, type: 'daily' })),
+          ...recurringData.map((e, idx) => ({ ...e, originalIndex: idx, type: 'recurring' }))
+        ].sort((a, b) => new Date(b.date) - new Date(a.date)); 
+
+        if (allEntries.length === 0) {
+            els.entryList.innerHTML = '<tr><td colspan="6" class="empty-state">No expenses recorded yet. Start adding!</td></tr>';
+            return;
+        }
+
+        allEntries.forEach((entry) => {
+          const row = document.createElement('tr');
+          const displayName = entry.isRecurring ? 
+            `Recurring: <span class="recurring-label">${entry.note}</span>` : entry.category;
+          const entryType = entry.isRecurring ? 'Recurring' : 'Daily';
+          const formattedDate = entry.date ? new Date(entry.date).toLocaleDateString() : '-'; 
+          const entryLabel = entry.label || ''; 
+
+          row.innerHTML = `
+            <td>${displayName}</td>
+            <td>€${Math.round(entry.amount)}</td>
+            <td>${formattedDate}</td>
+            <td>${entryType}</td>
+            <td>${entryLabel}</td>
+            <td><button class="btn btn-small" onclick="App.deleteEntry(${entry.originalIndex}, ${entry.isRecurring})">×</button></td>
+          `;
+          els.entryList.appendChild(row);
+        });
+
+        validateInputs();
+      }
+
+      /**
+       * Exports all budget data to a CSV file.
+       */
+      function downloadCSV() {
+        const dailyData = loadDailyEntries();
+        const recurringData = loadRecurringEntries();
+        const categories = getCategories();
+        const targetSpend = loadTargetSpend();
+
+        let csvContent = `Categories:,${categories.join(',')}\n`;
+        if (targetSpend !== null) {
+          csvContent += `Monthly Target:,€${targetSpend}\n`;
+        }
+        csvContent += 'Type,Category/Description,Amount,Date,Label\n';
+
+        dailyData.forEach(entry => {
+          csvContent += `Daily,${entry.category},${entry.amount},${entry.date},"${entry.label || ''}"\n`;
+        });
+
+        recurringData.forEach(entry => {
+          csvContent += `Recurring,${entry.note},${entry.amount},${entry.date},""\n`; 
+        });
+        
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `budget-data-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a); 
+        a.click(); 
+        document.body.removeChild(a); 
+        URL.revokeObjectURL(url); 
+      }
+
+      /**
+       * Resets all budget data in localStorage after confirmation.
+       */
+      function resetAllData() {
+        showConfirm('This will delete ALL your budget data (daily, recurring, categories, and target). Are you sure?', () => {
+          localStorage.removeItem(DAILY_STORAGE_KEY);
+          localStorage.removeItem(RECURRING_STORAGE_KEY);
+          localStorage.removeItem(CATEGORY_KEY);
+          localStorage.removeItem(TARGET_KEY); 
+          selectedCategory = null; 
+          els.categoryInput.value = defaultCategories.join(', '); 
+          resetAmountSection(); 
+          updateUI(); 
+          showToast('All data has been reset!', 'info');
+        }, 'Reset All Data'); 
+      }
+
+      // --- Custom Modal/Toast Implementations ---
+
+      /**
+       * Displays a toast notification.
+       * @param {string} message - The message to display.
+       * @param {string} [type='info'] - Type of toast ('info', 'success', 'error').
+       */
+      function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        els.toastContainer.appendChild(toast);
+
+        // Remove toast after 5 seconds (5000 ms)
+        setTimeout(() => {
+          toast.remove();
+        }, 5000);
+      }
+
+      /**
+       * Displays a custom confirmation modal.
+       * @param {string} message - The confirmation message.
+       * @param {function} onConfirmCallback - Function to execute if confirmed.
+       * @param {string} [title='Confirm Action'] - The title of the confirmation modal.
+       */
+      function showConfirm(message, onConfirmCallback, title = 'Confirm Action') {
+        els.modalTitle.textContent = title;
+        els.modalMessage.textContent = message;
+        els.modalConfirmBtn.textContent = 'Yes';
+        els.modalCancelBtn.textContent = 'No';
+        els.modalCancelBtn.classList.remove('hidden'); 
+        els.customModal.classList.add('visible');
+
+        modalConfirmCallback = onConfirmCallback; 
+
+        els.modalConfirmBtn.onclick = () => {
+          if (modalConfirmCallback) {
+            modalConfirmCallback(); 
+          }
+          els.customModal.classList.remove('visible');
+          modalConfirmCallback = null; 
+        };
+
+        els.modalCancelBtn.onclick = () => {
+          els.customModal.classList.remove('visible');
+          modalConfirmCallback = null; 
+        };
+      }
+
+      // --- Settings Overlay Functions ---
+
+      /**
+       * Opens the settings overlay.
+       */
+      function openSettings() {
+        els.settingsOverlay.classList.add('visible');
+        getCategories(); 
+        const target = loadTargetSpend();
+        els.targetInput.value = target !== null ? target : ''; 
+        els.recurringNote.value = ''; 
+        els.recurringAmount.value = '';
+        validateInputs(); 
+      }
+
+      /**
+       * Closes the settings overlay.
+       */
+      function closeSettings() {
+        els.settingsOverlay.classList.remove('visible');
+        updateUI(); 
+      }
+
+      // --- Input Validation and Event Listeners ---
+
+      /**
+       * Validates input fields for adding custom amounts and recurring entries
+       * and updates the disabled state of their respective 'Add' buttons.
+       */
+      function validateInputs() {
+        // Validate custom amount and date for the 'Add' button
+        const customAmountValid = parseFloat(els.customAmount.value) > 0;
+        const dailyDateValid = els.dailyDate.value !== '';
+        // Add button is enabled if valid amount, date, and category selected
+        els.addCustomAmountBtn.disabled = !(customAmountValid && dailyDateValid && selectedCategory !== null);
+        
+        // Validate recurring entry (in settings overlay)
+        const recurringNoteValid = els.recurringNote.value.trim() !== '';
+        const recurringAmountValid = parseFloat(els.recurringAmount.value) > 0;
+        els.addRecurringEntryBtn.disabled = !(recurringNoteValid && recurringAmountValid);
+
+        // Validate target input (in settings overlay)
+        const targetInputValid = parseFloat(els.targetInput.value) >= 0;
+        els.saveTargetBtn.disabled = !targetInputValid;
+      }
+
+      // Add event listeners for input changes to enable/disable buttons
+      els.expenseLabel.addEventListener('input', validateInputs); 
+      els.customAmount.addEventListener('input', validateInputs);
+      els.dailyDate.addEventListener('change', validateInputs); 
+      els.recurringNote.addEventListener('input', validateInputs);
+      els.recurringAmount.addEventListener('input', validateInputs);
+      els.targetInput.addEventListener('input', validateInputs); 
+
+      // --- Initialization ---
+
+      /**
+       * Initializes the application when the DOM is ready.
+       */
+      function initialize() {
+        renderCategories(); 
+        renderAmounts(); 
+        updateUI(); 
+        els.dailyDate.valueAsDate = new Date(); 
+        validateInputs(); 
+
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            if (els.settingsOverlay.classList.contains('visible')) {
+              closeSettings(); 
+            } else if (!els.amountSection.classList.contains('hidden')) {
+              resetAmountSection(); 
+            }
+          }
+        });
+      }
+
+      // Attach global functions to a global App object for easier access from HTML
+      window.App = {
+        saveCustomCategories,
+        quickAdd,
+        addCustomAmount, 
+        addRecurringEntry,
+        saveTarget, 
+        deleteEntry,
+        downloadCSV,
+        resetAllData,
+        showConfirm,
+        openSettings, 
+        closeSettings 
+      };
+
+      // Initialize the app when the DOM content is fully loaded
+      document.addEventListener('DOMContentLoaded', initialize);
+    })();
+  </script>
+</body>
+</html>
