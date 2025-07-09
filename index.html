@@ -73,88 +73,122 @@
     /* Grid layout for buttons */
     .grid {
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-direction: row;
+      gap: 2px;
       margin-bottom: 20px;
     }
     
     .grid button {
-      background: #f5f5f5;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      padding: 12px 16px;
-      font-size: 0.9rem;
-      color: #333;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 8px;
+      font-size: 0.8rem;
+      color: white;
       cursor: pointer;
-      transition: background-color 0.2s, border-color 0.2s;
+      transition: all 0.3s ease;
       font-family: inherit;
       position: relative;
       overflow: hidden;
-      flex-grow: 1; /* Allows buttons to grow and fill space */
-      min-width: 80px; /* Minimum width for buttons */
-    }
-    
-    .grid button:hover {
-      background: #e5e5e5;
-    }
-    
-    .grid button.selected {
-      background: #333;
-      color: white;
-      border-color: #333;
-    }
-    
-    .grid button .progress-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      height: 3px;
-      background: #000;
-      transition: width 0.3s ease;
-    }
-    
-    .grid button.selected .progress-bar {
-      background: #fff;
-    }
-    
-    /* Amount grid specific styles */
-    #amountGrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); /* Adjusted min-width for better fit */
-      gap: 4px;
-      max-height: 200px;
-      overflow-y: auto;
-      border: 1px solid #ddd;
-      padding: 8px;
-      margin-bottom: 15px;
-    }
-    
-    #amountGrid button {
-      padding: 10px 14px; /* Adjusted padding */
-      font-size: 0.9rem; /* Consistent font size */
+      text-align: center;
+      font-weight: 500;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      min-width: 80px; /* Minimum width for visibility/clickability */
+      height: 60px; /* Slightly taller for better text visibility */
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-direction: column;
+      line-height: 1.2;
     }
     
-    /* Input field styles */
+    .grid button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    
+    .grid button.selected {
+      border-color: #000;
+      box-shadow: 0 0 0 2px #000;
+      transform: translateY(-1px);
+    }
+    
+    .grid button .progress-bar {
+      display: none; /* Hide old progress bar */
+    }
+    
+    /* Amount grid specific styles - minimal refined design */
+    #amountGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(35px, 1fr));
+      gap: 2px;
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 6px;
+      margin-bottom: 12px;
+      background: #fafafa;
+    }
+    
+    #amountGrid button {
+      padding: 4px 6px;
+      font-size: 0.7rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      color: #495057;
+      border: 1px solid #dee2e6;
+      border-radius: 2px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      min-height: 24px;
+      font-weight: 500;
+    }
+    
+    #amountGrid button:hover {
+      background: #f8f9fa;
+      border-color: #adb5bd;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Settings grid specific styles */
+    #categoryGridSettings {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    #categoryGridSettings button {
+      flex: 1;
+      min-width: 120px;
+      height: 48px;
+    }
+    
+    /* Input field styles - refined minimal */
     input {
       width: 100%;
-      padding: 10px;
-      font-size: 1rem;
-      border: 1px solid #ddd;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      border: 1px solid #dee2e6;
       border-radius: 4px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       font-family: inherit;
+      background: #fafafa;
+      transition: all 0.2s ease;
     }
     
     input:focus {
       outline: none;
-      border-color: #333;
+      border-color: #495057;
+      background: white;
+      box-shadow: 0 0 0 2px rgba(73, 80, 87, 0.1);
     }
 
     input.invalid {
-      border-color: #f44336; /* Red border for invalid input */
+      border-color: #dc3545;
+      background: #fff5f5;
     }
     
     /* Button styles */
@@ -195,6 +229,32 @@
 
     .btn-icon:hover {
       color: #000;
+    }
+
+    /* Editing mode styles */
+    .editing-mode {
+      background-color: #f44336 !important;
+      color: white !important;
+    }
+
+    .editing-mode h2 {
+      color: white !important;
+    }
+
+    /* Split transaction group styles */
+    .split-group {
+      border-left: 3px solid #007bff;
+      background-color: #f8f9fa;
+    }
+
+    .split-group-header {
+      background-color: #e9ecef;
+      font-weight: bold;
+      font-style: italic;
+    }
+
+    .split-group-actions {
+      text-align: center;
     }
     
     /* Form row layout */
@@ -247,27 +307,45 @@
       display: none;
     }
     
-    /* Quick amounts buttons */
+    /* Quick amounts buttons - refined minimal design */
     .quick-amounts {
       display: flex;
-      gap: 6px;
-      margin-bottom: 15px;
+      gap: 4px;
+      margin-bottom: 12px;
       flex-wrap: wrap;
     }
     
     .quick-amounts button {
-      background: #333;
-      color: white;
-      border: none;
-      padding: 8px 14px;
-      font-size: 0.9rem;
-      border-radius: 4px;
+      background: #f8f9fa;
+      color: #495057;
+      border: 1px solid #dee2e6;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      border-radius: 3px;
       cursor: pointer;
       font-family: inherit;
+      transition: all 0.2s ease;
+      min-width: 40px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     
     .quick-amounts button:hover {
-      background: #555;
+      background: #e9ecef;
+      border-color: #adb5bd;
+    }
+
+    .quick-amounts button[style*="background: #4CAF50"] {
+      background: #d4edda !important;
+      color: #155724 !important;
+      border-color: #c3e6cb !important;
+    }
+
+    .quick-amounts button[style*="background: #4CAF50"]:hover {
+      background: #c3e6cb !important;
+      border-color: #b8dacc !important;
     }
     
     .recurring-label {
@@ -482,27 +560,26 @@
   <div class="grid" id="categoryGridMain"></div>
   
   <div id="amountSection" class="hidden">
-    <h2>Add Expense</h2>
+    <h2 id="amountSectionHeader">Add Expense</h2>
     <div class="quick-amounts">
       <button onclick="App.quickAdd(5)">5</button>
       <button onclick="App.quickAdd(10)">10</button>
       <button onclick="App.quickAdd(20)">20</button>
       <button onclick="App.quickAdd(50)">50</button>
       <button onclick="App.quickAdd(100)">100</button>
+      <button onclick="App.quickAdd(-50)" style="background: #4CAF50;">-50 (Income)</button>
+      <button onclick="App.quickAdd(-100)" style="background: #4CAF50;">-100 (Income)</button>
     </div>
     <div id="amountGrid"></div>
     <div class="form-row stacked">
       <input type="text" id="expenseLabel" placeholder="Optional label/description" />
-      <input type="number" id="customAmount" placeholder="Custom amount" step="0.01" />
+      <input type="number" id="customAmount" placeholder="Custom amount (negative for income)" step="0.01" />
       <input type="date" id="dailyDate" />
       <button class="btn" id="addCustomAmountBtn" onclick="App.addCustomAmount()">Add</button>
+      <button class="btn" id="cancelEditBtn" onclick="App.cancelEdit()" style="background: #f44336; display: none;">Cancel Edit</button>
     </div>
   </div>
 
-  <div style="display: flex; gap: 10px; margin: 20px 0;">
-    <button class="btn" onclick="App.downloadCSV()">Export CSV</button>
-    <button class="btn" style="background: #f44336;" onclick="App.resetAllData()">Reset All Data</button>
-  </div>
 
   <table>
     <thead>
@@ -551,6 +628,19 @@
         <input type="number" id="targetInput" placeholder="Set monthly target (€)" step="1" />
         <button class="btn" id="saveTargetBtn" onclick="App.saveTarget()">Save Target</button>
       </div>
+
+      <h2>Data Management</h2>
+      <div class="form-row">
+        <button class="btn" onclick="App.compressOldTransactions()">Compress Old Data</button>
+        <span style="font-size: 0.85rem; color: #666; margin-left: 10px;">Automatically compresses transactions older than 2 months</span>
+      </div>
+      
+      <div class="form-row" style="margin-top: 15px;">
+        <button class="btn" onclick="App.downloadCSV()">Export CSV</button>
+        <input type="file" id="importFile" accept=".csv" style="display: none;" onchange="App.handleImport(event)">
+        <button class="btn" onclick="document.getElementById('importFile').click()">Import CSV</button>
+        <button class="btn" style="background: #f44336;" onclick="App.resetAllData()">Reset All Data</button>
+      </div>
     </div>
   </div>
 
@@ -568,7 +658,10 @@
 
       // Internal state variables
       let selectedCategory = null; 
-      let modalConfirmCallback = null; 
+      let modalConfirmCallback = null;
+      let editingEntry = null; // Track which entry is being edited
+      let editingIndex = null; // Track the index of the entry being edited
+      let editingIsRecurring = false; // Track if editing a recurring entry
 
       // Default categories and amounts for quick selection
       const defaultCategories = ['Food', 'Transport', 'Health', 'Fun', 'Clothes', 'Bills', 'Other'];
@@ -583,11 +676,13 @@
         targetStatus: document.getElementById('targetStatus'), 
         categoryGridMain: document.getElementById('categoryGridMain'),
         amountSection: document.getElementById('amountSection'),
+        amountSectionHeader: document.getElementById('amountSectionHeader'),
         amountGrid: document.getElementById('amountGrid'),
         expenseLabel: document.getElementById('expenseLabel'), 
         customAmount: document.getElementById('customAmount'),
         dailyDate: document.getElementById('dailyDate'),
         addCustomAmountBtn: document.getElementById('addCustomAmountBtn'),
+        cancelEditBtn: document.getElementById('cancelEditBtn'),
         entryList: document.getElementById('entryList'),
         toastContainer: document.getElementById('toastContainer'),
 
@@ -659,6 +754,68 @@
           console.error("Error parsing daily entries from localStorage, returning empty array.", e);
           return [];
         }
+      }
+
+      /**
+       * Compresses old transactions (older than 2 months) into monthly summaries.
+       * This keeps the dataset manageable by aggregating old detailed entries.
+       */
+      function compressOldTransactions() {
+        const data = loadDailyEntries();
+        const twoMonthsAgo = new Date();
+        twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
+        twoMonthsAgo.setDate(1); // Start of the month 2 months ago
+        
+        // Separate old and recent entries
+        const oldEntries = data.filter(entry => new Date(entry.date) < twoMonthsAgo);
+        const recentEntries = data.filter(entry => new Date(entry.date) >= twoMonthsAgo);
+        
+        if (oldEntries.length === 0) {
+          return; // Nothing to compress
+        }
+        
+        // Group old entries by category and month
+        const monthlyGroups = {};
+        oldEntries.forEach(entry => {
+          const date = new Date(entry.date);
+          const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+          const groupKey = `${entry.category}-${monthKey}`;
+          
+          if (!monthlyGroups[groupKey]) {
+            monthlyGroups[groupKey] = {
+              category: entry.category,
+              month: monthKey,
+              totalAmount: 0,
+              count: 0,
+              firstDate: entry.date
+            };
+          }
+          
+          monthlyGroups[groupKey].totalAmount += entry.amount;
+          monthlyGroups[groupKey].count += 1;
+          
+          // Keep the earliest date for the compressed entry
+          if (entry.date < monthlyGroups[groupKey].firstDate) {
+            monthlyGroups[groupKey].firstDate = entry.date;
+          }
+        });
+        
+        // Create compressed entries
+        const compressedEntries = Object.values(monthlyGroups).map(group => ({
+          category: group.category,
+          amount: Math.round(group.totalAmount * 100) / 100, // Round to 2 decimal places
+          date: group.firstDate,
+          isRecurring: false,
+          note: '',
+          label: `Compressed: ${group.count} entries from ${group.month}`,
+          isCompressed: true
+        }));
+        
+        // Combine compressed entries with recent entries
+        const newData = [...compressedEntries, ...recentEntries];
+        saveDailyEntries(newData);
+        
+        showToast(`Compressed ${oldEntries.length} old entries into ${compressedEntries.length} monthly summaries.`, 'info');
       }
 
       /**
@@ -745,6 +902,24 @@
       }
 
       /**
+       * Generates a gradient color from light orange to dark red based on a ratio (0-1).
+       * @param {number} ratio - Value between 0 and 1 (0 = light orange, 1 = dark red)
+       * @returns {string} RGB color string
+       */
+      function getGradientColor(ratio) {
+        // Clamp ratio between 0 and 1
+        ratio = Math.max(0, Math.min(1, ratio));
+        
+        // Light orange to dark red gradient
+        // Light orange: rgb(255, 165, 100) to Dark red: rgb(139, 0, 0)
+        const red = Math.round(255 - (116 * ratio)); // 255 to 139
+        const green = Math.round(165 * (1 - ratio)); // 165 to 0
+        const blue = Math.round(100 * (1 - ratio)); // 100 to 0
+        
+        return `rgb(${red}, ${green}, ${blue})`;
+      }
+
+      /**
        * Renders the category buttons (in main view or settings).
        */
       function renderCategories() {
@@ -756,20 +931,39 @@
             els.categoryGridMain.innerHTML = '<div class="empty-state">No categories added yet. Open settings (⚙️) to add some!</div>';
         } else {
             const totalsMain = categories.map(cat => ({ category: cat, total: getCategoryTotal(cat) }));
+            // Sort categories by spending amount (largest to smallest)
+            totalsMain.sort((a, b) => b.total - a.total);
             const maxTotalMain = Math.max(...totalsMain.map(t => t.total), 1);
-            totalsMain.forEach(({category, total}) => {
+            const totalSpend = totalsMain.reduce((sum, t) => sum + t.total, 0);
+            
+            totalsMain.forEach(({category, total}, index) => {
                 const btn = document.createElement('button');
-                btn.textContent = total > 0 ? `${category} (€${total})` : category;
-                const progressBar = document.createElement('div');
-                progressBar.className = 'progress-bar';
-                progressBar.style.width = `${(total / maxTotalMain) * 100}%`;
-                btn.appendChild(progressBar);
+                
+                // Shorter text for compact layout
+                const displayText = total > 0 ? `${category}\n€${total}` : category;
+                btn.innerHTML = displayText.replace('\n', '<br>');
+                
+                // Calculate flex-grow based on spending proportion
+                if (totalSpend > 0) {
+                    const proportion = total / totalSpend;
+                    const minFlex = 0.5; // Minimum flex for visibility
+                    const flexGrow = Math.max(minFlex, proportion * 10); // Scale up for better visibility
+                    btn.style.flexGrow = flexGrow.toString();
+                } else {
+                    btn.style.flexGrow = '1'; // Equal width if no spending data
+                }
+                
+                // Apply gradient color based on spending intensity
+                const colorRatio = total / maxTotalMain;
+                btn.style.background = getGradientColor(colorRatio);
+                btn.style.borderColor = getGradientColor(colorRatio);
+                
                 btn.onclick = () => selectCategory(category);
                 els.categoryGridMain.appendChild(btn);
             });
         }
 
-        // Render for settings category grid (for display/management)
+        // Render for settings category grid (for display/management) - simpler layout
         els.categoryGridSettings.innerHTML = ''; 
         if (categories.length === 0) {
             els.categoryGridSettings.innerHTML = '<div class="empty-state">No categories added yet. Add some below!</div>';
@@ -779,10 +973,14 @@
             totalsSettings.forEach(({category, total}) => {
                 const btn = document.createElement('button');
                 btn.textContent = total > 0 ? `${category} (€${total})` : category;
-                const progressBar = document.createElement('div');
-                progressBar.className = 'progress-bar';
-                progressBar.style.width = `${(total / maxTotalSettings) * 100}%`;
-                btn.appendChild(progressBar);
+                
+                // For settings, use a simpler flex layout with color coding
+                btn.style.flex = '1';
+                btn.style.width = 'auto';
+                const colorRatio = total / maxTotalSettings;
+                btn.style.background = getGradientColor(colorRatio);
+                btn.style.borderColor = getGradientColor(colorRatio);
+                
                 els.categoryGridSettings.appendChild(btn);
             });
         }
@@ -861,8 +1059,8 @@
           showToast('Please select a category first.', 'error');
           return;
         }
-        if (isNaN(amount) || amount <= 0) {
-          showToast('Please enter a valid positive amount.', 'error');
+        if (isNaN(amount) || amount === 0) {
+          showToast('Please enter a valid non-zero amount.', 'error');
           els.customAmount.classList.add('invalid');
           return;
         } else {
@@ -876,16 +1074,41 @@
             els.dailyDate.classList.remove('invalid');
         }
         
-        // Automatic split logic: if amount > 20, split it
-        if (amount > 20) {
-          autoSplitAmount(selectedCategory, amount, date, label);
+        // Check if we're editing an existing entry
+        if (editingEntry !== null) {
+          // Update existing entry
+          if (editingIsRecurring) {
+            const data = loadRecurringEntries();
+            if (editingIndex >= 0 && editingIndex < data.length) {
+              data[editingIndex].note = selectedCategory; // For recurring, category goes in note
+              data[editingIndex].amount = amount;
+              data[editingIndex].date = date;
+              saveRecurringEntries(data);
+            }
+          } else {
+            const data = loadDailyEntries();
+            if (editingIndex >= 0 && editingIndex < data.length) {
+              data[editingIndex].category = selectedCategory;
+              data[editingIndex].amount = amount;
+              data[editingIndex].date = date;
+              data[editingIndex].label = label;
+              saveDailyEntries(data);
+            }
+          }
+          showToast('Transaction updated successfully!', 'success');
+          cancelEdit();
         } else {
-          addDailyEntry(selectedCategory, amount, date, label);
+          // Automatic split logic: if amount > 20, split it
+          if (amount > 20) {
+            autoSplitAmount(selectedCategory, amount, date, label);
+          } else {
+            addDailyEntry(selectedCategory, amount, date, label);
+          }
+          
+          els.customAmount.value = ''; 
+          els.expenseLabel.value = ''; // Clear label after processing
+          resetAmountSection(); 
         }
-
-        els.customAmount.value = ''; 
-        els.expenseLabel.value = ''; // Clear label after processing
-        resetAmountSection(); 
       }
 
       /**
@@ -900,6 +1123,9 @@
         const numDays = Math.ceil(totalAmount / 20); // Calculate number of days based on "mod 20"
         const amountPerDay = Math.round((totalAmount / numDays) * 100) / 100; // Round to 2 decimal places
 
+        // Generate unique group ID for this split transaction
+        const splitGroupId = `split_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
         const startDate = new Date(startDateString);
         let entriesAdded = 0;
 
@@ -907,13 +1133,75 @@
           const currentDate = new Date(startDate);
           currentDate.setDate(startDate.getDate() + i); // Add i days to the start date
           const dateString = currentDate.toISOString().split('T')[0];
-          addDailyEntry(category, amountPerDay, dateString, label);
+          addDailyEntry(category, amountPerDay, dateString, label, splitGroupId);
           entriesAdded++;
         }
         
         showToast(`Amount of €${totalAmount} automatically split into ${entriesAdded} entries of €${amountPerDay} starting from ${new Date(startDateString).toLocaleDateString()}.`, 'info');
       }
 
+
+      /**
+       * Starts editing an existing transaction.
+       * @param {number} index - The index of the entry to edit.
+       * @param {boolean} isRecurring - True if editing a recurring entry, false for daily.
+       */
+      function editEntry(index, isRecurring) {
+        editingEntry = true;
+        editingIndex = index;
+        editingIsRecurring = isRecurring;
+        
+        let entry;
+        if (isRecurring) {
+          const data = loadRecurringEntries();
+          entry = data[index];
+          selectedCategory = entry.note; // For recurring, the description is in note
+        } else {
+          const data = loadDailyEntries();
+          entry = data[index];
+          selectedCategory = entry.category;
+        }
+        
+        // Populate the form with existing data
+        els.expenseLabel.value = entry.label || '';
+        els.customAmount.value = entry.amount;
+        els.dailyDate.value = entry.date;
+        
+        // Show the amount section and set editing mode
+        els.amountSection.classList.remove('hidden');
+        els.amountSection.classList.add('editing-mode');
+        els.amountSectionHeader.textContent = 'EDITING TRANSACTION';
+        els.addCustomAmountBtn.textContent = 'Update';
+        els.cancelEditBtn.style.display = 'block';
+        
+        // Select the appropriate category button
+        document.querySelectorAll('#categoryGridMain button').forEach(btn => {
+          btn.classList.remove('selected');
+          if (btn.textContent.includes(selectedCategory)) {
+            btn.classList.add('selected');
+          }
+        });
+        
+        validateInputs();
+      }
+
+      /**
+       * Cancels the current edit operation and resets the form.
+       */
+      function cancelEdit() {
+        editingEntry = null;
+        editingIndex = null;
+        editingIsRecurring = false;
+        
+        // Reset the form appearance
+        els.amountSection.classList.remove('editing-mode');
+        els.amountSectionHeader.textContent = 'Add Expense';
+        els.addCustomAmountBtn.textContent = 'Add';
+        els.cancelEditBtn.style.display = 'none';
+        
+        resetAmountSection();
+        updateUI();
+      }
 
       /**
        * Resets the amount input section and category selection.
@@ -939,10 +1227,11 @@
        * @param {number} amount - The amount of the expense.
        * @param {string} date - The date of the expense (YYYY-MM-DD format).
        * @param {string} label - The optional label/description for the expense.
+       * @param {string} splitGroupId - Optional ID to group split transactions together.
        */
-      function addDailyEntry(category, amount, date, label = '') { 
+      function addDailyEntry(category, amount, date, label = '', splitGroupId = null) { 
         const data = loadDailyEntries();
-        data.push({ category, amount, date, isRecurring: false, note: '', label }); 
+        data.push({ category, amount, date, isRecurring: false, note: '', label, splitGroupId }); 
         saveDailyEntries(data);
         updateUI(); 
       }
@@ -1024,6 +1313,23 @@
       }
 
       /**
+       * Deletes all entries in a split group.
+       * @param {string} splitGroupId - The ID of the split group to delete.
+       */
+      function deleteSplitGroup(splitGroupId) {
+        const data = loadDailyEntries();
+        const groupEntries = data.filter(entry => entry.splitGroupId === splitGroupId);
+        const totalAmount = groupEntries.reduce((sum, entry) => sum + entry.amount, 0);
+        
+        showConfirm(`Are you sure you want to delete this split transaction group? This will delete ${groupEntries.length} entries totaling €${Math.round(totalAmount)}.`, () => {
+          const newData = data.filter(entry => entry.splitGroupId !== splitGroupId);
+          saveDailyEntries(newData);
+          updateUI(); 
+          showToast(`Split group deleted (${groupEntries.length} entries removed).`, 'info');
+        });
+      }
+
+      /**
        * Updates the entire UI: re-renders categories, calculates total, and displays entries in the table.
        * Also updates the target status.
        */
@@ -1078,7 +1384,7 @@
           }
         }
 
-        // --- Render Table Entries ---
+        // --- Render Table Entries with Split Group Support ---
         const allEntries = [
           ...dailyData.map((e, idx) => ({ ...e, originalIndex: idx, type: 'daily' })),
           ...recurringData.map((e, idx) => ({ ...e, originalIndex: idx, type: 'recurring' }))
@@ -1089,7 +1395,62 @@
             return;
         }
 
-        allEntries.forEach((entry) => {
+        // Group split transactions
+        const splitGroups = {};
+        const nonSplitEntries = [];
+
+        allEntries.forEach(entry => {
+          if (entry.splitGroupId && !entry.isRecurring) {
+            if (!splitGroups[entry.splitGroupId]) {
+              splitGroups[entry.splitGroupId] = [];
+            }
+            splitGroups[entry.splitGroupId].push(entry);
+          } else {
+            nonSplitEntries.push(entry);
+          }
+        });
+
+        // Render split groups first
+        Object.keys(splitGroups).forEach(groupId => {
+          const groupEntries = splitGroups[groupId];
+          const totalAmount = groupEntries.reduce((sum, entry) => sum + entry.amount, 0);
+          const firstEntry = groupEntries[0];
+          
+          // Group header row
+          const headerRow = document.createElement('tr');
+          headerRow.classList.add('split-group-header');
+          headerRow.innerHTML = `
+            <td colspan="5"><strong>Split Transaction: ${firstEntry.category} (${groupEntries.length} parts, total €${Math.round(totalAmount)})</strong></td>
+            <td class="split-group-actions">
+              <button class="btn btn-small" onclick="App.deleteSplitGroup('${groupId}')" style="background: #f44336;">Delete Group</button>
+            </td>
+          `;
+          els.entryList.appendChild(headerRow);
+
+          // Individual entries in the group
+          groupEntries.forEach(entry => {
+            const row = document.createElement('tr');
+            row.classList.add('split-group');
+            row.style.cursor = 'pointer';
+            row.onclick = () => editEntry(entry.originalIndex, entry.isRecurring);
+
+            const formattedDate = entry.date ? new Date(entry.date).toLocaleDateString() : '-';
+            const entryLabel = entry.label || '';
+
+            row.innerHTML = `
+              <td style="padding-left: 20px;">↳ ${entry.category}</td>
+              <td>€${entry.amount < 0 ? entry.amount : Math.round(entry.amount)}</td>
+              <td>${formattedDate}</td>
+              <td>Daily (Split)</td>
+              <td>${entryLabel}</td>
+              <td><button class="btn btn-small" onclick="event.stopPropagation(); App.deleteEntry(${entry.originalIndex}, ${entry.isRecurring})">×</button></td>
+            `;
+            els.entryList.appendChild(row);
+          });
+        });
+
+        // Render non-split entries
+        nonSplitEntries.forEach((entry) => {
           const row = document.createElement('tr');
           const displayName = entry.isRecurring ? 
             `Recurring: <span class="recurring-label">${entry.note}</span>` : entry.category;
@@ -1097,13 +1458,17 @@
           const formattedDate = entry.date ? new Date(entry.date).toLocaleDateString() : '-'; 
           const entryLabel = entry.label || ''; 
 
+          // Make the row clickable for editing
+          row.style.cursor = 'pointer';
+          row.onclick = () => editEntry(entry.originalIndex, entry.isRecurring);
+
           row.innerHTML = `
             <td>${displayName}</td>
-            <td>€${Math.round(entry.amount)}</td>
+            <td>€${entry.amount < 0 ? entry.amount : Math.round(entry.amount)}</td>
             <td>${formattedDate}</td>
             <td>${entryType}</td>
             <td>${entryLabel}</td>
-            <td><button class="btn btn-small" onclick="App.deleteEntry(${entry.originalIndex}, ${entry.isRecurring})">×</button></td>
+            <td><button class="btn btn-small" onclick="event.stopPropagation(); App.deleteEntry(${entry.originalIndex}, ${entry.isRecurring})">×</button></td>
           `;
           els.entryList.appendChild(row);
         });
@@ -1143,6 +1508,149 @@
         a.click(); 
         document.body.removeChild(a); 
         URL.revokeObjectURL(url); 
+      }
+
+      /**
+       * Handles CSV file import functionality.
+       * @param {Event} event - The file input change event.
+       */
+      function handleImport(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+          showToast('Please select a CSV file.', 'error');
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const csvContent = e.target.result;
+            const lines = csvContent.split('\n').map(line => line.trim()).filter(line => line);
+            
+            if (lines.length < 3) {
+              showToast('Invalid CSV format. File appears to be empty or corrupted.', 'error');
+              return;
+            }
+
+            let importedCategories = [];
+            let importedTarget = null;
+            const importedDaily = [];
+            const importedRecurring = [];
+            let dataStartIndex = 0;
+
+            // Parse header information
+            for (let i = 0; i < lines.length; i++) {
+              const line = lines[i];
+              if (line.startsWith('Categories:')) {
+                const categoriesStr = line.substring(11);
+                importedCategories = categoriesStr.split(',').map(c => c.trim()).filter(Boolean);
+              } else if (line.startsWith('Monthly Target:')) {
+                const targetStr = line.substring(15).replace('€', '');
+                importedTarget = parseFloat(targetStr);
+              } else if (line.startsWith('Type,Category/Description,Amount,Date,Label')) {
+                dataStartIndex = i + 1;
+                break;
+              }
+            }
+
+            // Parse data entries
+            for (let i = dataStartIndex; i < lines.length; i++) {
+              const line = lines[i];
+              if (!line) continue;
+
+              // Parse CSV line (handle quoted fields)
+              const fields = [];
+              let current = '';
+              let inQuotes = false;
+              
+              for (let j = 0; j < line.length; j++) {
+                const char = line[j];
+                if (char === '"') {
+                  inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                  fields.push(current.trim());
+                  current = '';
+                } else {
+                  current += char;
+                }
+              }
+              fields.push(current.trim());
+
+              if (fields.length >= 4) {
+                const [type, categoryOrNote, amount, date, label] = fields;
+                const parsedAmount = parseFloat(amount);
+                
+                if (!isNaN(parsedAmount) && date) {
+                  if (type === 'Daily') {
+                    importedDaily.push({
+                      category: categoryOrNote,
+                      amount: parsedAmount,
+                      date: date,
+                      isRecurring: false,
+                      note: '',
+                      label: label ? label.replace(/"/g, '') : ''
+                    });
+                  } else if (type === 'Recurring') {
+                    importedRecurring.push({
+                      category: 'Recurring',
+                      amount: parsedAmount,
+                      date: date,
+                      note: categoryOrNote,
+                      isRecurring: true
+                    });
+                  }
+                }
+              }
+            }
+
+            // Confirm import with user
+            const summary = `Import Summary:
+• ${importedCategories.length} categories
+• ${importedDaily.length} daily entries
+• ${importedRecurring.length} recurring entries
+${importedTarget !== null ? `• Monthly target: €${importedTarget}` : ''}
+
+This will REPLACE all current data. Continue?`;
+
+            showConfirm(summary, () => {
+              // Import the data
+              if (importedCategories.length > 0) {
+                localStorage.setItem(CATEGORY_KEY, JSON.stringify(importedCategories));
+              }
+              if (importedTarget !== null && !isNaN(importedTarget)) {
+                saveTargetSpend(importedTarget);
+              }
+              if (importedDaily.length > 0) {
+                saveDailyEntries(importedDaily);
+              }
+              if (importedRecurring.length > 0) {
+                saveRecurringEntries(importedRecurring);
+              }
+
+              // Reset UI state and update
+              selectedCategory = null;
+              resetAmountSection();
+              updateUI();
+              
+              showToast(`Successfully imported ${importedDaily.length + importedRecurring.length} entries!`, 'success');
+            }, 'Import CSV Data');
+
+          } catch (error) {
+            console.error('Import error:', error);
+            showToast('Error reading CSV file. Please check the file format.', 'error');
+          }
+        };
+
+        reader.onerror = function() {
+          showToast('Error reading file. Please try again.', 'error');
+        };
+
+        reader.readAsText(file);
+        
+        // Reset file input
+        event.target.value = '';
       }
 
       /**
@@ -1241,8 +1749,8 @@
        * and updates the disabled state of their respective 'Add' buttons.
        */
       function validateInputs() {
-        // Validate custom amount and date for the 'Add' button
-        const customAmountValid = parseFloat(els.customAmount.value) > 0;
+        // Validate custom amount and date for the 'Add' button - allow negative amounts
+        const customAmountValid = !isNaN(parseFloat(els.customAmount.value)) && parseFloat(els.customAmount.value) !== 0;
         const dailyDateValid = els.dailyDate.value !== '';
         // Add button is enabled if valid amount, date, and category selected
         els.addCustomAmountBtn.disabled = !(customAmountValid && dailyDateValid && selectedCategory !== null);
@@ -1296,11 +1804,16 @@
         addRecurringEntry,
         saveTarget, 
         deleteEntry,
+        deleteSplitGroup,
+        editEntry,
+        cancelEdit,
         downloadCSV,
+        handleImport,
         resetAllData,
         showConfirm,
         openSettings, 
-        closeSettings 
+        closeSettings,
+        compressOldTransactions
       };
 
       // Initialize the app when the DOM content is fully loaded
