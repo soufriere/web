@@ -5,29 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Two-Tap Budget App</title>
   <style>
-    /* Global styles */
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     
     body {
       font-family: system-ui, -apple-system, sans-serif;
-      margin: 0;
+      margin: 0 auto;
       padding: 20px;
       max-width: 800px;
-      margin: 0 auto;
       background: white;
       color: #333;
       line-height: 1.4;
     }
     
-    /* Header and Total display */
     #mainHeader {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 20px;
-      position: relative; /* For responsive settings button */
+      position: relative;
     }
 
     #totalDisplayContainer {
@@ -36,22 +31,18 @@
     }
 
     #totalDisplay {
-      font-size: 5.5rem; /* Even larger font size */
+      font-size: 5.5rem;
       font-weight: 300;
       color: #000;
-      line-height: 1; /* Adjust line height for large text */
-      display: flex; /* Use flex to align amount and percentage */
+      line-height: 1;
+      display: flex;
       justify-content: center;
-      align-items: baseline; /* Align text baselines */
-      gap: 10px; /* Space between amount and percentage */
+      align-items: baseline;
+      gap: 10px;
     }
 
-    #totalAmount { /* Span for the actual amount */
-      font-size: inherit; /* Inherit font size from parent */
-    }
-
-    #percentageUsed { /* Span for the percentage */
-      font-size: 1.8rem; /* Smaller than main total, but still prominent */
+    #percentageUsed {
+      font-size: 1.8rem;
       font-weight: 400;
       color: #666;
     }
@@ -288,12 +279,18 @@
       border-collapse: collapse;
       margin-top: 30px;
       font-size: 0.9rem;
+      table-layout: fixed;
     }
     
     th, td {
-      padding: 8px 12px;
+      padding: 6px 8px;
       text-align: left;
       border-bottom: 1px solid #eee;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      vertical-align: middle;
+      line-height: 1.2;
     }
     
     th {
@@ -301,6 +298,14 @@
       color: #666;
       background: #f9f9f9;
     }
+    
+    /* Column width distribution for compact display */
+    th:nth-child(1), td:nth-child(1) { width: 30%; } /* Item */
+    th:nth-child(2), td:nth-child(2) { width: 15%; } /* Amount */
+    th:nth-child(3), td:nth-child(3) { width: 18%; } /* Date */
+    th:nth-child(4), td:nth-child(4) { width: 15%; } /* Type */
+    th:nth-child(5), td:nth-child(5) { width: 17%; } /* Label */
+    th:nth-child(6), td:nth-child(6) { width: 5%; }  /* Delete button */
     
     /* Utility classes */
     .hidden {
@@ -648,31 +653,24 @@
   <div id="toastContainer"></div>
 
   <script>
-    // Self-executing anonymous function to encapsulate the application logic
     (() => {
-      // Define constants for localStorage keys
       const DAILY_STORAGE_KEY = 'quickBudgetDailyEntries';
       const RECURRING_STORAGE_KEY = 'quickBudgetRecurringEntries';
       const CATEGORY_KEY = 'budgetCategories';
       const TARGET_KEY = 'budgetMonthlyTarget'; 
 
-      // Internal state variables
       let selectedCategory = null; 
       let modalConfirmCallback = null;
-      let editingEntry = null; // Track which entry is being edited
-      let editingIndex = null; // Track the index of the entry being edited
-      let editingIsRecurring = false; // Track if editing a recurring entry
+      let editingEntry = null;
+      let editingIndex = null;
+      let editingIsRecurring = false;
 
-      // Default categories and amounts for quick selection
       const defaultCategories = ['Food', 'Transport', 'Health', 'Fun', 'Clothes', 'Bills', 'Other'];
       const amounts = Array.from({length: 100}, (_, i) => i + 1); 
 
-      // Get references to frequently used DOM elements
       const els = {
-        // Main App Elements
-        totalDisplay: document.getElementById('totalDisplay'),
-        totalAmount: document.getElementById('totalAmount'), // NEW
-        percentageUsed: document.getElementById('percentageUsed'), // NEW
+        totalAmount: document.getElementById('totalAmount'),
+        percentageUsed: document.getElementById('percentageUsed'),
         targetStatus: document.getElementById('targetStatus'), 
         categoryGridMain: document.getElementById('categoryGridMain'),
         amountSection: document.getElementById('amountSection'),
@@ -685,8 +683,6 @@
         cancelEditBtn: document.getElementById('cancelEditBtn'),
         entryList: document.getElementById('entryList'),
         toastContainer: document.getElementById('toastContainer'),
-
-        // Settings Overlay Elements
         settingsOverlay: document.getElementById('settingsOverlay'), 
         categoryGridSettings: document.getElementById('categoryGridSettings'),
         categoryInput: document.getElementById('categoryInput'), 
@@ -695,8 +691,6 @@
         addRecurringEntryBtn: document.getElementById('addRecurringEntryBtn'),
         targetInput: document.getElementById('targetInput'), 
         saveTargetBtn: document.getElementById('saveTargetBtn'), 
-
-        // Custom Modal Elements (for alerts/confirms)
         customModal: document.getElementById('customModal'),
         modalTitle: document.getElementById('modalTitle'),
         modalMessage: document.getElementById('modalMessage'),
@@ -704,77 +698,48 @@
         modalCancelBtn: document.getElementById('modalCancelBtn'),
       };
 
-      // --- Utility Functions for Local Storage ---
-
-      /**
-       * Retrieves categories from localStorage or returns defaults.
-       * Also updates the category input field in settings.
-       * @returns {string[]} An array of category strings.
-       */
       function getCategories() {
         const saved = localStorage.getItem(CATEGORY_KEY);
         try {
           if (saved) {
             const parsed = JSON.parse(saved);
             const filtered = parsed.filter(Boolean);
-            if (els.categoryInput) {
-                els.categoryInput.value = filtered.join(', ');
-            }
+            if (els.categoryInput) els.categoryInput.value = filtered.join(', ');
             return filtered;
           }
         } catch (e) {
-          console.error("Error parsing categories from localStorage, using default.", e);
+          console.error("Error parsing categories, using default.", e);
         }
-        if (els.categoryInput) {
-            els.categoryInput.value = defaultCategories.join(', ');
-        }
+        if (els.categoryInput) els.categoryInput.value = defaultCategories.join(', ');
         return defaultCategories;
       }
 
-      /**
-       * Saves an array of daily expense entries to localStorage.
-       * @param {object[]} data - Array of daily expense objects.
-       */
       function saveDailyEntries(data) {
         localStorage.setItem(DAILY_STORAGE_KEY, JSON.stringify(data));
       }
 
-      /**
-       * Loads daily expense entries from localStorage.
-       * Ensures 'label' field is present, defaulting to empty string.
-       * @returns {object[]} An array of daily expense objects.
-       */
       function loadDailyEntries() {
         const saved = localStorage.getItem(DAILY_STORAGE_KEY);
         try {
           const loadedData = saved ? JSON.parse(saved) : [];
-          // Ensure all loaded entries have a 'label' property
           return loadedData.map(entry => ({ ...entry, label: entry.label || '' }));
         } catch (e) {
-          console.error("Error parsing daily entries from localStorage, returning empty array.", e);
+          console.error("Error parsing daily entries, returning empty array.", e);
           return [];
         }
       }
 
-      /**
-       * Compresses old transactions (older than 2 months) into monthly summaries.
-       * This keeps the dataset manageable by aggregating old detailed entries.
-       */
       function compressOldTransactions() {
         const data = loadDailyEntries();
         const twoMonthsAgo = new Date();
         twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
-        twoMonthsAgo.setDate(1); // Start of the month 2 months ago
+        twoMonthsAgo.setDate(1);
         
-        // Separate old and recent entries
         const oldEntries = data.filter(entry => new Date(entry.date) < twoMonthsAgo);
         const recentEntries = data.filter(entry => new Date(entry.date) >= twoMonthsAgo);
         
-        if (oldEntries.length === 0) {
-          return; // Nothing to compress
-        }
+        if (oldEntries.length === 0) return;
         
-        // Group old entries by category and month
         const monthlyGroups = {};
         oldEntries.forEach(entry => {
           const date = new Date(entry.date);
@@ -794,16 +759,14 @@
           monthlyGroups[groupKey].totalAmount += entry.amount;
           monthlyGroups[groupKey].count += 1;
           
-          // Keep the earliest date for the compressed entry
           if (entry.date < monthlyGroups[groupKey].firstDate) {
             monthlyGroups[groupKey].firstDate = entry.date;
           }
         });
         
-        // Create compressed entries
         const compressedEntries = Object.values(monthlyGroups).map(group => ({
           category: group.category,
-          amount: Math.round(group.totalAmount * 100) / 100, // Round to 2 decimal places
+          amount: Math.round(group.totalAmount * 100) / 100,
           date: group.firstDate,
           isRecurring: false,
           note: '',
@@ -811,63 +774,41 @@
           isCompressed: true
         }));
         
-        // Combine compressed entries with recent entries
         const newData = [...compressedEntries, ...recentEntries];
         saveDailyEntries(newData);
         
         showToast(`Compressed ${oldEntries.length} old entries into ${compressedEntries.length} monthly summaries.`, 'info');
       }
 
-      /**
-       * Saves an array of recurring expense entries to localStorage.
-       * @param {object[]} data - Array of recurring expense objects.
-       */
       function saveRecurringEntries(data) {
         localStorage.setItem(RECURRING_STORAGE_KEY, JSON.stringify(data));
       }
 
-      /**
-       * Loads recurring expense entries from localStorage.
-       * @returns {object[]} An array of recurring expense objects.
-       */
       function loadRecurringEntries() {
         const saved = localStorage.getItem(RECURRING_STORAGE_KEY);
         try {
           return saved ? JSON.parse(saved) : [];
         } catch (e) {
-          console.error("Error parsing recurring entries from localStorage, returning empty array.", e);
+          console.error("Error parsing recurring entries, returning empty array.", e);
           return [];
         }
       }
 
-      /**
-       * Saves the monthly target spend to localStorage.
-       * @param {number} target - The monthly target amount.
-       */
       function saveTargetSpend(target) {
         localStorage.setItem(TARGET_KEY, JSON.stringify(target));
       }
 
-      /**
-       * Loads the monthly target spend from localStorage.
-       * @returns {number|null} The target amount or null if not set.
-       */
       function loadTargetSpend() {
         const saved = localStorage.getItem(TARGET_KEY);
         try {
           const parsed = saved ? JSON.parse(saved) : null;
           return (typeof parsed === 'number' && !isNaN(parsed)) ? parsed : null;
         } catch (e) {
-          console.error("Error parsing target spend from localStorage, returning null.", e);
+          console.error("Error parsing target spend, returning null.", e);
           return null;
         }
       }
 
-      // --- Core Application Logic Functions ---
-
-      /**
-       * Saves custom categories entered by the user.
-       */
       function saveCustomCategories() {
         const input = els.categoryInput.value;
         if (!input.trim()) {
@@ -881,11 +822,6 @@
         showToast('Categories saved!', 'success');
       }
 
-      /**
-       * Calculates the extrapolated monthly total for a given category based on daily expenses.
-       * @param {string} category - The category to calculate the total for.
-       * @returns {number} The estimated monthly total for the category.
-       */
       function getCategoryTotal(category) {
         const data = loadDailyEntries();
         const categoryEntries = data.filter(e => e.category === category);
@@ -901,21 +837,11 @@
         return Math.round((total / spanDays) * 30);
       }
 
-      /**
-       * Generates a gradient color from light orange to dark red based on a ratio (0-1).
-       * @param {number} ratio - Value between 0 and 1 (0 = light orange, 1 = dark red)
-       * @returns {string} RGB color string
-       */
       function getGradientColor(ratio) {
-        // Clamp ratio between 0 and 1
         ratio = Math.max(0, Math.min(1, ratio));
-        
-        // Light orange to dark red gradient
-        // Light orange: rgb(255, 165, 100) to Dark red: rgb(139, 0, 0)
-        const red = Math.round(255 - (116 * ratio)); // 255 to 139
-        const green = Math.round(165 * (1 - ratio)); // 165 to 0
-        const blue = Math.round(100 * (1 - ratio)); // 100 to 0
-        
+        const red = Math.round(255 - (116 * ratio));
+        const green = Math.round(165 * (1 - ratio));
+        const blue = Math.round(100 * (1 - ratio));
         return `rgb(${red}, ${green}, ${blue})`;
       }
 
@@ -1410,53 +1336,42 @@
           }
         });
 
-        // Render split groups first
+        // Render split groups as single compact lines
         Object.keys(splitGroups).forEach(groupId => {
           const groupEntries = splitGroups[groupId];
           const totalAmount = groupEntries.reduce((sum, entry) => sum + entry.amount, 0);
           const firstEntry = groupEntries[0];
+          const lastEntry = groupEntries[groupEntries.length - 1];
           
-          // Group header row
-          const headerRow = document.createElement('tr');
-          headerRow.classList.add('split-group-header');
-          headerRow.innerHTML = `
-            <td colspan="5"><strong>Split Transaction: ${firstEntry.category} (${groupEntries.length} parts, total €${Math.round(totalAmount)})</strong></td>
-            <td class="split-group-actions">
-              <button class="btn btn-small" onclick="App.deleteSplitGroup('${groupId}')" style="background: #f44336;">Delete Group</button>
-            </td>
+          // Single compact row for split transaction
+          const row = document.createElement('tr');
+          row.style.cursor = 'pointer';
+          row.onclick = () => editEntry(firstEntry.originalIndex, firstEntry.isRecurring);
+
+          const formattedStartDate = firstEntry.date ? new Date(firstEntry.date).toLocaleDateString() : '-';
+          const formattedEndDate = lastEntry.date ? new Date(lastEntry.date).toLocaleDateString() : '-';
+          const dateRange = formattedStartDate === formattedEndDate ? formattedStartDate : `${formattedStartDate} - ${formattedEndDate}`;
+          const entryLabel = (firstEntry.label || '').replace(/\n/g, ' ').trim();
+
+          row.innerHTML = `
+            <td>${firstEntry.category} (Split ${groupEntries.length}x)</td>
+            <td>€${totalAmount < 0 ? totalAmount : Math.round(totalAmount)}</td>
+            <td>${dateRange}</td>
+            <td>Daily (Split)</td>
+            <td>${entryLabel}</td>
+            <td><button class="btn btn-small" onclick="event.stopPropagation(); App.deleteSplitGroup('${groupId}')" style="background: #f44336;">×</button></td>
           `;
-          els.entryList.appendChild(headerRow);
-
-          // Individual entries in the group
-          groupEntries.forEach(entry => {
-            const row = document.createElement('tr');
-            row.classList.add('split-group');
-            row.style.cursor = 'pointer';
-            row.onclick = () => editEntry(entry.originalIndex, entry.isRecurring);
-
-            const formattedDate = entry.date ? new Date(entry.date).toLocaleDateString() : '-';
-            const entryLabel = entry.label || '';
-
-            row.innerHTML = `
-              <td style="padding-left: 20px;">↳ ${entry.category}</td>
-              <td>€${entry.amount < 0 ? entry.amount : Math.round(entry.amount)}</td>
-              <td>${formattedDate}</td>
-              <td>Daily (Split)</td>
-              <td>${entryLabel}</td>
-              <td><button class="btn btn-small" onclick="event.stopPropagation(); App.deleteEntry(${entry.originalIndex}, ${entry.isRecurring})">×</button></td>
-            `;
-            els.entryList.appendChild(row);
-          });
+          els.entryList.appendChild(row);
         });
 
         // Render non-split entries
         nonSplitEntries.forEach((entry) => {
           const row = document.createElement('tr');
           const displayName = entry.isRecurring ? 
-            `Recurring: <span class="recurring-label">${entry.note}</span>` : entry.category;
+            `Recurring: ${entry.note}`.replace(/\n/g, ' ').trim() : entry.category;
           const entryType = entry.isRecurring ? 'Recurring' : 'Daily';
           const formattedDate = entry.date ? new Date(entry.date).toLocaleDateString() : '-'; 
-          const entryLabel = entry.label || ''; 
+          const entryLabel = (entry.label || '').replace(/\n/g, ' ').trim(); 
 
           // Make the row clickable for editing
           row.style.cursor = 'pointer';
