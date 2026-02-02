@@ -1,3 +1,35 @@
+/*
+ * BUDGET TRACKER - SEGMENT LOGIC DOCUMENTATION
+ *
+ * This app manages three distinct budget segments, each with different calculation logic:
+ *
+ * 1. DAILY SEGMENT
+ *    Purpose: Track day-to-day discretionary spending
+ *    Calculation: 30-day rolling average
+ *    - Uses only transactions from the last 30 days
+ *    - If less than 30 days of data, prorates to 30-day equivalent
+ *    - Formula: (total / days_of_data) * 30
+ *    Labels: NO labels required (uses category buttons: In Food, Out Food, Shopping, Entertainment, Others)
+ *    Income/Expense: Both supported - income reduces net spending
+ *
+ * 2. BILLS SEGMENT
+ *    Purpose: Track recurring monthly bills and subscriptions
+ *    Calculation: Static sum of all bill transactions (not time-based)
+ *    - Running total of all bill transactions ever recorded
+ *    - Represents monthly recurring costs
+ *    Labels: REQUIRED - each transaction must have a description
+ *    Income/Expense: Both supported - income reduces net bills
+ *
+ * 3. SPECIALS SEGMENT
+ *    Purpose: Track large expenses (>€100) like travel, shopping, etc.
+ *    Calculation: Monthly average of all special expenses
+ *    - Sums all special transactions across the entire year
+ *    - Divides by number of months of data to get monthly average
+ *    - Answers: "How much do special expenses cost me per month on average?"
+ *    Labels: REQUIRED - each transaction must have a description
+ *    Income/Expense: Both supported - income reduces net specials
+ */
+
 // Data structure
 let data = {
     bills: 0,
@@ -270,33 +302,49 @@ function saveSettings() {
 
 // Calculate total spending for a segment
 function calculateSegmentSpending(segment) {
-    // For bills and specials, use total of all transactions
-    if (segment === 'bills' || segment === 'specials') {
-        const segmentExpenses = data.expenses.filter(exp => exp.segment === segment);
+    const segmentExpenses = data.expenses.filter(exp => exp.segment === segment);
+
+    if (segmentExpenses.length === 0) return 0;
+
+    // BILLS: Static sum of all bill transactions
+    if (segment === 'bills') {
         return segmentExpenses.reduce((sum, exp) => {
-            // Income reduces the total, expenses increase it
             const multiplier = exp.type === 'income' ? -1 : 1;
             return sum + (exp.amount * multiplier);
         }, 0);
     }
 
-    // For daily, use 30-day calculation
+    // SPECIALS: Monthly average of all special expenses
+    if (segment === 'specials') {
+        const total = segmentExpenses.reduce((sum, exp) => {
+            const multiplier = exp.type === 'income' ? -1 : 1;
+            return sum + (exp.amount * multiplier);
+        }, 0);
+
+        // Calculate number of months of data
+        const now = Date.now();
+        const oldestExpense = Math.min(...segmentExpenses.map(exp => exp.date));
+        const monthsOfData = Math.max(1, (now - oldestExpense) / (30 * 24 * 60 * 60 * 1000));
+
+        // Return monthly average
+        return total / monthsOfData;
+    }
+
+    // DAILY: 30-day rolling average
     const now = Date.now();
     const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
-    const segmentExpenses = data.expenses.filter(exp =>
-        exp.segment === segment && exp.date >= thirtyDaysAgo
-    );
+    const recentExpenses = segmentExpenses.filter(exp => exp.date >= thirtyDaysAgo);
 
-    if (segmentExpenses.length === 0) return 0;
+    if (recentExpenses.length === 0) return 0;
 
-    const total = segmentExpenses.reduce((sum, exp) => {
-        // Income reduces the total, expenses increase it
+    const total = recentExpenses.reduce((sum, exp) => {
         const multiplier = exp.type === 'income' ? -1 : 1;
         return sum + (exp.amount * multiplier);
     }, 0);
-    const oldestExpense = Math.min(...segmentExpenses.map(exp => exp.date));
+    const oldestExpense = Math.min(...recentExpenses.map(exp => exp.date));
     const daysOfData = Math.max(1, (now - oldestExpense) / (24 * 60 * 60 * 1000));
 
+    // Prorate to 30 days if less data available
     return daysOfData < 30 ? (total / daysOfData) * 30 : total;
 }
 
