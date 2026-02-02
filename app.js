@@ -22,9 +22,9 @@
  *
  * 3. SPECIALS SEGMENT
  *    Purpose: Track large expenses (>€100) like travel, shopping, etc.
- *    Calculation: Monthly average of all special expenses
+ *    Calculation: Annual expenses divided by 12 to get monthly average
  *    - Sums all special transactions across the entire year
- *    - Divides by number of months of data to get monthly average
+ *    - Divides by 12 months to get monthly average
  *    - Answers: "How much do special expenses cost me per month on average?"
  *    Labels: REQUIRED - each transaction must have a description
  *    Income/Expense: Both supported - income reduces net specials
@@ -314,20 +314,15 @@ function calculateSegmentSpending(segment) {
         }, 0);
     }
 
-    // SPECIALS: Monthly average of all special expenses
+    // SPECIALS: Annual expenses divided by 12 for monthly average
     if (segment === 'specials') {
         const total = segmentExpenses.reduce((sum, exp) => {
             const multiplier = exp.type === 'income' ? -1 : 1;
             return sum + (exp.amount * multiplier);
         }, 0);
 
-        // Calculate number of months of data
-        const now = Date.now();
-        const oldestExpense = Math.min(...segmentExpenses.map(exp => exp.date));
-        const monthsOfData = Math.max(1, (now - oldestExpense) / (30 * 24 * 60 * 60 * 1000));
-
-        // Return monthly average
-        return total / monthsOfData;
+        // Divide by 12 months to get monthly average from annual data
+        return total / 12;
     }
 
     // DAILY: 30-day rolling average
