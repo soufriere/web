@@ -9,12 +9,22 @@ let data = {
 // Current state
 let selectedSegment = 'daily';
 let currentAmount = '';
+let transactionType = 'expense'; // 'expense' or 'income'
 
 // Load data
 function loadData() {
     const saved = localStorage.getItem('budgetTrackerData');
     if (saved) {
         data = JSON.parse(saved);
+        // Migrate old data without type field
+        if (data.expenses) {
+            data.expenses = data.expenses.map(exp => {
+                if (!exp.type) {
+                    exp.type = 'expense'; // Default to expense for old data
+                }
+                return exp;
+            });
+        }
     }
     render();
 }
@@ -48,6 +58,10 @@ function setupEventListeners() {
 
     // Clear button
     document.getElementById('clearBtn').addEventListener('click', clearAmount);
+
+    // Transaction type toggle
+    document.getElementById('expenseBtn').addEventListener('click', () => setTransactionType('expense'));
+    document.getElementById('incomeBtn').addEventListener('click', () => setTransactionType('income'));
 
     // Category buttons
     document.querySelectorAll('.category-button').forEach(button => {
@@ -85,6 +99,28 @@ function setupEventListeners() {
     });
 }
 
+// Set transaction type
+function setTransactionType(type) {
+    transactionType = type;
+
+    // Update toggle buttons
+    document.getElementById('expenseBtn').classList.toggle('active', type === 'expense');
+    document.getElementById('incomeBtn').classList.toggle('active', type === 'income');
+
+    // Update segment label
+    updateSegmentLabel();
+}
+
+// Update segment label based on selected segment and transaction type
+function updateSegmentLabel() {
+    const labels = {
+        bills: transactionType === 'income' ? 'Bills Income' : 'Bills Expense',
+        specials: transactionType === 'income' ? 'Special Income' : 'Special Expense',
+        daily: transactionType === 'income' ? 'Daily Income' : 'Daily Expense'
+    };
+    document.getElementById('selectedLabel').textContent = labels[selectedSegment];
+}
+
 // Select budget segment
 function selectSegment(segment) {
     selectedSegment = segment;
@@ -96,12 +132,7 @@ function selectSegment(segment) {
     document.getElementById(`${segment}-segment`).classList.add('active');
 
     // Update label
-    const labels = {
-        bills: 'Bills Expense',
-        specials: 'Special Expense',
-        daily: 'Daily Expense'
-    };
-    document.getElementById('selectedLabel').textContent = labels[segment];
+    updateSegmentLabel();
 
     // Update input field background color based on active segment
     const amountInput = document.getElementById('amountInput');
@@ -151,7 +182,8 @@ function addExpense(category) {
         segment: selectedSegment,
         category: category,
         label: category,
-        date: Date.now()
+        date: Date.now(),
+        type: transactionType // 'expense' or 'income'
     };
 
     data.expenses.unshift(expense);
@@ -165,9 +197,10 @@ function openLabelModal() {
     const amount = parseFloat(currentAmount);
     if (!amount || amount === 0) return;
 
+    const typeText = transactionType === 'income' ? 'Income' : 'Expense';
     const titles = {
-        bills: 'Add Bills Description',
-        specials: 'Add Specials Description'
+        bills: `Add Bills ${typeText} Description`,
+        specials: `Add Specials ${typeText} Description`
     };
     document.getElementById('labelModalTitle').textContent = titles[selectedSegment];
     document.getElementById('labelInput').value = '';
@@ -194,7 +227,8 @@ function saveLabelExpense() {
         segment: selectedSegment,
         category: selectedSegment,
         label: label,
-        date: Date.now()
+        date: Date.now(),
+        type: transactionType // 'expense' or 'income'
     };
 
     data.expenses.unshift(expense);
@@ -239,7 +273,11 @@ function calculateSegmentSpending(segment) {
     // For bills and specials, use total of all transactions
     if (segment === 'bills' || segment === 'specials') {
         const segmentExpenses = data.expenses.filter(exp => exp.segment === segment);
-        return segmentExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+        return segmentExpenses.reduce((sum, exp) => {
+            // Income reduces the total, expenses increase it
+            const multiplier = exp.type === 'income' ? -1 : 1;
+            return sum + (exp.amount * multiplier);
+        }, 0);
     }
 
     // For daily, use 30-day calculation
@@ -251,7 +289,11 @@ function calculateSegmentSpending(segment) {
 
     if (segmentExpenses.length === 0) return 0;
 
-    const total = segmentExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const total = segmentExpenses.reduce((sum, exp) => {
+        // Income reduces the total, expenses increase it
+        const multiplier = exp.type === 'income' ? -1 : 1;
+        return sum + (exp.amount * multiplier);
+    }, 0);
     const oldestExpense = Math.min(...segmentExpenses.map(exp => exp.date));
     const daysOfData = Math.max(1, (now - oldestExpense) / (24 * 60 * 60 * 1000));
 
@@ -281,7 +323,9 @@ function getCategoryBreakdown() {
 
     dailyExpenses.forEach(exp => {
         if (categories.hasOwnProperty(exp.category)) {
-            categories[exp.category] += exp.amount;
+            // Income reduces the total, expenses increase it
+            const multiplier = exp.type === 'income' ? -1 : 1;
+            categories[exp.category] += exp.amount * multiplier;
         }
     });
 
@@ -383,15 +427,20 @@ function renderExpenses() {
     }
 
     container.innerHTML = filteredExpenses
-        .map(exp => `
-            <div class="expense-item ${exp.segment}">
-                <div class="expense-info">
-                    <span class="expense-amount">€${fmt(exp.amount)}</span>
-                    <span class="expense-meta">${exp.label} • ${new Date(exp.date).toLocaleDateString()}</span>
+        .map(exp => {
+            const isIncome = exp.type === 'income';
+            const prefix = isIncome ? '+' : '';
+            const typeClass = isIncome ? 'income' : 'expense';
+            return `
+                <div class="expense-item ${exp.segment} ${typeClass}">
+                    <div class="expense-info">
+                        <span class="expense-amount">${prefix}€${fmt(exp.amount)}</span>
+                        <span class="expense-meta">${exp.label} • ${new Date(exp.date).toLocaleDateString()}</span>
+                    </div>
+                    <button class="delete-button" onclick="deleteExpense(${exp.id})">✕</button>
                 </div>
-                <button class="delete-button" onclick="deleteExpense(${exp.id})">✕</button>
-            </div>
-        `)
+            `;
+        })
         .join('');
 }
 

@@ -61,6 +61,10 @@
         <!-- Quick Entry -->
         <div class="quick-entry">
             <div class="selected-segment-label" id="selectedLabel">Daily Expense</div>
+            <div class="transaction-type-toggle">
+                <button class="toggle-button active" id="expenseBtn" data-type="expense">Expense</button>
+                <button class="toggle-button" id="incomeBtn" data-type="income">Income</button>
+            </div>
             <div class="amount-input-container">
                 <input type="text" id="amountInput" class="amount-input" placeholder="0" readonly>
                 <button class="clear-button" id="clearBtn">✕</button>
