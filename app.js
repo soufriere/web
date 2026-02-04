@@ -116,6 +116,7 @@ function setupEventListeners() {
     document.getElementById('settingsBtn').addEventListener('click', openSettings);
     document.getElementById('closeSettings').addEventListener('click', closeSettings);
     document.getElementById('saveSettings').addEventListener('click', saveSettings);
+    document.getElementById('deleteAllData').addEventListener('click', deleteAllData);
 
     // Label modal
     document.getElementById('closeLabelModal').addEventListener('click', closeLabelModal);
@@ -299,6 +300,22 @@ function saveSettings() {
     closeSettings();
 }
 
+function deleteAllData() {
+    if (confirm('Are you sure you want to delete ALL data?\n\nThis will permanently delete:\n- All budget settings\n- All transactions\n- All expenses\n\nThis action cannot be undone!')) {
+        // Reset data to initial state
+        data = {
+            bills: 0,
+            specials: 0,
+            daily: 0,
+            expenses: []
+        };
+        saveData();
+        render();
+        closeSettings();
+        alert('All data has been deleted.');
+    }
+}
+
 // Calculate total spending for a segment
 function calculateSegmentSpending(segment) {
     const segmentExpenses = data.expenses.filter(exp => exp.segment === segment);
@@ -403,10 +420,11 @@ function render() {
     const specialsSpending = calculateSegmentSpending('specials');
     const dailySpending = calculateSegmentSpending('daily');
 
-    // Use the higher of budget or actual spending for each segment
-    const billsDisplay = Math.max(data.bills, billsSpending);
-    const specialsDisplay = Math.max(data.specials, specialsSpending);
-    const dailyDisplay = Math.max(data.daily * 30, dailySpending);
+    // Use calculated spending directly (no Math.max override)
+    // This allows the smooth transition logic to work correctly
+    const billsDisplay = billsSpending || data.bills;
+    const specialsDisplay = specialsSpending || data.specials;
+    const dailyDisplay = dailySpending || (data.daily * 30);
 
     // Calculate total for percentages
     const totalBudget = billsDisplay + specialsDisplay + dailyDisplay;

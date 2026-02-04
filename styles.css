@@ -608,6 +608,20 @@ h1 {
     transform: scale(0.98);
 }
 
+.modal-button.danger {
+    background: #dc2626;
+    color: white;
+    margin-top: 12px;
+}
+
+.modal-button.danger:hover {
+    background: #b91c1c;
+}
+
+.modal-button.danger:active {
+    transform: scale(0.98);
+}
+
 /* Import/Export Textarea */
 .import-export-textarea {
     width: 100%;
