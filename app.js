@@ -533,6 +533,16 @@ function importData() {
                 Array.isArray(importedData.expenses)) {
 
                 if (confirm('This will replace all current data. Continue?')) {
+                    // Migrate old data without type field
+                    if (importedData.expenses) {
+                        importedData.expenses = importedData.expenses.map(exp => {
+                            if (!exp.type) {
+                                exp.type = 'expense'; // Default to expense for old data
+                            }
+                            return exp;
+                        });
+                    }
+
                     data = importedData;
                     saveData();
                     render();

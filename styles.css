@@ -383,6 +383,7 @@ h1 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
+    padding-bottom: 220px; /* Space for fixed action buttons */
 }
 
 .expense-item {
