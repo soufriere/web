@@ -454,10 +454,11 @@ h1 {
     transform: scale(1.1);
 }
 
-/* Action Buttons (Settings, Import, Export) */
+/* Action Buttons (Settings, Import, Export, Sync) */
 .settings-button,
 .export-button,
-.import-button {
+.import-button,
+.sync-button {
     position: fixed;
     width: 56px;
     height: 56px;
@@ -496,6 +497,16 @@ h1 {
     background: #1d4ed8;
 }
 
+.sync-button {
+    bottom: 218px;
+    right: 20px;
+    background: #7c3aed;
+}
+
+.sync-button:hover {
+    background: #6d28d9;
+}
+
 .settings-button:hover {
     background: #475569;
     transform: scale(1.05);
@@ -503,7 +514,8 @@ h1 {
 
 .settings-button:active,
 .export-button:active,
-.import-button:active {
+.import-button:active,
+.sync-button:active {
     transform: scale(0.95);
 }
 
