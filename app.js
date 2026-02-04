@@ -61,6 +61,10 @@ function loadData() {
             });
         }
     }
+
+    // Check for URL hash data and import if present
+    importFromURLHash();
+
     render();
 }
 
@@ -572,6 +576,142 @@ function copyToClipboard() {
     document.execCommand('copy');
     alert('Copied to clipboard!');
 }
+
+// URL Hash Sync Functions
+function getFilteredDataForSync() {
+    const now = Date.now();
+    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+
+    // Filter transactions based on segment rules
+    const filteredExpenses = data.expenses.filter(exp => {
+        // Include all transactions for bills and specials
+        if (exp.segment === 'bills' || exp.segment === 'specials') {
+            return true;
+        }
+        // Include only last 30 days for daily
+        if (exp.segment === 'daily') {
+            return exp.date >= thirtyDaysAgo;
+        }
+        return false;
+    });
+
+    return {
+        bills: data.bills,
+        specials: data.specials,
+        daily: data.daily,
+        expenses: filteredExpenses
+    };
+}
+
+function exportToURLHash() {
+    const syncData = getFilteredDataForSync();
+    const jsonString = JSON.stringify(syncData);
+    const encoded = btoa(encodeURIComponent(jsonString));
+
+    const url = window.location.origin + window.location.pathname + '#' + encoded;
+
+    // Copy to clipboard
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Sync URL copied to clipboard!\n\nShare this URL to sync your budget data to another device.');
+        }).catch(() => {
+            // Fallback
+            showURLInModal(url);
+        });
+    } else {
+        // Fallback for older browsers
+        showURLInModal(url);
+    }
+}
+
+function showURLInModal(url) {
+    const textarea = document.getElementById('importExportText');
+    textarea.value = url;
+    document.getElementById('importExportModal').classList.add('active');
+    textarea.select();
+    alert('Sync URL ready! Copy it from the text box.');
+}
+
+function importFromURLHash() {
+    const hash = window.location.hash.substring(1);
+    if (!hash) return false;
+
+    try {
+        const jsonString = decodeURIComponent(atob(hash));
+        const importedData = JSON.parse(jsonString);
+
+        // Validate data structure
+        if (typeof importedData.bills === 'number' &&
+            typeof importedData.specials === 'number' &&
+            typeof importedData.daily === 'number' &&
+            Array.isArray(importedData.expenses)) {
+
+            // Check if we already have local data
+            const hasLocalData = data.expenses && data.expenses.length > 0;
+
+            if (hasLocalData) {
+                if (confirm('Found data in URL. Merge with existing data or replace?\n\nOK = Merge (recommended)\nCancel = Skip import')) {
+                    mergeData(importedData);
+                    render();
+                    // Clear hash after import
+                    window.location.hash = '';
+                    alert('Data merged successfully!');
+                    return true;
+                }
+            } else {
+                // No local data, just import
+                data = importedData;
+                // Migrate old data without type field
+                if (data.expenses) {
+                    data.expenses = data.expenses.map(exp => {
+                        if (!exp.type) {
+                            exp.type = 'expense';
+                        }
+                        return exp;
+                    });
+                }
+                saveData();
+                render();
+                // Clear hash after import
+                window.location.hash = '';
+                alert('Data imported successfully!');
+                return true;
+            }
+        }
+    } catch (e) {
+        console.error('Failed to import from URL hash:', e);
+    }
+    return false;
+}
+
+function mergeData(importedData) {
+    // Update budgets to the imported values
+    data.bills = importedData.bills;
+    data.specials = importedData.specials;
+    data.daily = importedData.daily;
+
+    // Merge expenses - avoid duplicates based on id
+    const existingIds = new Set(data.expenses.map(exp => exp.id));
+    const newExpenses = importedData.expenses.filter(exp => !existingIds.has(exp.id));
+
+    // Migrate old data without type field
+    const migratedNew = newExpenses.map(exp => {
+        if (!exp.type) {
+            exp.type = 'expense';
+        }
+        return exp;
+    });
+
+    data.expenses = [...data.expenses, ...migratedNew];
+
+    // Sort by date (newest first)
+    data.expenses.sort((a, b) => b.date - a.date);
+
+    saveData();
+}
+
+// Make exportToURLHash global for onclick
+window.exportToURLHash = exportToURLHash;
 
 // Register service worker
 if ('serviceWorker' in navigator) {
