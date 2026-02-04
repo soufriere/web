@@ -414,7 +414,7 @@ function render() {
     // Use the higher of budget or actual spending for each segment
     const billsDisplay = Math.max(data.bills, billsSpending);
     const specialsDisplay = Math.max(data.specials, specialsSpending);
-    const dailyDisplay = Math.max(data.daily, dailySpending);
+    const dailyDisplay = Math.max(data.daily * 30, dailySpending);
 
     // Calculate total for percentages
     const totalBudget = billsDisplay + specialsDisplay + dailyDisplay;
@@ -438,7 +438,7 @@ function render() {
     // Update 30-day spend
     const spendElement = document.getElementById('thirtyDaySpend');
     spendElement.textContent = `€${fmt(dailySpending)}`;
-    spendElement.className = dailySpending > data.daily ? 'over-budget' : 'under-budget';
+    spendElement.className = dailySpending > (data.daily * 30) ? 'over-budget' : 'under-budget';
 
     // Render category breakdown
     renderCategoryBreakdown();
