@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a2e">
+    <title>12 Week Challenge</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f0;
+            padding: 16px;
+            min-height: 100vh;
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 400;
+        }
+
+        .goals {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .goal {
+            text-align: center;
+        }
+
+        .goal-label {
+            font-size: 14px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #333;
+        }
+
+        .box {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #2c3e85;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .box.half {
+            background: linear-gradient(to top, #60a5fa 50%, transparent 50%);
+            border-color: #60a5fa;
+        }
+
+        .box.filled {
+            background: #2c3e85;
+        }
+
+        .box.recent {
+            border-color: #22c55e;
+            background: #22c55e;
+        }
+
+        .box.recent.half {
+            border-color: #22c55e;
+            background: linear-gradient(to top, #22c55e 50%, transparent 50%);
+        }
+
+        .weeks {
+            display: grid;
+            gap: 16px;
+        }
+
+        .week {
+            display: grid;
+            grid-template-columns: 40px repeat(4, 1fr);
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            align-items: center;
+        }
+
+        .week:last-child {
+            border-bottom: none;
+        }
+
+        .week-number {
+            font-size: 14px;
+            color: #999;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .week-boxes {
+            display: flex;
+            gap: 3px;
+            justify-content: center;
+        }
+
+        .reset-btn {
+            margin-top: 24px;
+            width: 100%;
+            padding: 12px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+
+        .reset-btn:active {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>12 week challenge</h1>
+        
+        <div class="goals">
+            <div class="goal">
+                <div class="goal-label">RUN</div>
+            </div>
+            <div class="goal">
+                <div class="goal-label">BODY</div>
+            </div>
+            <div class="goal">
+                <div class="goal-label">READ</div>
+            </div>
+            <div class="goal">
+                <div class="goal-label">WRITE</div>
+            </div>
+        </div>
+
+        <div class="weeks" id="weeks"></div>
+
+        <button class="reset-btn" onclick="resetAll()">Reset All</button>
+    </div>
+
+    <script>
+        const STORAGE_KEY = '12week_challenge';
+        const WEEKS = 12;
+        const BOXES_PER_WEEK = { run: 3, body: 3, read: 3, write: 4 };
+
+        function loadData() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+            
+            const data = { weeks: [], recentChanges: [] };
+            
+            for (let i = 0; i < WEEKS; i++) {
+                data.weeks.push({
+                    run: Array(3).fill(0),
+                    body: Array(3).fill(0),
+                    read: Array(3).fill(0),
+                    write: Array(4).fill(0)
+                });
+            }
+            return data;
+        }
+
+        function saveData(data) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        }
+
+        function addRecentChange(data, weekIdx, goal, boxIdx) {
+            const changeId = `${weekIdx}-${goal}-${boxIdx}`;
+            data.recentChanges = data.recentChanges.filter(id => id !== changeId);
+            data.recentChanges.push(changeId);
+            if (data.recentChanges.length > 3) {
+                data.recentChanges.shift();
+            }
+        }
+
+        function isRecentChange(data, weekIdx, goal, boxIdx) {
+            const changeId = `${weekIdx}-${goal}-${boxIdx}`;
+            return data.recentChanges.includes(changeId);
+        }
+
+        function createBox(state, isRecent, onClick) {
+            const box = document.createElement('div');
+            const classes = ['box'];
+            if (state === 1) classes.push('half');
+            if (state === 2) classes.push('filled');
+            if (isRecent && state > 0) classes.push('recent');
+            box.className = classes.join(' ');
+            box.onclick = onClick;
+            return box;
+        }
+
+        function renderWeeks(data) {
+            const container = document.getElementById('weeks');
+            container.innerHTML = '';
+            
+            data.weeks.forEach((week, weekIdx) => {
+                const weekDiv = document.createElement('div');
+                weekDiv.className = 'week';
+                
+                // Add week number
+                const weekNum = document.createElement('div');
+                weekNum.className = 'week-number';
+                weekNum.textContent = weekIdx + 1;
+                weekDiv.appendChild(weekNum);
+                
+                ['run', 'body', 'read', 'write'].forEach(goal => {
+                    const goalDiv = document.createElement('div');
+                    goalDiv.className = 'week-boxes';
+                    
+                    week[goal].forEach((state, boxIdx) => {
+                        const isRecent = isRecentChange(data, weekIdx, goal, boxIdx);
+                        const box = createBox(state, isRecent, () => {
+                            // Cycle through states: 0 -> 1 -> 2 -> 0
+                            data.weeks[weekIdx][goal][boxIdx] = (data.weeks[weekIdx][goal][boxIdx] + 1) % 3;
+                            addRecentChange(data, weekIdx, goal, boxIdx);
+                            saveData(data);
+                            renderWeeks(data);
+                        });
+                        goalDiv.appendChild(box);
+                    });
+                    
+                    weekDiv.appendChild(goalDiv);
+                });
+                
+                container.appendChild(weekDiv);
+            });
+        }
+
+        function resetAll() {
+            if (confirm('Reset all progress?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                const data = loadData();
+                render(data);
+            }
+        }
+
+        function render(data) {
+            renderWeeks(data);
+        }
+
+        const data = loadData();
+        render(data);
+
+        // PWA Service Worker registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
