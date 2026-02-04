@@ -5,10 +5,13 @@
  *
  * 1. DAILY SEGMENT
  *    Purpose: Track day-to-day discretionary spending
- *    Calculation: 30-day rolling average
+ *    Calculation: 30-day rolling average with smooth budget transition
  *    - Uses only transactions from the last 30 days
- *    - If less than 30 days of data, prorates to 30-day equivalent
- *    - Formula: (total / days_of_data) * 30
+ *    - Smooth extrapolation that transitions from budget to actual data:
+ *      * No data: Returns budget * 30 (initial estimate)
+ *      * < 30 days: Returns (budget * remaining_days) + actual_total
+ *      * >= 30 days: Returns actual_total (full data available)
+ *    - This creates a moving average that avoids wild swings from single transactions
  *    Labels: NO labels required (uses category buttons: In Food, Out Food, Shopping, Entertainment, Others)
  *    Income/Expense: Both supported - income reduces net spending
  *
@@ -325,22 +328,33 @@ function calculateSegmentSpending(segment) {
         return total / 12;
     }
 
-    // DAILY: 30-day rolling average
+    // DAILY: 30-day rolling average with smooth budget transition
     const now = Date.now();
     const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
     const recentExpenses = segmentExpenses.filter(exp => exp.date >= thirtyDaysAgo);
 
-    if (recentExpenses.length === 0) return 0;
+    // No transactions yet - use budget as initial estimate
+    if (recentExpenses.length === 0) {
+        return data.daily * 30;
+    }
 
-    const total = recentExpenses.reduce((sum, exp) => {
+    const actualTotal = recentExpenses.reduce((sum, exp) => {
         const multiplier = exp.type === 'income' ? -1 : 1;
         return sum + (exp.amount * multiplier);
     }, 0);
     const oldestExpense = Math.min(...recentExpenses.map(exp => exp.date));
     const daysOfData = Math.max(1, (now - oldestExpense) / (24 * 60 * 60 * 1000));
 
-    // Prorate to 30 days if less data available
-    return daysOfData < 30 ? (total / daysOfData) * 30 : total;
+    // Smooth transition: budget for remaining days + actual for days with data
+    if (daysOfData >= 30) {
+        // Full 30 days of data available - use actual data only
+        return actualTotal;
+    } else {
+        // Blend budget estimate with actual data
+        // For each day that passes, replace one day of budget with actual spending
+        const budgetEstimate = data.daily * (30 - daysOfData);
+        return budgetEstimate + actualTotal;
+    }
 }
 
 // Calculate 30-day spend
