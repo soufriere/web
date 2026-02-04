@@ -237,8 +237,15 @@
                     week[goal].forEach((state, boxIdx) => {
                         const isRecent = isRecentChange(data, weekIdx, goal, boxIdx);
                         const box = createBox(state, isRecent, () => {
-                            // Cycle through states: 0 -> 1 -> 2 -> 0
-                            data.weeks[weekIdx][goal][boxIdx] = (data.weeks[weekIdx][goal][boxIdx] + 1) % 3;
+                            // Cycle through states: 0 (empty) -> 2 (filled) -> 1 (half) -> 0 (empty)
+                            const currentState = data.weeks[weekIdx][goal][boxIdx];
+                            if (currentState === 0) {
+                                data.weeks[weekIdx][goal][boxIdx] = 2; // empty -> filled
+                            } else if (currentState === 2) {
+                                data.weeks[weekIdx][goal][boxIdx] = 1; // filled -> half
+                            } else {
+                                data.weeks[weekIdx][goal][boxIdx] = 0; // half -> empty
+                            }
                             addRecentChange(data, weekIdx, goal, boxIdx);
                             saveData(data);
                             renderWeeks(data);
