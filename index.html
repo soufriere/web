@@ -31,7 +31,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>Budget Tracker</h1>
+        <div class="header">
+            <h1>Budget Tracker</h1>
+            <div class="header-buttons">
+                <button class="header-button sync-button" id="syncBtn" onclick="exportToURLHash()" title="Sync via URL">🔗</button>
+                <button class="header-button settings-button" id="settingsBtn" title="Settings">⚙️</button>
+            </div>
+        </div>
 
         <!-- Budget Bar Chart -->
         <div class="budget-chart">
@@ -96,14 +102,6 @@
 
         <!-- Expenses List -->
         <div class="expenses-list" id="expensesList"></div>
-
-        <!-- Settings Button -->
-        <button class="settings-button" id="settingsBtn">⚙️</button>
-
-        <!-- Import/Export Buttons -->
-        <button class="action-button export-button" id="exportBtn">📤</button>
-        <button class="action-button import-button" id="importBtn">📥</button>
-        <button class="action-button sync-button" id="syncBtn" onclick="exportToURLHash()">🔗</button>
     </div>
 
     <!-- Settings Modal -->
@@ -141,20 +139,6 @@
             <div class="modal-body">
                 <input type="text" id="labelInput" class="setting-input" placeholder="Enter description...">
                 <button class="modal-button primary" id="saveLabelExpense">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Import/Export Modal -->
-    <div id="importExportModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Import / Export Data</h2>
-                <button class="close-button" id="closeImportExport">✕</button>
-            </div>
-            <div class="modal-body">
-                <textarea id="importExportText" class="import-export-textarea" placeholder="Paste JSON data here to import..."></textarea>
-                <button class="modal-button primary" id="saveImportExport" onclick="copyToClipboard()">Copy to Clipboard</button>
             </div>
         </div>
     </div>

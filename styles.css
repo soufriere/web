@@ -28,10 +28,54 @@ body {
     box-sizing: border-box;
 }
 
-h1 {
-    text-align: center;
-    font-size: 28px;
+/* Header */
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 24px;
+}
+
+h1 {
+    font-size: 28px;
+    margin: 0;
+    flex-grow: 1;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.header-button {
+    width: 44px;
+    height: 44px;
+    background: #334155;
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.header-button:hover {
+    background: #475569;
+    transform: scale(1.05);
+}
+
+.header-button:active {
+    transform: scale(0.95);
+}
+
+.header-button.sync-button {
+    background: #7c3aed;
+}
+
+.header-button.sync-button:hover {
+    background: #6d28d9;
 }
 
 /* Budget Chart */
@@ -454,70 +498,7 @@ h1 {
     transform: scale(1.1);
 }
 
-/* Action Buttons (Settings, Import, Export, Sync) */
-.settings-button,
-.export-button,
-.import-button,
-.sync-button {
-    position: fixed;
-    width: 56px;
-    height: 56px;
-    background: #334155;
-    border: none;
-    border-radius: 50%;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    transition: all 0.2s;
-}
-
-.settings-button {
-    bottom: 20px;
-    right: 20px;
-}
-
-.export-button {
-    bottom: 86px;
-    right: 20px;
-    background: #059669;
-}
-
-.export-button:hover {
-    background: #047857;
-}
-
-.import-button {
-    bottom: 152px;
-    right: 20px;
-    background: #2563eb;
-}
-
-.import-button:hover {
-    background: #1d4ed8;
-}
-
-.sync-button {
-    bottom: 218px;
-    right: 20px;
-    background: #7c3aed;
-}
-
-.sync-button:hover {
-    background: #6d28d9;
-}
-
-.settings-button:hover {
-    background: #475569;
-    transform: scale(1.05);
-}
-
-.settings-button:active,
-.export-button:active,
-.import-button:active,
-.sync-button:active {
-    transform: scale(0.95);
-}
+/* Old action button styles removed - buttons now in header */
 
 /* Modal */
 .modal {

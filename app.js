@@ -121,20 +121,12 @@ function setupEventListeners() {
     document.getElementById('closeLabelModal').addEventListener('click', closeLabelModal);
     document.getElementById('saveLabelExpense').addEventListener('click', saveLabelExpense);
 
-    // Import/Export
-    document.getElementById('exportBtn').addEventListener('click', exportData);
-    document.getElementById('importBtn').addEventListener('click', importData);
-    document.getElementById('closeImportExport').addEventListener('click', closeImportExport);
-
     // Close modals on outside click
     document.getElementById('settingsModal').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) closeSettings();
     });
     document.getElementById('labelModal').addEventListener('click', (e) => {
         if (e.target === e.currentTarget) closeLabelModal();
-    });
-    document.getElementById('importExportModal').addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) closeImportExport();
     });
 }
 
@@ -414,7 +406,7 @@ function render() {
     // Use the higher of budget or actual spending for each segment
     const billsDisplay = Math.max(data.bills, billsSpending);
     const specialsDisplay = Math.max(data.specials, specialsSpending);
-    const dailyDisplay = Math.max(data.daily, dailySpending);
+    const dailyDisplay = Math.max(data.daily * 30, dailySpending);
 
     // Calculate total for percentages
     const totalBudget = billsDisplay + specialsDisplay + dailyDisplay;
@@ -438,7 +430,7 @@ function render() {
     // Update 30-day spend
     const spendElement = document.getElementById('thirtyDaySpend');
     spendElement.textContent = `€${fmt(dailySpending)}`;
-    spendElement.className = dailySpending > data.daily ? 'over-budget' : 'under-budget';
+    spendElement.className = dailySpending > (data.daily * 30) ? 'over-budget' : 'under-budget';
 
     // Render category breakdown
     renderCategoryBreakdown();
@@ -505,78 +497,6 @@ function renderExpenses() {
         .join('');
 }
 
-// Import/Export functions
-function exportData() {
-    const jsonData = JSON.stringify(data, null, 2);
-    document.getElementById('importExportText').value = jsonData;
-    document.getElementById('importExportModal').classList.add('active');
-    document.getElementById('importExportText').select();
-}
-
-function importData() {
-    document.getElementById('importExportText').value = '';
-    document.getElementById('importExportModal').classList.add('active');
-    document.getElementById('importExportText').focus();
-
-    // Change behavior to import mode
-    const saveBtn = document.getElementById('saveImportExport');
-    saveBtn.textContent = 'Import Data';
-    saveBtn.onclick = () => {
-        try {
-            const jsonData = document.getElementById('importExportText').value.trim();
-            if (!jsonData) {
-                alert('Please paste data to import');
-                return;
-            }
-            const importedData = JSON.parse(jsonData);
-
-            // Validate data structure
-            if (typeof importedData.bills === 'number' &&
-                typeof importedData.specials === 'number' &&
-                typeof importedData.daily === 'number' &&
-                Array.isArray(importedData.expenses)) {
-
-                if (confirm('This will replace all current data. Continue?')) {
-                    // Migrate old data without type field
-                    if (importedData.expenses) {
-                        importedData.expenses = importedData.expenses.map(exp => {
-                            if (!exp.type) {
-                                exp.type = 'expense'; // Default to expense for old data
-                            }
-                            return exp;
-                        });
-                    }
-
-                    data = importedData;
-                    saveData();
-                    render();
-                    closeImportExport();
-                    alert('Data imported successfully!');
-                }
-            } else {
-                alert('Invalid data format');
-            }
-        } catch (e) {
-            alert('Invalid JSON format');
-        }
-    };
-}
-
-function closeImportExport() {
-    document.getElementById('importExportModal').classList.remove('active');
-    // Reset to export mode
-    const saveBtn = document.getElementById('saveImportExport');
-    saveBtn.textContent = 'Copy to Clipboard';
-    saveBtn.onclick = copyToClipboard;
-}
-
-function copyToClipboard() {
-    const textArea = document.getElementById('importExportText');
-    textArea.select();
-    document.execCommand('copy');
-    alert('Copied to clipboard!');
-}
-
 // URL Hash Sync Functions
 function getFilteredDataForSync() {
     const now = Date.now();
@@ -625,11 +545,8 @@ function exportToURLHash() {
 }
 
 function showURLInModal(url) {
-    const textarea = document.getElementById('importExportText');
-    textarea.value = url;
-    document.getElementById('importExportModal').classList.add('active');
-    textarea.select();
-    alert('Sync URL ready! Copy it from the text box.');
+    // Fallback for browsers without clipboard API - use prompt to display URL
+    prompt('Copy this sync URL to share your budget data:', url);
 }
 
 function importFromURLHash() {
