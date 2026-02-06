@@ -25,8 +25,6 @@
       --jump-btn-active: #0099ff;
       --analyze-btn-bg: #0099ff;
       --analyze-btn-hover: #007acc;
-      --translate-btn-bg: #9b59b6;
-      --translate-btn-hover: #8e44ad;
     }
 
     .dark-mode {
@@ -39,10 +37,8 @@
       --format-btn-text: #eee;
       --jump-btn-bg: #333;
       --jump-btn-hover: #555;
-      --analyze-btn-bg: #007acc; 
+      --analyze-btn-bg: #007acc;
       --analyze-btn-hover: #005a99;
-      --translate-btn-bg: #8e44ad;
-      --translate-btn-hover: #71368a;
     }
 
     /* Progress bar at top of screen */
@@ -75,7 +71,7 @@
       top: 0;
       left: 0;
     }
-    
+
     .progress-markers {
       position: absolute;
       top: 0;
@@ -108,7 +104,7 @@
       background-color: var(--primary-bg);
       transition: background-color 0.3s, color 0.3s;
     }
-    
+
     /* Progress zones */
     .progress-zones-container {
       position: absolute;
@@ -159,12 +155,12 @@
     #unit-jump-row {
       padding: 0 1rem 0.3rem 1rem;
       display: flex;
-      gap: 0.15rem; 
+      gap: 0.15rem;
       flex-wrap: wrap;
       max-height: 30px;
       overflow-y: auto;
     }
-    
+
     .unit-group {
         display: flex;
         gap: 0.15rem;
@@ -181,7 +177,7 @@
       transition: background-color 0.2s, border-color 0.2s;
       white-space: nowrap;
     }
-    
+
     .jump-btn.copy-btn {
         padding: 0.2rem 0.35rem;
         font-size: 0.65rem;
@@ -218,18 +214,18 @@
       height: 100%;
       position: relative;
       z-index: 10;
-      font-size: 18pt; 
+      font-size: 18pt;
     }
 
     /* Controls */
     .status-left {
       display: flex;
-      flex-direction: row; 
-      gap: 0.5rem; 
+      flex-direction: row;
+      gap: 0.5rem;
       align-items: center;
       font-size: 0.85rem;
     }
-    
+
     .controls {
       display: flex;
       gap: 0.3rem;
@@ -243,13 +239,13 @@
       transition: background-color 0.2s;
     }
 
-    #save-btn, #export-btn, #undo-btn, #history-btn, #clear-storage-btn {
+    #save-btn, #undo-btn {
       background: var(--button-bg);
       color: var(--button-text);
       padding: 0.35rem 0.7rem;
       font-size: 0.75rem;
     }
-    
+
     #analyze-btn {
       background: var(--analyze-btn-bg);
       color: var(--button-text);
@@ -257,20 +253,12 @@
       font-size: 0.75rem;
     }
 
-    #save-btn:hover, #export-btn:hover, #undo-btn:hover, #history-btn:hover, #clear-storage-btn:hover {
+    #save-btn:hover, #undo-btn:hover {
       background: var(--button-hover);
     }
-    
+
     #analyze-btn:hover {
       background: var(--analyze-btn-hover);
-    }
-    
-    #clear-storage-btn {
-      background: #d32f2f;
-    }
-    
-    #clear-storage-btn:hover {
-      background: #b71c1c;
     }
 
     #theme-toggle {
@@ -286,7 +274,7 @@
         flex-wrap: wrap;
         align-items: center;
         gap: 3px;
-        padding-left: 0.3rem; 
+        padding-left: 0.3rem;
         font-size: 0.8rem;
     }
     .pomodoro-square {
@@ -327,7 +315,7 @@
         color: inherit;
         user-select: none;
     }
-    
+
     .mr-swap-link:hover {
         text-decoration-style: solid;
         opacity: 0.7;
@@ -370,148 +358,6 @@
         margin-top: 0.5rem;
       }
     }
-  
-    /* Translation Settings Modal */
-    #translation-settings-modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      z-index: 2000;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .modal-content {
-      background: var(--primary-bg);
-      color: var(--primary-text);
-      padding: 2rem;
-      border-radius: 8px;
-      width: 90%;
-      max-width: 700px;
-      max-height: 80vh;
-      overflow-y: auto;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-header h2 {
-      margin: 0;
-      font-size: 1.5rem;
-    }
-
-    .close-modal {
-      background: var(--button-bg);
-      color: var(--button-text);
-      border: none;
-      padding: 0.5rem 1rem;
-      cursor: pointer;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-
-    .close-modal:hover {
-      background: var(--button-hover);
-    }
-
-    .settings-group {
-      margin-bottom: 1.5rem;
-    }
-
-    .settings-group label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 600;
-      font-size: 0.9rem;
-    }
-
-    .settings-group select,
-    .settings-group input[type="number"] {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid var(--secondary-bg);
-      border-radius: 4px;
-      background: var(--primary-bg);
-      color: var(--primary-text);
-      font-size: 0.9rem;
-    }
-
-    .settings-group textarea {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--secondary-bg);
-      border-radius: 4px;
-      background: var(--primary-bg);
-      color: var(--primary-text);
-      font-family: inherit;
-      font-size: 0.85rem;
-      resize: vertical;
-      min-height: 80px;
-    }
-
-    .settings-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    /* Translation Progress Bar */
-    #translation-progress-container {
-      display: none;
-      position: fixed;
-      bottom: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--status-bg);
-      color: var(--status-text);
-      padding: 1rem 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      z-index: 1500;
-      min-width: 300px;
-    }
-
-    .translation-progress-bar {
-      height: 8px;
-      background: var(--secondary-bg);
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 0.5rem;
-    }
-
-    .translation-progress-fill {
-      height: 100%;
-      background: var(--translate-btn-bg);
-      transition: width 0.3s ease;
-      width: 0%;
-    }
-
-    .translation-progress-label {
-      font-size: 0.85rem;
-      margin-top: 0.5rem;
-      font-family: monospace;
-    }
-
-    #translate-btn, #translate-settings-btn {
-      background: var(--translate-btn-bg);
-      color: var(--button-text);
-      padding: 0.35rem 0.7rem;
-      font-size: 0.75rem;
-    }
-
-    #translate-btn:hover, #translate-settings-btn:hover {
-      background: var(--translate-btn-hover);
-    }
-
   </style>
 </head>
 <body>
@@ -524,10 +370,9 @@
         <div id="pomodoro-indicators">Pomodoros: 0</div>
       </div>
       <div class="controls">
-                <button id="theme-toggle" aria-label="Toggle dark mode" title="Dark mode">🌙</button>
+        <button id="theme-toggle" aria-label="Toggle dark mode" title="Dark mode">🌙</button>
         <button id="analyze-btn" aria-label="Analyze and Format" title="Analyze & Format">Format</button>
         <button id="undo-btn" aria-label="Undo last action" title="Undo">↤</button>
-        <button id="export-btn" aria-label="Export content" title="Export">📄</button>
         <button id="save-btn" aria-label="Save content" title="Save">💾</button>
       </div>
     </div>
@@ -549,10 +394,8 @@
       <p>Final paragraph...</p>
     </div>
   </div>
-  
+
   <div id="notification" role="status" aria-live="polite"></div>
-
-
 
   <script>
     // DOM Elements
@@ -560,17 +403,14 @@
     const etaDisplay = document.getElementById('eta');
     const progressDisplay = document.getElementById('progress');
     const saveBtn = document.getElementById('save-btn');
-    const exportBtn = document.getElementById('export-btn');
     const notification = document.getElementById('notification');
     const themeToggle = document.getElementById('theme-toggle');
-    const clearStorageBtn = document.getElementById('clear-storage-btn');
     const progressZones = document.getElementById('progress-zones');
     const topProgressContainer = document.getElementById('top-progress-container');
-    const unitJumpRow = document.getElementById('unit-jump-row'); 
-    const undoBtn = document.getElementById('undo-btn'); 
-    const historyBtn = document.getElementById('history-btn'); 
-    const pomodoroIndicators = document.getElementById('pomodoro-indicators'); 
-    const analyzeBtn = document.getElementById('analyze-btn'); 
+    const unitJumpRow = document.getElementById('unit-jump-row');
+    const undoBtn = document.getElementById('undo-btn');
+    const pomodoroIndicators = document.getElementById('pomodoro-indicators');
+    const analyzeBtn = document.getElementById('analyze-btn');
 
     // State
     const state = {
@@ -578,16 +418,17 @@
       wordCount: 0,
       isDarkMode: false,
       scrollData: [],
-      eta: 120, 
-      minEta: 120, 
-      undoHistory: [], 
+      eta: 120,
+      minEta: 120,
+      undoHistory: [],
       isUndoing: false,
+      isPasting: false,
       timers: {
         format: null,
         undo: null,
-        unitCalc: null 
+        unitCalc: null
       },
-      units: [], 
+      units: [],
       totalScrollableHeight: 0
     };
 
@@ -596,35 +437,36 @@
       undoLimit: 50,
       formatDelay: 300,
       undoDelay: 500,
-      unitCalcDelay: 1000, 
+      unitCalcDelay: 1000,
       scrollSamplesLimit: 30,
       notificationDuration: 2000,
-      statusInterval: 5000 
+      statusInterval: 5000,
+      largePasteThreshold: 5000
     };
 
     // Initialize
     function init() {
       loadContent();
-      loadUndoHistory(); 
+      loadUndoHistory();
       setupEvents();
       countWords();
       loadTheme();
-      
+
       requestAnimationFrame(() => {
-        manualAnalyzeAndFormat(); 
-        
+        manualAnalyzeAndFormat();
+
         setTimeout(() => {
           restoreScroll();
           saveUndo();
         }, 100);
       });
-      
+
       setInterval(updateStatus, config.statusInterval);
     }
-    
+
     function createProgressMarkers() {
       progressZones.innerHTML = '';
-      
+
       for (let i = 1; i <= 10; i++) {
         const zone = document.createElement('div');
         zone.className = 'progress-zone';
@@ -632,10 +474,10 @@
         progressZones.appendChild(zone);
       }
     }
-    
+
     function updateProgressMarkers(currentProgress) {
       const zones = progressZones.querySelectorAll('.progress-zone');
-      
+
       zones.forEach(zone => {
         const zoneProgress = parseFloat(zone.dataset.progress);
         if (currentProgress >= zoneProgress) {
@@ -645,26 +487,23 @@
         }
       });
     }
-    
+
     // Event setup
     function setupEvents() {
       editor.addEventListener('scroll', onScroll);
       editor.addEventListener('input', onInput);
-      editor.addEventListener('paste', onPaste); 
-      
+      editor.addEventListener('paste', onPaste);
+
       saveBtn.addEventListener('click', onSave);
-      exportBtn.addEventListener('click', onExport);
       themeToggle.addEventListener('click', toggleTheme);
-      clearStorageBtn.addEventListener('click', clearAllStorage);
-      undoBtn.addEventListener('click', performUndo); 
-      historyBtn.addEventListener('click', downloadHistory); 
-      analyzeBtn.addEventListener('click', manualAnalyzeAndFormat); 
+      undoBtn.addEventListener('click', performUndo);
+      analyzeBtn.addEventListener('click', manualAnalyzeAndFormat);
 
       document.addEventListener('keydown', handleKeys);
-      
+
       window.addEventListener('beforeunload', saveState);
     }
-    
+
     // Keyboard shortcuts
     function handleKeys(e) {
       if (e.ctrlKey) {
@@ -676,11 +515,11 @@
         }
       }
     }
-    
+
     // Handle scroll
     function onScroll() {
       state.lastScrollTime = Date.now();
-      
+
       const progress = getProgress();
       if (state.scrollData.length > 0) {
         const lastProgress = state.scrollData[state.scrollData.length - 1].progress;
@@ -691,149 +530,127 @@
           }
         }
       }
-      
+
       recordProgress();
       updateStatus();
     }
-    
+
     // Handle input
     function onInput() {
+      if (state.isPasting) return;
+
       countWords();
       recordProgress();
-      
+
       if (!state.isUndoing) {
         clearTimeout(state.timers.undo);
         state.timers.undo = setTimeout(saveUndo, config.undoDelay);
       }
-      
+
       updateStatus();
     }
-    
+
+    // Handle paste - optimized for large text
+    function onPaste(e) {
+      e.preventDefault();
+      const text = (e.clipboardData || window.clipboardData).getData('text/plain');
+      if (!text) return;
+
+      if (text.length > config.largePasteThreshold) {
+        state.isPasting = true;
+        showNotification('Pasting large text...', 1000);
+
+        // Build DOM fragment off-screen for performance
+        const lines = text.split('\n');
+        const fragment = document.createDocumentFragment();
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line === '') continue;
+          const p = document.createElement('p');
+          p.textContent = line;
+          fragment.appendChild(p);
+        }
+
+        // Insert at current selection
+        const sel = window.getSelection();
+        if (sel.rangeCount) {
+          const range = sel.getRangeAt(0);
+          range.deleteContents();
+          range.insertNode(fragment);
+          range.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(range);
+        } else {
+          editor.appendChild(fragment);
+        }
+
+        // Defer expensive operations
+        requestAnimationFrame(() => {
+          state.isPasting = false;
+          countWords();
+          clearTimeout(state.timers.format);
+          state.timers.format = setTimeout(() => {
+            manualAnalyzeAndFormat();
+            saveUndo();
+            showNotification('Large paste formatted.', 1500);
+          }, 300);
+        });
+      } else {
+        // Small paste: use execCommand for proper undo integration
+        document.execCommand('insertText', false, text);
+      }
+    }
+
     // Save to undo history
     function saveUndo() {
       const currentContent = editor.innerHTML;
       const lastContent = state.undoHistory.length > 0 ? state.undoHistory[state.undoHistory.length - 1].content : null;
-      
+
       if (currentContent !== lastContent) {
         state.undoHistory.push({ content: currentContent, timestamp: Date.now() });
-        saveUndoHistory(); 
+        saveUndoHistory();
       }
-      
+
       if (state.undoHistory.length > config.undoLimit) {
         state.undoHistory.shift();
       }
-      
-      updateHistoryButtonText(); 
     }
-    
+
     // Perform undo
     function performUndo() {
-      if (state.undoHistory.length <= 1) { 
+      if (state.undoHistory.length <= 1) {
           showNotification('Nothing left to undo.', 1500);
           return;
       }
-      
-      state.undoHistory.pop(); 
-      const prevState = state.undoHistory[state.undoHistory.length - 1]; 
-      
+
+      state.undoHistory.pop();
+      const prevState = state.undoHistory[state.undoHistory.length - 1];
+
       state.isUndoing = true;
       editor.innerHTML = prevState.content;
-      
+
       saveUndoHistory();
-      
+
       setTimeout(() => {
         state.isUndoing = false;
         manualAnalyzeAndFormat();
       }, 10);
-      
+
       showNotification('Undo successful (Ctrl+Z)', 1500);
     }
 
-    function updateHistoryButtonText() {
-        const count = Math.max(0, state.undoHistory.length - 1);
-        historyBtn.textContent = `History (${count})`;
-    }
-
-    function downloadHistory() {
-        if (state.undoHistory.length <= 1) {
-            showNotification('No history versions available to download.', 2000);
-            return;
-        }
-
-        const historyToSave = state.undoHistory.slice(0, -1); 
-        const maxVersions = 20;
-        let output = `--- Editor History Dump ---\n`;
-        let count = 0;
-        const oneHourAgo = Date.now() - 3600000; 
-
-        for (let i = historyToSave.length - 1; i >= 0; i--) {
-            const historyItem = historyToSave[i];
-            
-            if (count >= maxVersions && historyItem.timestamp < oneHourAgo) {
-                break;
-            }
-
-            const timestamp = new Date(historyItem.timestamp).toLocaleString();
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = historyItem.content;
-            const textContent = tempDiv.innerText;
-
-            output += `\n======== VERSION ${historyToSave.length - i} (${timestamp}) ========\n`;
-            output += textContent;
-            output += `\n\n`;
-            count++;
-        }
-
-        const blob = new Blob([output], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `transcript-history-${new Date().toISOString().slice(0, 10)}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        }, 100);
-        showNotification(`Downloaded history of ${count} versions.`, 2000);
-    }
-    
-    
     // Save content
     function onSave() {
       manualAnalyzeAndFormat();
-      
+
       if (saveToStorage()) {
         saveBtn.textContent = "SAVED!";
         showNotification('Content saved successfully');
         setTimeout(() => { saveBtn.textContent = "💾"; }, 1500);
       }
     }
-    
-    // Export content
-    function onExport() {
-      try {
-        manualAnalyzeAndFormat();
-        
-        const content = editor.innerText;
-        const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `transcript-export-${new Date().toISOString().slice(0, 10)}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 100);
-        showNotification('Content exported successfully');
-      } catch (err) {
-        console.error('Export error:', err);
-        showNotification('Error exporting content', 3000);
-      }
-    }
-    
+
     function getProgress() {
       const { totalProgress } = getCurrentUnitProgress();
       return totalProgress;
@@ -842,18 +659,18 @@
     function recordProgress() {
       const progress = getProgress();
       if (isNaN(progress) || progress < 0 || progress > 1) return;
-      
+
       const now = Date.now();
-      
+
       if (state.scrollData.length > 0) {
         const last = state.scrollData[state.scrollData.length - 1];
         if (progress === last.progress && now - last.time < 30000) {
           return;
         }
       }
-      
+
       state.scrollData.push({ time: now, progress });
-      
+
       if (state.scrollData.length > config.scrollSamplesLimit) {
         state.scrollData.shift();
       }
@@ -864,12 +681,12 @@
       state.wordCount = text.split(/\s+/).filter(Boolean).length;
     }
 
-    function updatePomodoroIndicators(total, completed) {
+    function updatePomodoroIndicators(totalPomodoros, totalProgress) {
         if (!pomodoroIndicators) return;
 
         pomodoroIndicators.innerHTML = '';
-        
-        if (total === 0) {
+
+        if (totalPomodoros === 0) {
             pomodoroIndicators.textContent = 'Pomodoros: 0';
             return;
         }
@@ -879,121 +696,110 @@
         label.style.marginRight = '2px';
         pomodoroIndicators.appendChild(label);
 
-        const maxSquares = 10; 
-        const displayTotal = Math.min(total, maxSquares);
-        
+        const maxSquares = 10;
+        const displayTotal = Math.min(totalPomodoros, maxSquares);
+
         // Calculate progress within the current pomodoro
-        const { totalProgress } = getCurrentUnitProgress();
-        const exactProgress = totalProgress * total; // Exact progress in pomodoros
+        const exactProgress = totalProgress * totalPomodoros;
         const currentPomodoroIndex = Math.floor(exactProgress);
-        const currentPomodoroProgress = exactProgress - currentPomodoroIndex; // Fractional progress (0-1)
+        const currentPomodoroProgress = exactProgress - currentPomodoroIndex;
 
         for (let i = 0; i < displayTotal; i++) {
             const square = document.createElement('div');
             square.className = 'pomodoro-square';
-            
+
             const fill = document.createElement('div');
             fill.className = 'pomodoro-square-fill';
-            
+
             if (i < currentPomodoroIndex) {
-                // Completed pomodoros
                 square.classList.add('completed');
             } else if (i === currentPomodoroIndex) {
-                // Current pomodoro being worked on
                 square.classList.add('current');
                 fill.style.width = `${Math.round(currentPomodoroProgress * 100)}%`;
             }
-            
+
             square.appendChild(fill);
             pomodoroIndicators.appendChild(square);
         }
 
-        if (total > maxSquares) {
+        if (totalPomodoros > maxSquares) {
              const ellipsis = document.createElement('span');
              ellipsis.style.fontSize = '12px';
              ellipsis.style.paddingLeft = '5px';
              ellipsis.style.color = 'var(--status-text)';
-             ellipsis.textContent = ` ... (+${total - maxSquares})`;
+             ellipsis.textContent = ` ... (+${totalPomodoros - maxSquares})`;
              pomodoroIndicators.appendChild(ellipsis);
         }
     }
 
     function manualAnalyzeAndFormat() {
-        showNotification('Running analysis and formatting...', 500);
-        
         formatMarkedText();
         addMRSwapButtons();
         removeEmptyLines();
-        countWords(); 
+        countWords();
         calculateUnitsAndScrollPositions();
-        
-        showNotification('Analysis and formatting complete.', 1000);
     }
-    
+
     function removeEmptyLines() {
       const blocks = editor.querySelectorAll('p');
       const toRemove = [];
-      
+
       blocks.forEach(block => {
         const text = (block.textContent || '').trim();
         if (text === '' || text === '<br>') {
           toRemove.push(block);
         }
       });
-      
+
       toRemove.forEach(block => block.remove());
     }
 
     function updateStatus() {
       recordProgress();
-      
-      const { 
-        currentUnitIndex, unitProgress, totalProgress, totalUnits 
+
+      const {
+        currentUnitIndex, unitProgress, totalProgress, totalUnits
       } = getCurrentUnitProgress();
-      
+
       updateProgressBars(currentUnitIndex, unitProgress);
       updateUnitJumpButtons(currentUnitIndex);
-      
+
       if (!isNaN(totalProgress)) {
-        const overallPercent = Math.min(100, Math.max(0, Math.round(totalProgress * 100)));
         const unitPercent = Math.min(100, Math.max(0, Math.round(unitProgress * 100)));
-        
+
         progressDisplay.textContent = `Unit ${currentUnitIndex + 1}/${totalUnits} • ${unitPercent}%`;
-        
+
         updateProgressMarkers(totalProgress);
       }
-      
-      updateHistoryButtonText();
-  
+
       const WORDS_PER_45_MIN = 6000;
       const MINUTES_PER_BENCHMARK = 45;
       const POMODORO_MINUTES = 25;
-      
+
       const totalExpectedMins = Math.round((state.wordCount / WORDS_PER_45_MIN) * MINUTES_PER_BENCHMARK);
-      
+
       const remainingProgress = Math.max(0, 1 - totalProgress);
       const remainingMins = Math.round(totalExpectedMins * remainingProgress);
-      
-      etaDisplay.textContent = `${state.wordCount}w • ${remainingMins}min`;
-      
-      const totalPomodoros = Math.ceil(totalExpectedMins / POMODORO_MINUTES);
-      const completedPomodoros = Math.floor(totalPomodoros * totalProgress); 
 
-      updatePomodoroIndicators(totalPomodoros, completedPomodoros);
+      etaDisplay.textContent = `${state.wordCount}w • ${remainingMins}min`;
+
+      const totalPomodoros = Math.ceil(totalExpectedMins / POMODORO_MINUTES);
+
+      updatePomodoroIndicators(totalPomodoros, totalProgress);
     }
 
     function formatMarkedText() {
       const blocks = editor.querySelectorAll('p');
       const toRemove = [];
-      
+
       blocks.forEach(block => {
         const text = (block.textContent || '').trim();
-        
+
         if (text === '' || text === '<br>') {
           toRemove.push(block);
           return;
         }
-        
+
         if (text.startsWith("M:")) {
           const strong = block.querySelector('strong');
           if (!strong || strong.textContent.trim() !== text) {
@@ -1007,7 +813,7 @@
             const content = block.innerHTML;
             block.innerHTML = `<strong>${content}</strong>`;
           }
-        } 
+        }
         else if (text.startsWith("R:") || /^\*{3,}$/.test(text)) {
           const strongElements = block.querySelectorAll('strong');
           strongElements.forEach(strong => {
@@ -1018,84 +824,73 @@
           });
         }
       });
-      
+
       toRemove.forEach(block => block.remove());
     }
 
     function addMRSwapButtons() {
-        // First, remove all existing swap links
         const existingLinks = editor.querySelectorAll('.mr-swap-link');
         existingLinks.forEach(link => {
-            // Replace the span with just its text content
             const textNode = document.createTextNode(link.textContent);
             link.parentNode.replaceChild(textNode, link);
         });
-        
+
         const blocks = editor.querySelectorAll('p');
-        
+
         blocks.forEach(block => {
             const text = (block.textContent || '').trim();
-            
+
             if (text.startsWith("M:") || text.startsWith("R:")) {
-                // Walk through the block's child nodes to find the M: or R: prefix
                 const walker = document.createTreeWalker(
                     block,
                     NodeFilter.SHOW_TEXT,
                     null,
                     false
                 );
-                
+
                 let textNode;
                 while (textNode = walker.nextNode()) {
                     const nodeText = textNode.nodeValue || '';
                     const trimmedText = nodeText.trim();
-                    
+
                     if (trimmedText.startsWith('M:') || trimmedText.startsWith('R:')) {
-                        // Found the text node with the prefix
-                        const prefix = trimmedText.substring(0, 2); // "M:" or "R:"
-                        
-                        // Find where the prefix starts in the actual node text
+                        const prefix = trimmedText.substring(0, 2);
                         const prefixIndex = nodeText.indexOf(prefix);
-                        
+
                         if (prefixIndex !== -1) {
-                            // Split the text node into three parts
                             const beforePrefix = nodeText.substring(0, prefixIndex);
                             const afterPrefix = nodeText.substring(prefixIndex + 2);
-                            
-                            // Create the clickable span for the prefix
+
                             const span = document.createElement('span');
                             span.className = 'mr-swap-link';
                             span.textContent = prefix;
                             span.title = 'Click to swap M: ↔ R: from here down in this unit';
                             span.contentEditable = false;
-                            
+
                             span.addEventListener('click', (e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 swapMRInUnit(block);
                             });
-                            
-                            // Create new text nodes
+
                             const beforeNode = document.createTextNode(beforePrefix);
                             const afterNode = document.createTextNode(afterPrefix);
-                            
-                            // Replace the original text node with the three pieces
+
                             const parent = textNode.parentNode;
                             parent.insertBefore(beforeNode, textNode);
                             parent.insertBefore(span, textNode);
                             parent.insertBefore(afterNode, textNode);
                             parent.removeChild(textNode);
-                            
-                            break; // Only process the first occurrence
+
+                            break;
                         }
                     }
                 }
             }
         });
     }
-    
+
     function swapMRInUnit(startingBlock) {
-        // Find which unit this block belongs to
         let currentUnit = null;
         for (let i = 0; i < state.units.length; i++) {
             const unit = state.units[i];
@@ -1104,36 +899,20 @@
                 break;
             }
         }
-        
-        if (!currentUnit) {
-            console.log('Could not find unit for block');
-            return;
-        }
-        
-        // Find the index of startingBlock within the unit
+
+        if (!currentUnit) return;
+
         const unitChildren = Array.from(currentUnit.children);
         const startIndex = unitChildren.indexOf(startingBlock);
-        
-        if (startIndex === -1) {
-            console.log('Could not find startIndex');
-            return;
-        }
-        
-        console.log(`Swapping from index ${startIndex} in unit with ${unitChildren.length} children`);
-        
-        // Swap M: and R: for all paragraphs from this one onwards in the unit
+
+        if (startIndex === -1) return;
+
         for (let i = startIndex; i < unitChildren.length; i++) {
             const block = unitChildren[i];
             const text = (block.textContent || '').trim();
-            
-            console.log(`Block ${i}: "${text.substring(0, 20)}..."`);
-            
+
             if (text.startsWith("M:")) {
-                console.log('Found M:, swapping to R:');
-                // Find and replace M: with R:
                 replacePrefix(block, "M:", "R:");
-                
-                // Remove strong formatting if it exists
                 const strongElements = block.querySelectorAll('strong');
                 strongElements.forEach(strong => {
                     while (strong.firstChild) {
@@ -1142,11 +921,7 @@
                     strong.remove();
                 });
             } else if (text.startsWith("R:")) {
-                console.log('Found R:, swapping to M:');
-                // Replace "R:" with "M:"
                 replacePrefix(block, "R:", "M:");
-                
-                // Add strong formatting
                 const existingStrongs = block.querySelectorAll('strong');
                 existingStrongs.forEach(s => {
                     while (s.firstChild) {
@@ -1158,36 +933,31 @@
                 block.innerHTML = `<strong>${content}</strong>`;
             }
         }
-        
-        // Re-add swap links after the swap
+
         addMRSwapButtons();
         saveState();
         showNotification('M: and R: swapped from this point onwards in unit', 1500);
     }
-    
+
     function replacePrefix(block, oldPrefix, newPrefix) {
-        // Walk through all nodes including the swap link
         const walker = document.createTreeWalker(
             block,
             NodeFilter.SHOW_ALL,
             null,
             false
         );
-        
+
         let node;
         while (node = walker.nextNode()) {
             if (node.nodeType === Node.TEXT_NODE) {
                 const nodeText = node.nodeValue || '';
                 if (nodeText.includes(oldPrefix)) {
                     node.nodeValue = nodeText.replace(oldPrefix, newPrefix);
-                    console.log(`Replaced ${oldPrefix} with ${newPrefix} in text node`);
                     break;
                 }
             } else if (node.nodeType === Node.ELEMENT_NODE && node.classList && node.classList.contains('mr-swap-link')) {
-                // Replace the span's text content
                 if (node.textContent === oldPrefix) {
                     node.textContent = newPrefix;
-                    console.log(`Replaced ${oldPrefix} with ${newPrefix} in swap link`);
                     break;
                 }
             }
@@ -1197,13 +967,9 @@
     function calculateUnitsAndScrollPositions() {
         state.units = [];
         const children = Array.from(editor.children);
-        
-        console.log('calculateUnitsAndScrollPositions called. editor.children.length:', children.length);
-        console.log('editor.scrollHeight:', editor.scrollHeight, 'editor.clientHeight:', editor.clientHeight);
-        
+
         if (children.length === 0) {
             state.totalScrollableHeight = 0;
-            console.log('No children, returning early.');
             updateProgressContainerUI();
             createUnitJumpButtons();
             return;
@@ -1213,22 +979,17 @@
 
         for (let i = 0; i < children.length; i++) {
             const child = children[i];
-            const text = child.textContent || '';
-            const trimmedText = text.trim();
-            
+            const trimmedText = (child.textContent || '').trim();
             const isSeparator = /^\*{3,}$/.test(trimmedText);
-            
-            console.log(`Child ${i}: tag=${child.tagName}, text="${trimmedText.substring(0, 30)}${trimmedText.length > 30 ? '...' : ''}", isSeparator=${isSeparator}, offsetTop=${child.offsetTop}, offsetHeight=${child.offsetHeight}`);
 
             if (isSeparator) {
                 if (currentUnit.children.length > 0) {
                     const lastChild = currentUnit.children[currentUnit.children.length - 1];
                     currentUnit.endScroll = lastChild.offsetTop + lastChild.offsetHeight;
                     currentUnit.height = currentUnit.endScroll - currentUnit.startScroll;
-                    console.log(`Found separator. Finalizing unit with ${currentUnit.children.length} children. Height: ${currentUnit.height}, startScroll: ${currentUnit.startScroll}, endScroll: ${currentUnit.endScroll}`);
                     state.units.push(currentUnit);
                 }
-                
+
                 currentUnit = {
                     startScroll: child.offsetTop + child.offsetHeight,
                     children: []
@@ -1242,13 +1003,11 @@
             const lastChild = currentUnit.children[currentUnit.children.length - 1];
             currentUnit.endScroll = lastChild.offsetTop + lastChild.offsetHeight;
             currentUnit.height = currentUnit.endScroll - currentUnit.startScroll;
-            console.log(`Finalizing last unit with ${currentUnit.children.length} children. Height: ${currentUnit.height}, startScroll: ${currentUnit.startScroll}, endScroll: ${currentUnit.endScroll}`);
             state.units.push(currentUnit);
         }
-        
+
         if (state.units.length === 0 && children.length > 0) {
              const lastChild = children[children.length - 1];
-             console.log('No separators found, treating entire document as one unit. lastChild.offsetTop:', lastChild.offsetTop, 'lastChild.offsetHeight:', lastChild.offsetHeight);
              state.units.push({
                 startScroll: 0,
                 endScroll: lastChild.offsetTop + lastChild.offsetHeight,
@@ -1256,21 +1015,15 @@
                 children: children
             });
         }
-        
-        console.log('Total units calculated:', state.units.length);
-        state.units.forEach((unit, idx) => {
-            console.log(`Unit ${idx}: startScroll=${unit.startScroll}, endScroll=${unit.endScroll}, height=${unit.height}, children=${unit.children.length}`);
-        });
-        
+
         state.totalScrollableHeight = editor.scrollHeight - editor.clientHeight;
-        console.log('Total scrollable height:', state.totalScrollableHeight);
-        
+
         updateProgressContainerUI();
         createUnitJumpButtons();
-        
+
         updateStatus();
     }
-    
+
     function updateProgressContainerUI() {
         topProgressContainer.innerHTML = '';
 
@@ -1310,8 +1063,7 @@
 
             const jumpButton = document.createElement('button');
             jumpButton.className = 'jump-btn';
-            
-            // Extract first 5 chars from first line of unit
+
             let buttonLabel = `Unit ${index + 1}`;
             if (unit.children && unit.children.length > 0) {
                 const firstElement = unit.children[0];
@@ -1321,16 +1073,16 @@
                     buttonLabel = firstLine.substring(0, 5);
                 }
             }
-            
+
             jumpButton.textContent = buttonLabel;
             jumpButton.dataset.unitIndex = index;
             jumpButton.dataset.scrollPosition = unit.startScroll;
-            
+
             jumpButton.addEventListener('click', (e) => {
                 const scrollPos = parseInt(e.target.dataset.scrollPosition);
                 editor.scrollTop = scrollPos;
             });
-            
+
             const copyButton = document.createElement('button');
             copyButton.className = 'jump-btn copy-btn';
             copyButton.textContent = '📋';
@@ -1357,43 +1109,41 @@
 
         let unitText = '';
         unit.children.forEach(child => {
-            // Clone the element to avoid modifying the original
             const clone = child.cloneNode(true);
-            
-            // Remove all swap link elements from the clone
             const swapLinks = clone.querySelectorAll('.mr-swap-link');
             swapLinks.forEach(link => link.remove());
-            
-            unitText += clone.innerText + '\n\n'; 
+            unitText += clone.innerText + '\n\n';
         });
-        
-        unitText = unitText.trim(); 
+
+        unitText = unitText.trim();
 
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(unitText)
                 .then(() => {
-                    showNotification(`Unit ${unitIndex + 1} text copied to clipboard!`, 2000);
+                    showNotification(`Unit ${unitIndex + 1} copied!`, 2000);
                 })
-                .catch(err => {
-                    console.error('Could not copy text: ', err);
-                    showNotification('Failed to copy text. Check console for details.', 3000);
+                .catch(() => {
+                    fallbackCopy(unitText, unitIndex);
                 });
         } else {
-            const tempTextarea = document.createElement('textarea');
-            tempTextarea.style.position = 'fixed';
-            tempTextarea.style.opacity = '0';
-            tempTextarea.value = unitText;
-            document.body.appendChild(tempTextarea);
-            tempTextarea.select();
-            try {
-                document.execCommand('copy');
-                showNotification(`Unit ${unitIndex + 1} text copied to clipboard! (Fallback)`, 2000);
-            } catch (err) {
-                console.error('Fallback copy failed: ', err);
-                showNotification('Failed to copy text. Your browser does not support automatic copying.', 3000);
-            }
-            document.body.removeChild(tempTextarea);
+            fallbackCopy(unitText, unitIndex);
         }
+    }
+
+    function fallbackCopy(text, unitIndex) {
+        const tempTextarea = document.createElement('textarea');
+        tempTextarea.style.position = 'fixed';
+        tempTextarea.style.opacity = '0';
+        tempTextarea.value = text;
+        document.body.appendChild(tempTextarea);
+        tempTextarea.select();
+        try {
+            document.execCommand('copy');
+            showNotification(`Unit ${unitIndex + 1} copied!`, 2000);
+        } catch (err) {
+            showNotification('Failed to copy text.', 3000);
+        }
+        document.body.removeChild(tempTextarea);
     }
 
     function updateUnitJumpButtons(currentUnitIndex) {
@@ -1410,13 +1160,11 @@
     function getCurrentUnitProgress() {
         const scroll = editor.scrollTop;
         const totalUnits = state.units.length;
-        
+
         let currentUnitIndex = 0;
         let unitProgress = 0;
         let totalProgress = 0;
-        
-        console.log(`getCurrentUnitProgress: scroll=${scroll}, totalUnits=${totalUnits}, units.length=${state.units.length}`);
-        
+
         if (totalUnits === 0) {
             const maxScroll = editor.scrollHeight - editor.clientHeight;
             if (maxScroll <= 0) {
@@ -1424,10 +1172,9 @@
             } else {
                 totalProgress = Math.min(1, scroll / maxScroll);
             }
-            console.log(`No units detected. Returning fallback with totalUnits=1, totalProgress=${totalProgress}`);
             return { currentUnitIndex: 0, unitProgress: totalProgress, unitWeight: 1, totalProgress: totalProgress, totalUnits: 1 };
         }
-        
+
         if (state.totalScrollableHeight <= 0) {
             return { currentUnitIndex: 0, unitProgress: 0, unitWeight: 0, totalProgress: 0, totalUnits };
         }
@@ -1436,7 +1183,7 @@
 
         for (let i = 0; i < totalUnits; i++) {
             const unit = state.units[i];
-            
+
             if (unit.height <= 0) {
                 totalProgress += unitWeight;
                 continue;
@@ -1462,9 +1209,9 @@
                  break;
             }
         }
-        
+
         totalProgress = Math.min(1, totalProgress);
-        
+
         const scrollMax = editor.scrollHeight - editor.clientHeight;
         if (scroll >= scrollMax && scrollMax > 0) {
             currentUnitIndex = totalUnits - 1;
@@ -1477,7 +1224,7 @@
 
     function updateProgressBars(currentUnitIndex, unitProgress) {
         const bars = topProgressContainer.querySelectorAll('.unit-progress-bar-inner');
-        
+
         bars.forEach((bar, index) => {
             if (index < currentUnitIndex) {
                 bar.style.width = '100%';
@@ -1488,15 +1235,13 @@
             }
         });
     }
-    
+
     function saveToStorage() {
       try {
         localStorage.setItem('editorContent', editor.innerHTML);
-        console.log('Saved content to localStorage. Current state.units.length:', state.units.length);
         localStorage.setItem('editorScrollPosition', editor.scrollTop);
         return true;
       } catch (e) {
-        console.error('Save error:', e);
         showNotification('Failed to save your work.', 3000);
         return false;
       }
@@ -1505,23 +1250,19 @@
     function loadContent() {
       try {
         const saved = localStorage.getItem('editorContent');
-        console.log('loadContent: saved content length:', saved ? saved.length : 0);
         if (saved) {
           editor.innerHTML = saved;
-          console.log('Loaded content from storage. editor.children.length:', editor.children.length);
-        } else {
-          console.log('No saved content, using default.');
         }
       } catch (e) {
-        console.error('Load error:', e);
+        // Silently fall back to default content
       }
     }
-    
+
     function saveUndoHistory() {
         try {
             localStorage.setItem('editorUndoHistory', JSON.stringify(state.undoHistory));
         } catch (e) {
-            console.error('Failed to save undo history:', e);
+            // Undo history save failed, not critical
         }
     }
 
@@ -1532,61 +1273,39 @@
                 state.undoHistory = JSON.parse(savedHistory);
             }
         } catch (e) {
-            console.error('Failed to load undo history:', e);
             state.undoHistory = [];
         }
-        updateHistoryButtonText(); 
     }
-    
+
     function restoreScroll() {
       try {
         const scrollPosition = localStorage.getItem('editorScrollPosition');
-        console.log('restoreScroll called. scrollPosition from storage:', scrollPosition);
         if (scrollPosition !== null && scrollPosition !== undefined) {
           const scrollValue = parseInt(scrollPosition, 10);
           if (!isNaN(scrollValue)) {
-            console.log('Setting editor.scrollTop to:', scrollValue);
             editor.scrollTop = scrollValue;
-            
             requestAnimationFrame(() => {
-              console.log('After setting, editor.scrollTop is now:', editor.scrollTop);
               updateStatus();
             });
           }
-        } else {
-          console.log('No scroll position in localStorage');
         }
       } catch (e) {
-        console.error('Scroll restore error:', e);
+        // Scroll restore failed, not critical
       }
     }
-    
+
     function saveState() {
       saveToStorage();
       saveUndoHistory();
     }
-    
+
     function toggleTheme() {
       state.isDarkMode = !state.isDarkMode;
       document.body.classList.toggle('dark-mode', state.isDarkMode);
       themeToggle.textContent = state.isDarkMode ? '☀️' : '🌙';
       localStorage.setItem('editorTheme', state.isDarkMode ? 'dark' : 'light');
     }
-    
-    function clearAllStorage() {
-      const confirmed = confirm('Are you sure you want to delete ALL saved data? This cannot be undone.');
-      if (confirmed) {
-        localStorage.clear();
-        state.undoHistory = [];
-        editor.innerHTML = '<p>Cleared. Ready for new content.</p>';
-        state.wordCount = 0;
-        showNotification('All local storage cleared!', 2000);
-        setTimeout(() => {
-          location.reload();
-        }, 1000);
-      }
-    }
-    
+
     function loadTheme() {
       const savedTheme = localStorage.getItem('editorTheme');
       if (savedTheme === 'dark') {
@@ -1595,12 +1314,12 @@
         themeToggle.textContent = '☀️';
       }
     }
-    
+
     function showNotification(message, duration = config.notificationDuration) {
       notification.textContent = message;
       notification.style.display = 'block';
       notification.style.opacity = '1';
-      
+
       setTimeout(() => {
         notification.style.opacity = '0';
         setTimeout(() => {
@@ -1608,13 +1327,11 @@
         }, 300);
       }, duration);
     }
-    
+
     document.addEventListener('DOMContentLoaded', init);
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
       init();
     }
-
-
   </script>
 </body>
 </html>
