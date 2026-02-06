@@ -373,7 +373,7 @@
         <button id="theme-toggle" aria-label="Toggle dark mode" title="Dark mode">🌙</button>
         <button id="analyze-btn" aria-label="Analyze and Format" title="Analyze & Format">Format</button>
         <button id="undo-btn" aria-label="Undo last action" title="Undo">↤</button>
-        <button id="save-btn" aria-label="Save content" title="Save">💾</button>
+        <button id="save-btn" aria-label="Save content" title="Save (hold 2s to clear all data)">💾</button>
       </div>
     </div>
     <div id="unit-jump-row"></div>
@@ -412,21 +412,34 @@
     const pomodoroIndicators = document.getElementById('pomodoro-indicators');
     const analyzeBtn = document.getElementById('analyze-btn');
 
+    // Double-init guard
+    let initialized = false;
+
+    // Progress cache - avoids redundant recomputation within a single event
+    let _frameCounter = 0;
+    let _progressCache = null;
+    let _progressCacheFrame = -1;
+
     // State
     const state = {
       lastScrollTime: Date.now(),
       wordCount: 0,
       isDarkMode: false,
+      isDirty: false,
       scrollData: [],
       eta: 120,
       minEta: 120,
       undoHistory: [],
       isUndoing: false,
       isPasting: false,
+      notificationTimer: null,
+      notificationFadeTimer: null,
+      saveHoldTimer: null,
       timers: {
         format: null,
         undo: null,
-        unitCalc: null
+        unitCalc: null,
+        wordCount: null
       },
       units: [],
       totalScrollableHeight: 0
@@ -435,22 +448,29 @@
     // Config
     const config = {
       undoLimit: 50,
+      undoMaxBytes: 2 * 1024 * 1024,
       formatDelay: 300,
       undoDelay: 500,
       unitCalcDelay: 1000,
+      wordCountDelay: 500,
       scrollSamplesLimit: 30,
       notificationDuration: 2000,
       statusInterval: 5000,
+      autoSaveInterval: 60000,
       largePasteThreshold: 5000
     };
 
     // Initialize
     function init() {
+      if (initialized) return;
+      initialized = true;
+
       loadContent();
       loadUndoHistory();
       setupEvents();
       countWords();
       loadTheme();
+      createProgressMarkers();
 
       requestAnimationFrame(() => {
         manualAnalyzeAndFormat();
@@ -462,6 +482,14 @@
       });
 
       setInterval(updateStatus, config.statusInterval);
+
+      // Auto-save every 60s if content changed
+      setInterval(() => {
+        if (state.isDirty) {
+          saveToStorage();
+          state.isDirty = false;
+        }
+      }, config.autoSaveInterval);
     }
 
     function createProgressMarkers() {
@@ -502,6 +530,36 @@
       document.addEventListener('keydown', handleKeys);
 
       window.addEventListener('beforeunload', saveState);
+
+      // Long-press save button (2s) to clear all storage
+      const startHold = (e) => {
+        // Prevent context menu on long-press (mobile)
+        state.saveHoldTimer = setTimeout(() => {
+          state.saveHoldTimer = null;
+          const confirmed = confirm('Clear ALL saved data? This cannot be undone.');
+          if (confirmed) {
+            localStorage.clear();
+            state.undoHistory = [];
+            editor.innerHTML = '<p>Cleared. Ready for new content.</p>';
+            state.wordCount = 0;
+            state.isDirty = false;
+            showNotification('All data cleared!', 2000);
+            setTimeout(() => location.reload(), 1000);
+          }
+        }, 2000);
+      };
+      const cancelHold = () => {
+        if (state.saveHoldTimer) {
+          clearTimeout(state.saveHoldTimer);
+          state.saveHoldTimer = null;
+        }
+      };
+      saveBtn.addEventListener('mousedown', startHold);
+      saveBtn.addEventListener('mouseup', cancelHold);
+      saveBtn.addEventListener('mouseleave', cancelHold);
+      saveBtn.addEventListener('touchstart', startHold);
+      saveBtn.addEventListener('touchend', cancelHold);
+      saveBtn.addEventListener('touchcancel', cancelHold);
     }
 
     // Keyboard shortcuts
@@ -512,12 +570,17 @@
             e.preventDefault();
             performUndo();
             break;
+          case 's':
+            e.preventDefault();
+            onSave();
+            break;
         }
       }
     }
 
     // Handle scroll
     function onScroll() {
+      _frameCounter++;
       state.lastScrollTime = Date.now();
 
       const progress = getProgress();
@@ -539,7 +602,10 @@
     function onInput() {
       if (state.isPasting) return;
 
-      countWords();
+      _frameCounter++;
+      state.isDirty = true;
+
+      scheduleWordCount();
       recordProgress();
 
       if (!state.isUndoing) {
@@ -550,6 +616,12 @@
       updateStatus();
     }
 
+    // Debounced word count
+    function scheduleWordCount() {
+      clearTimeout(state.timers.wordCount);
+      state.timers.wordCount = setTimeout(countWords, config.wordCountDelay);
+    }
+
     // Handle paste - optimized for large text
     function onPaste(e) {
       e.preventDefault();
@@ -558,6 +630,7 @@
 
       if (text.length > config.largePasteThreshold) {
         state.isPasting = true;
+        state.isDirty = true;
         showNotification('Pasting large text...', 1000);
 
         // Build DOM fragment off-screen for performance
@@ -572,22 +645,46 @@
           fragment.appendChild(p);
         }
 
-        // Insert at current selection
+        // Find insertion point as a direct child of editor
         const sel = window.getSelection();
+        let insertBefore = null;
+
         if (sel.rangeCount) {
           const range = sel.getRangeAt(0);
           range.deleteContents();
-          range.insertNode(fragment);
-          range.collapse(false);
-          sel.removeAllRanges();
-          sel.addRange(range);
+
+          // Walk up to find the direct child of editor
+          let anchor = range.startContainer;
+          while (anchor && anchor !== editor && anchor.parentNode !== editor) {
+            anchor = anchor.parentNode;
+          }
+
+          if (anchor && anchor !== editor) {
+            insertBefore = anchor.nextSibling;
+          }
+        }
+
+        // Insert all <p> elements as direct children of editor (no nesting)
+        if (insertBefore) {
+          editor.insertBefore(fragment, insertBefore);
         } else {
           editor.appendChild(fragment);
+        }
+
+        // Move cursor to end of pasted content
+        const lastPasted = insertBefore ? insertBefore.previousSibling : editor.lastChild;
+        if (lastPasted && sel) {
+          const newRange = document.createRange();
+          newRange.selectNodeContents(lastPasted);
+          newRange.collapse(false);
+          sel.removeAllRanges();
+          sel.addRange(newRange);
         }
 
         // Defer expensive operations
         requestAnimationFrame(() => {
           state.isPasting = false;
+          _frameCounter++;
           countWords();
           clearTimeout(state.timers.format);
           state.timers.format = setTimeout(() => {
@@ -598,6 +695,7 @@
         });
       } else {
         // Small paste: use execCommand for proper undo integration
+        state.isDirty = true;
         document.execCommand('insertText', false, text);
       }
     }
@@ -609,11 +707,28 @@
 
       if (currentContent !== lastContent) {
         state.undoHistory.push({ content: currentContent, timestamp: Date.now() });
-        saveUndoHistory();
       }
 
+      // Trim by count
       if (state.undoHistory.length > config.undoLimit) {
         state.undoHistory.shift();
+      }
+
+      // Trim by byte size
+      trimUndoBySize();
+
+      saveUndoHistory();
+    }
+
+    // Cap undo history to stay within byte budget
+    function trimUndoBySize() {
+      let totalSize = 0;
+      for (let i = state.undoHistory.length - 1; i >= 0; i--) {
+        totalSize += state.undoHistory[i].content.length;
+        if (totalSize > config.undoMaxBytes) {
+          state.undoHistory = state.undoHistory.slice(i + 1);
+          return;
+        }
       }
     }
 
@@ -629,6 +744,8 @@
 
       state.isUndoing = true;
       editor.innerHTML = prevState.content;
+      state.isDirty = true;
+      _frameCounter++;
 
       saveUndoHistory();
 
@@ -645,6 +762,7 @@
       manualAnalyzeAndFormat();
 
       if (saveToStorage()) {
+        state.isDirty = false;
         saveBtn.textContent = "SAVED!";
         showNotification('Content saved successfully');
         setTimeout(() => { saveBtn.textContent = "💾"; }, 1500);
@@ -699,7 +817,6 @@
         const maxSquares = 10;
         const displayTotal = Math.min(totalPomodoros, maxSquares);
 
-        // Calculate progress within the current pomodoro
         const exactProgress = totalProgress * totalPomodoros;
         const currentPomodoroIndex = Math.floor(exactProgress);
         const currentPomodoroProgress = exactProgress - currentPomodoroIndex;
@@ -732,29 +849,112 @@
         }
     }
 
+    // Single-pass format: combines formatMarkedText + addMRSwapButtons + removeEmptyLines
+    function formatAndClean() {
+        // Remove existing swap links first (single querySelectorAll)
+        const existingLinks = editor.querySelectorAll('.mr-swap-link');
+        existingLinks.forEach(link => {
+            const textNode = document.createTextNode(link.textContent);
+            link.parentNode.replaceChild(textNode, link);
+        });
+
+        // Single pass over all <p> elements
+        const blocks = editor.querySelectorAll('p');
+        const toRemove = [];
+
+        blocks.forEach(block => {
+            const text = (block.textContent || '').trim();
+
+            // Remove empty lines
+            if (text === '' || text === '<br>') {
+                toRemove.push(block);
+                return;
+            }
+
+            if (text.startsWith("M:")) {
+                // Bold formatting for M: lines
+                const strong = block.querySelector('strong');
+                if (!strong || strong.textContent.trim() !== text) {
+                    const existingStrongs = block.querySelectorAll('strong');
+                    existingStrongs.forEach(s => {
+                        while (s.firstChild) block.insertBefore(s.firstChild, s);
+                        s.remove();
+                    });
+                    block.innerHTML = `<strong>${block.innerHTML}</strong>`;
+                }
+                addSwapLinkToBlock(block);
+            }
+            else if (text.startsWith("R:")) {
+                // Remove bold from R: lines
+                const strongElements = block.querySelectorAll('strong');
+                strongElements.forEach(strong => {
+                    while (strong.firstChild) block.insertBefore(strong.firstChild, strong);
+                    strong.remove();
+                });
+                addSwapLinkToBlock(block);
+            }
+            else if (/^\*{3,}$/.test(text)) {
+                // Remove bold from separator lines
+                const strongElements = block.querySelectorAll('strong');
+                strongElements.forEach(strong => {
+                    while (strong.firstChild) block.insertBefore(strong.firstChild, strong);
+                    strong.remove();
+                });
+            }
+        });
+
+        toRemove.forEach(block => block.remove());
+    }
+
+    // Add a clickable M:/R: swap link to a single block
+    function addSwapLinkToBlock(block) {
+        const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT, null, false);
+
+        let textNode;
+        while (textNode = walker.nextNode()) {
+            const nodeText = textNode.nodeValue || '';
+            const trimmedText = nodeText.trim();
+
+            if (trimmedText.startsWith('M:') || trimmedText.startsWith('R:')) {
+                const prefix = trimmedText.substring(0, 2);
+                const prefixIndex = nodeText.indexOf(prefix);
+
+                if (prefixIndex !== -1) {
+                    const beforePrefix = nodeText.substring(0, prefixIndex);
+                    const afterPrefix = nodeText.substring(prefixIndex + 2);
+
+                    const span = document.createElement('span');
+                    span.className = 'mr-swap-link';
+                    span.textContent = prefix;
+                    span.title = 'Click to swap M: ↔ R: from here down in this unit';
+                    span.contentEditable = false;
+
+                    span.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        swapMRInUnit(block);
+                    });
+
+                    const parent = textNode.parentNode;
+                    parent.insertBefore(document.createTextNode(beforePrefix), textNode);
+                    parent.insertBefore(span, textNode);
+                    parent.insertBefore(document.createTextNode(afterPrefix), textNode);
+                    parent.removeChild(textNode);
+
+                    break;
+                }
+            }
+        }
+    }
+
     function manualAnalyzeAndFormat() {
-        formatMarkedText();
-        addMRSwapButtons();
-        removeEmptyLines();
+        formatAndClean();
         countWords();
         calculateUnitsAndScrollPositions();
     }
 
-    function removeEmptyLines() {
-      const blocks = editor.querySelectorAll('p');
-      const toRemove = [];
-
-      blocks.forEach(block => {
-        const text = (block.textContent || '').trim();
-        if (text === '' || text === '<br>') {
-          toRemove.push(block);
-        }
-      });
-
-      toRemove.forEach(block => block.remove());
-    }
-
     function updateStatus() {
+      _frameCounter++;
       recordProgress();
 
       const {
@@ -786,108 +986,6 @@
       const totalPomodoros = Math.ceil(totalExpectedMins / POMODORO_MINUTES);
 
       updatePomodoroIndicators(totalPomodoros, totalProgress);
-    }
-
-    function formatMarkedText() {
-      const blocks = editor.querySelectorAll('p');
-      const toRemove = [];
-
-      blocks.forEach(block => {
-        const text = (block.textContent || '').trim();
-
-        if (text === '' || text === '<br>') {
-          toRemove.push(block);
-          return;
-        }
-
-        if (text.startsWith("M:")) {
-          const strong = block.querySelector('strong');
-          if (!strong || strong.textContent.trim() !== text) {
-            const existingStrongs = block.querySelectorAll('strong');
-            existingStrongs.forEach(s => {
-              while (s.firstChild) {
-                block.insertBefore(s.firstChild, s);
-              }
-              s.remove();
-            });
-            const content = block.innerHTML;
-            block.innerHTML = `<strong>${content}</strong>`;
-          }
-        }
-        else if (text.startsWith("R:") || /^\*{3,}$/.test(text)) {
-          const strongElements = block.querySelectorAll('strong');
-          strongElements.forEach(strong => {
-            while (strong.firstChild) {
-              block.insertBefore(strong.firstChild, strong);
-            }
-            strong.remove();
-          });
-        }
-      });
-
-      toRemove.forEach(block => block.remove());
-    }
-
-    function addMRSwapButtons() {
-        const existingLinks = editor.querySelectorAll('.mr-swap-link');
-        existingLinks.forEach(link => {
-            const textNode = document.createTextNode(link.textContent);
-            link.parentNode.replaceChild(textNode, link);
-        });
-
-        const blocks = editor.querySelectorAll('p');
-
-        blocks.forEach(block => {
-            const text = (block.textContent || '').trim();
-
-            if (text.startsWith("M:") || text.startsWith("R:")) {
-                const walker = document.createTreeWalker(
-                    block,
-                    NodeFilter.SHOW_TEXT,
-                    null,
-                    false
-                );
-
-                let textNode;
-                while (textNode = walker.nextNode()) {
-                    const nodeText = textNode.nodeValue || '';
-                    const trimmedText = nodeText.trim();
-
-                    if (trimmedText.startsWith('M:') || trimmedText.startsWith('R:')) {
-                        const prefix = trimmedText.substring(0, 2);
-                        const prefixIndex = nodeText.indexOf(prefix);
-
-                        if (prefixIndex !== -1) {
-                            const beforePrefix = nodeText.substring(0, prefixIndex);
-                            const afterPrefix = nodeText.substring(prefixIndex + 2);
-
-                            const span = document.createElement('span');
-                            span.className = 'mr-swap-link';
-                            span.textContent = prefix;
-                            span.title = 'Click to swap M: ↔ R: from here down in this unit';
-                            span.contentEditable = false;
-
-                            span.addEventListener('click', (e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                swapMRInUnit(block);
-                            });
-
-                            const beforeNode = document.createTextNode(beforePrefix);
-                            const afterNode = document.createTextNode(afterPrefix);
-
-                            const parent = textNode.parentNode;
-                            parent.insertBefore(beforeNode, textNode);
-                            parent.insertBefore(span, textNode);
-                            parent.insertBefore(afterNode, textNode);
-                            parent.removeChild(textNode);
-
-                            break;
-                        }
-                    }
-                }
-            }
-        });
     }
 
     function swapMRInUnit(startingBlock) {
@@ -934,7 +1032,7 @@
             }
         }
 
-        addMRSwapButtons();
+        formatAndClean();
         saveState();
         showNotification('M: and R: swapped from this point onwards in unit', 1500);
     }
@@ -1021,6 +1119,7 @@
         updateProgressContainerUI();
         createUnitJumpButtons();
 
+        _frameCounter++;
         updateStatus();
     }
 
@@ -1157,7 +1256,12 @@
         });
     }
 
+    // Cached per-frame to avoid redundant recomputation
     function getCurrentUnitProgress() {
+        if (_progressCache && _progressCacheFrame === _frameCounter) {
+            return _progressCache;
+        }
+
         const scroll = editor.scrollTop;
         const totalUnits = state.units.length;
 
@@ -1172,11 +1276,17 @@
             } else {
                 totalProgress = Math.min(1, scroll / maxScroll);
             }
-            return { currentUnitIndex: 0, unitProgress: totalProgress, unitWeight: 1, totalProgress: totalProgress, totalUnits: 1 };
+            const result = { currentUnitIndex: 0, unitProgress: totalProgress, unitWeight: 1, totalProgress: totalProgress, totalUnits: 1 };
+            _progressCache = result;
+            _progressCacheFrame = _frameCounter;
+            return result;
         }
 
         if (state.totalScrollableHeight <= 0) {
-            return { currentUnitIndex: 0, unitProgress: 0, unitWeight: 0, totalProgress: 0, totalUnits };
+            const result = { currentUnitIndex: 0, unitProgress: 0, unitWeight: 0, totalProgress: 0, totalUnits };
+            _progressCache = result;
+            _progressCacheFrame = _frameCounter;
+            return result;
         }
 
         const unitWeight = 1 / totalUnits;
@@ -1219,7 +1329,10 @@
             totalProgress = 1;
         }
 
-        return { currentUnitIndex, unitProgress, unitWeight: unitWeight, totalProgress, totalUnits };
+        const result = { currentUnitIndex, unitProgress, unitWeight: unitWeight, totalProgress, totalUnits };
+        _progressCache = result;
+        _progressCacheFrame = _frameCounter;
+        return result;
     }
 
     function updateProgressBars(currentUnitIndex, unitProgress) {
@@ -1285,6 +1398,7 @@
           if (!isNaN(scrollValue)) {
             editor.scrollTop = scrollValue;
             requestAnimationFrame(() => {
+              _frameCounter++;
               updateStatus();
             });
           }
@@ -1315,14 +1429,18 @@
       }
     }
 
+    // Notification with stacking fix - cancels previous notification timers
     function showNotification(message, duration = config.notificationDuration) {
+      clearTimeout(state.notificationTimer);
+      clearTimeout(state.notificationFadeTimer);
+
       notification.textContent = message;
       notification.style.display = 'block';
       notification.style.opacity = '1';
 
-      setTimeout(() => {
+      state.notificationTimer = setTimeout(() => {
         notification.style.opacity = '0';
-        setTimeout(() => {
+        state.notificationFadeTimer = setTimeout(() => {
           notification.style.display = 'none';
         }, 300);
       }, duration);
