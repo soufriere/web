@@ -759,7 +759,18 @@
 
     // Save content
     function onSave() {
-      manualAnalyzeAndFormat();
+      // Temporarily disable input events during formatting to prevent re-dirtying
+      const originalIsPasting = state.isPasting;
+      state.isPasting = true;
+
+      try {
+        manualAnalyzeAndFormat();
+      } catch (e) {
+        console.error('Format error during save:', e);
+        showNotification('Format failed, saving anyway...', 2000);
+      }
+
+      state.isPasting = originalIsPasting;
 
       if (saveToStorage()) {
         state.isDirty = false;
@@ -974,16 +985,25 @@
 
       const WORDS_PER_45_MIN = 6000;
       const MINUTES_PER_BENCHMARK = 45;
-      const POMODORO_MINUTES = 25;
+      const TARGET_POMODORO_MINUTES = 25;
 
       const totalExpectedMins = Math.round((state.wordCount / WORDS_PER_45_MIN) * MINUTES_PER_BENCHMARK);
+
+      // Calculate number of pomodoros, then divide total time equally
+      const totalPomodoros = Math.ceil(totalExpectedMins / TARGET_POMODORO_MINUTES);
+      const equalPomodoroLength = totalPomodoros > 0 ? totalExpectedMins / totalPomodoros : 0;
 
       const remainingProgress = Math.max(0, 1 - totalProgress);
       const remainingMins = Math.round(totalExpectedMins * remainingProgress);
 
-      etaDisplay.textContent = `${state.wordCount}w • ${remainingMins}min`;
+      // Calculate ETA to end of current pomodoro
+      const currentPomodoroIndex = Math.floor(totalProgress * totalPomodoros);
+      const currentPomodoroEnd = (currentPomodoroIndex + 1) * equalPomodoroLength;
+      const elapsedMins = totalExpectedMins * totalProgress;
+      const minsToCurrentPomodoroEnd = Math.max(0, Math.round(currentPomodoroEnd - elapsedMins));
 
-      const totalPomodoros = Math.ceil(totalExpectedMins / POMODORO_MINUTES);
+      // Display: current pomodoro ETA | total file ETA
+      etaDisplay.textContent = `${state.wordCount}w • ⏱${minsToCurrentPomodoroEnd}m | 📄${remainingMins}m`;
 
       updatePomodoroIndicators(totalPomodoros, totalProgress);
     }
