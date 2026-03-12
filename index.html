@@ -71,31 +71,80 @@
                 <button class="toggle-button active" id="expenseBtn" data-type="expense">Expense</button>
                 <button class="toggle-button" id="incomeBtn" data-type="income">Income</button>
             </div>
-            <div class="amount-input-container">
-                <input type="text" id="amountInput" class="amount-input" placeholder="0" readonly>
-                <button class="clear-button" id="clearBtn">✕</button>
+
+            <!-- Digit entry area (shown for bills/specials, and for custom coin amount) -->
+            <div id="digitEntryArea" style="display:none">
+                <div class="amount-input-container">
+                    <input type="text" id="amountInput" class="amount-input" placeholder="0" readonly>
+                    <button class="clear-button" id="clearBtn">✕</button>
+                </div>
+                <div class="digit-grid" id="digitGrid">
+                    <button class="digit-button" data-digit="1">1</button>
+                    <button class="digit-button" data-digit="2">2</button>
+                    <button class="digit-button" data-digit="3">3</button>
+                    <button class="digit-button" data-digit="4">4</button>
+                    <button class="digit-button" data-digit="5">5</button>
+                    <button class="digit-button" data-digit="6">6</button>
+                    <button class="digit-button" data-digit="7">7</button>
+                    <button class="digit-button" data-digit="8">8</button>
+                    <button class="digit-button" data-digit="9">9</button>
+                    <button class="digit-button" data-digit="0">0</button>
+                </div>
             </div>
 
-            <div class="digit-grid" id="digitGrid">
-                <button class="digit-button" data-digit="1">1</button>
-                <button class="digit-button" data-digit="2">2</button>
-                <button class="digit-button" data-digit="3">3</button>
-                <button class="digit-button" data-digit="4">4</button>
-                <button class="digit-button" data-digit="5">5</button>
-                <button class="digit-button" data-digit="6">6</button>
-                <button class="digit-button" data-digit="7">7</button>
-                <button class="digit-button" data-digit="8">8</button>
-                <button class="digit-button" data-digit="9">9</button>
-                <button class="digit-button" data-digit="0">0</button>
+            <!-- Coin category grid (shown for daily segment) -->
+            <div id="coinCategoryGrid" class="coin-category-grid">
+                <div class="coin-row">
+                    <span class="coin-cat-label in-food">In Food</span>
+                    <div class="coin-set">
+                        <button class="coin in-food" data-category="In Food" data-amount="1">1€</button>
+                        <button class="coin in-food" data-category="In Food" data-amount="2">2€</button>
+                        <button class="coin in-food" data-category="In Food" data-amount="5">5€</button>
+                        <button class="coin coin-x in-food" data-category="In Food" data-amount="x">X€</button>
+                    </div>
+                </div>
+                <div class="coin-row">
+                    <span class="coin-cat-label out-food">Out Food</span>
+                    <div class="coin-set">
+                        <button class="coin out-food" data-category="Out Food" data-amount="1">1€</button>
+                        <button class="coin out-food" data-category="Out Food" data-amount="2">2€</button>
+                        <button class="coin out-food" data-category="Out Food" data-amount="5">5€</button>
+                        <button class="coin coin-x out-food" data-category="Out Food" data-amount="x">X€</button>
+                    </div>
+                </div>
+                <div class="coin-row">
+                    <span class="coin-cat-label shopping">Shopping</span>
+                    <div class="coin-set">
+                        <button class="coin shopping" data-category="Shopping" data-amount="1">1€</button>
+                        <button class="coin shopping" data-category="Shopping" data-amount="2">2€</button>
+                        <button class="coin shopping" data-category="Shopping" data-amount="5">5€</button>
+                        <button class="coin coin-x shopping" data-category="Shopping" data-amount="x">X€</button>
+                    </div>
+                </div>
+                <div class="coin-row">
+                    <span class="coin-cat-label entertainment">Entertain.</span>
+                    <div class="coin-set">
+                        <button class="coin entertainment" data-category="Entertainment" data-amount="1">1€</button>
+                        <button class="coin entertainment" data-category="Entertainment" data-amount="2">2€</button>
+                        <button class="coin entertainment" data-category="Entertainment" data-amount="5">5€</button>
+                        <button class="coin coin-x entertainment" data-category="Entertainment" data-amount="x">X€</button>
+                    </div>
+                </div>
+                <div class="coin-row">
+                    <span class="coin-cat-label others">Others</span>
+                    <div class="coin-set">
+                        <button class="coin others" data-category="Others" data-amount="1">1€</button>
+                        <button class="coin others" data-category="Others" data-amount="2">2€</button>
+                        <button class="coin others" data-category="Others" data-amount="5">5€</button>
+                        <button class="coin coin-x others" data-category="Others" data-amount="x">X€</button>
+                    </div>
+                </div>
             </div>
 
-            <div id="categoryButtons" class="category-grid">
-                <button class="category-button in-food" data-category="In Food">In Food</button>
-                <button class="category-button out-food" data-category="Out Food">Out Food</button>
-                <button class="category-button shopping" data-category="Shopping">Shopping</button>
-                <button class="category-button entertainment" data-category="Entertainment">Entertainment</button>
-                <button class="category-button others" data-category="Others">Others</button>
-            </div>
+            <!-- Custom coin confirm (shown when X coin is tapped) -->
+            <button id="customCoinConfirm" class="custom-coin-confirm" style="display:none">
+                Log to <span id="customCoinCategorySpan"></span>
+            </button>
 
             <button id="labelButton" class="label-button" style="display: none;">Add Label & Save</button>
         </div>

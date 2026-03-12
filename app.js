@@ -45,6 +45,7 @@ let data = {
 let selectedSegment = 'daily';
 let currentAmount = '';
 let transactionType = 'expense'; // 'expense' or 'income'
+let coinCustomCategory = null; // category being entered via X coin
 
 // Load data
 function loadData() {
@@ -77,6 +78,7 @@ function saveData() {
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
     setupEventListeners();
+    selectSegment(selectedSegment); // sync UI to initial segment
 });
 
 // Event listeners
@@ -102,12 +104,21 @@ function setupEventListeners() {
     document.getElementById('expenseBtn').addEventListener('click', () => setTransactionType('expense'));
     document.getElementById('incomeBtn').addEventListener('click', () => setTransactionType('income'));
 
-    // Category buttons
-    document.querySelectorAll('.category-button').forEach(button => {
+    // Coin buttons
+    document.querySelectorAll('.coin').forEach(button => {
         button.addEventListener('click', () => {
-            addExpense(button.dataset.category);
+            const category = button.dataset.category;
+            const amount = button.dataset.amount;
+            if (amount === 'x') {
+                handleCoinX(category);
+            } else {
+                addCoinExpense(category, parseFloat(amount));
+            }
         });
     });
+
+    // Custom coin confirm
+    document.getElementById('customCoinConfirm').addEventListener('click', confirmCustomCoin);
 
     // Label button
     document.getElementById('labelButton').addEventListener('click', openLabelModal);
@@ -175,13 +186,20 @@ function selectSegment(segment) {
     };
     amountInput.style.background = segmentColors[segment];
 
-    // Show/hide category buttons vs label button
+    // Show/hide coin grid vs digit entry vs label button
     if (segment === 'daily') {
-        document.getElementById('categoryButtons').style.display = 'grid';
+        document.getElementById('coinCategoryGrid').style.display = 'flex';
+        document.getElementById('digitEntryArea').style.display = 'none';
+        document.getElementById('customCoinConfirm').style.display = 'none';
         document.getElementById('labelButton').style.display = 'none';
+        coinCustomCategory = null;
+        clearAmount();
     } else {
-        document.getElementById('categoryButtons').style.display = 'none';
+        document.getElementById('coinCategoryGrid').style.display = 'none';
+        document.getElementById('digitEntryArea').style.display = 'block';
+        document.getElementById('customCoinConfirm').style.display = 'none';
         document.getElementById('labelButton').style.display = 'block';
+        coinCustomCategory = null;
     }
 
     // Re-render expenses list to show only the selected segment
@@ -201,9 +219,91 @@ function appendDigit(digit) {
 function clearAmount() {
     currentAmount = '';
     document.getElementById('amountInput').value = '';
+    // If in X-coin mode for daily, cancel back to coin grid
+    if (selectedSegment === 'daily' && coinCustomCategory) {
+        coinCustomCategory = null;
+        document.getElementById('coinCategoryGrid').style.display = 'flex';
+        document.getElementById('digitEntryArea').style.display = 'none';
+        document.getElementById('customCoinConfirm').style.display = 'none';
+    }
 }
 
-// Add expense
+// Toast notifications
+let toastTimer = null;
+function showToast(message, accentColor) {
+    const existing = document.getElementById('activeToast');
+    if (existing) existing.remove();
+    if (toastTimer) { clearTimeout(toastTimer); toastTimer = null; }
+
+    const toast = document.createElement('div');
+    toast.id = 'activeToast';
+    toast.className = 'toast';
+    if (accentColor) toast.style.borderLeft = `4px solid ${accentColor}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    toastTimer = setTimeout(() => {
+        toast.remove();
+        toastTimer = null;
+    }, 2000);
+}
+
+// Category color lookup
+const CATEGORY_COLORS = {
+    'In Food': '#059669',
+    'Out Food': '#ea580c',
+    'Shopping': '#9333ea',
+    'Entertainment': '#0891b2',
+    'Others': '#475569'
+};
+
+// Add expense via coin button (daily only)
+function addCoinExpense(category, amount) {
+    if (!amount || amount <= 0) return;
+
+    const expense = {
+        id: Date.now(),
+        amount: amount,
+        segment: 'daily',
+        category: category,
+        label: category,
+        date: Date.now(),
+        type: transactionType
+    };
+
+    data.expenses.unshift(expense);
+    saveData();
+    render();
+
+    const sign = transactionType === 'income' ? '+' : '-';
+    showToast(`${sign}€${amount} · ${category}`, CATEGORY_COLORS[category]);
+}
+
+// Handle X coin tap — show digit entry for custom amount
+function handleCoinX(category) {
+    coinCustomCategory = category;
+    clearAmount();
+    document.getElementById('coinCategoryGrid').style.display = 'none';
+    document.getElementById('digitEntryArea').style.display = 'block';
+    document.getElementById('customCoinCategorySpan').textContent = category;
+    document.getElementById('customCoinConfirm').style.display = 'block';
+}
+
+// Confirm custom coin amount
+function confirmCustomCoin() {
+    const amount = parseFloat(currentAmount);
+    if (!amount || amount <= 0) return;
+    const category = coinCustomCategory;
+    coinCustomCategory = null;
+    clearAmount(); // resets mode too, but we fix display below
+    // Back to coin grid
+    document.getElementById('coinCategoryGrid').style.display = 'flex';
+    document.getElementById('digitEntryArea').style.display = 'none';
+    document.getElementById('customCoinConfirm').style.display = 'none';
+    addCoinExpense(category, amount);
+}
+
+// Add expense (legacy path used by bills/specials if ever needed, kept for compatibility)
 function addExpense(category) {
     const amount = parseFloat(currentAmount);
     if (!amount || amount === 0) return;
@@ -222,6 +322,10 @@ function addExpense(category) {
     saveData();
     render();
     clearAmount();
+
+    const sign = transactionType === 'income' ? '+' : '-';
+    const segmentColors = { bills: '#3b82f6', specials: '#8b5cf6', daily: '#10b981' };
+    showToast(`${sign}€${amount} · ${category}`, segmentColors[selectedSegment]);
 }
 
 // Label modal
@@ -268,6 +372,10 @@ function saveLabelExpense() {
     render();
     clearAmount();
     closeLabelModal();
+
+    const sign = transactionType === 'income' ? '+' : '-';
+    const segmentColors = { bills: '#3b82f6', specials: '#8b5cf6', daily: '#10b981' };
+    showToast(`${sign}€${amount} · ${label}`, segmentColors[selectedSegment]);
 }
 
 // Delete expense (make it global for onclick)
