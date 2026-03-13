@@ -110,12 +110,16 @@ function setupEventListeners() {
             const category = button.dataset.category;
             const amount = button.dataset.amount;
             if (amount === 'x') {
+                commitAccum(); // flush any pending before going to custom entry
                 handleCoinX(category);
             } else {
-                addCoinExpense(category, parseFloat(amount));
+                addToAccum(category, parseFloat(amount));
             }
         });
     });
+
+    // Accumulator cancel
+    document.getElementById('coinAccumCancel').addEventListener('click', cancelAccum);
 
     // Custom coin confirm
     document.getElementById('customCoinConfirm').addEventListener('click', confirmCustomCoin);
@@ -185,6 +189,9 @@ function selectSegment(segment) {
         daily: '#10b981'
     };
     amountInput.style.background = segmentColors[segment];
+
+    // Commit any pending coin accumulator before switching
+    if (accumCategory) commitAccum();
 
     // Show/hide coin grid vs digit entry vs label button
     if (segment === 'daily') {
@@ -257,7 +264,78 @@ const CATEGORY_COLORS = {
     'Others': '#475569'
 };
 
-// Add expense via coin button (daily only)
+// ---- Coin accumulator ----
+let accumCategory = null;
+let accumAmount   = 0;
+let accumTimer    = null;
+let accumEnd      = 0;
+const ACCUM_DURATION = 5000;
+
+function addToAccum(category, amount) {
+    if (accumCategory && accumCategory !== category) {
+        commitAccum(); // commit pending before starting a new one
+    }
+    if (!accumCategory) {
+        accumCategory = category;
+        accumAmount   = 0;
+        showAccumOverlay();
+    }
+    accumAmount += amount;
+    document.getElementById('coinAccumAmount').textContent = '€' + accumAmount;
+    resetAccumTimer();
+}
+
+function showAccumOverlay() {
+    const overlay = document.getElementById('coinAccumOverlay');
+    overlay.style.setProperty('--accum-color', CATEGORY_COLORS[accumCategory]);
+    document.getElementById('coinAccumCategory').textContent = accumCategory;
+    document.getElementById('coinAccumAmount').textContent = '€0';
+    document.getElementById('coinAccumTimerFill').style.width = '100%';
+    overlay.classList.add('active');
+    startAccumTimer();
+}
+
+function hideAccumOverlay() {
+    document.getElementById('coinAccumOverlay').classList.remove('active');
+    clearInterval(accumTimer);
+    accumTimer    = null;
+    accumCategory = null;
+    accumAmount   = 0;
+}
+
+function startAccumTimer() {
+    clearInterval(accumTimer);
+    accumEnd  = Date.now() + ACCUM_DURATION;
+    accumTimer = setInterval(() => {
+        const remaining = accumEnd - Date.now();
+        if (remaining <= 0) {
+            commitAccum();
+        } else {
+            document.getElementById('coinAccumTimerFill').style.width =
+                ((remaining / ACCUM_DURATION) * 100) + '%';
+        }
+    }, 50);
+}
+
+function resetAccumTimer() {
+    accumEnd = Date.now() + ACCUM_DURATION;
+    document.getElementById('coinAccumTimerFill').style.width = '100%';
+}
+
+function commitAccum() {
+    const category = accumCategory;
+    const amount   = accumAmount;
+    hideAccumOverlay();
+    if (!category || amount <= 0) return;
+    addCoinExpense(category, amount);
+}
+
+function cancelAccum() {
+    hideAccumOverlay();
+}
+// --------------------------
+
+// Save a daily coin expense directly (used by accumulator & X-coin custom entry)
 function addCoinExpense(category, amount) {
     if (!amount || amount <= 0) return;
 
