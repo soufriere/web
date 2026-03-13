@@ -119,7 +119,7 @@ function setupEventListeners() {
     });
 
     // Accumulator cancel
-    document.getElementById('coinAccumCancel').addEventListener('click', cancelAccum);
+    document.getElementById('coinAccumCancel').addEventListener('click', hideAccumOverlay);
 
     // Custom coin confirm
     document.getElementById('customCoinConfirm').addEventListener('click', confirmCustomCoin);
@@ -182,13 +182,7 @@ function selectSegment(segment) {
     updateSegmentLabel();
 
     // Update input field background color based on active segment
-    const amountInput = document.getElementById('amountInput');
-    const segmentColors = {
-        bills: '#3b82f6',
-        specials: '#8b5cf6',
-        daily: '#10b981'
-    };
-    amountInput.style.background = segmentColors[segment];
+    document.getElementById('amountInput').style.background = SEGMENT_COLORS[segment];
 
     // Commit any pending coin accumulator before switching
     if (accumCategory) commitAccum();
@@ -255,7 +249,7 @@ function showToast(message, accentColor) {
     }, 2000);
 }
 
-// Category color lookup
+// Color lookups
 const CATEGORY_COLORS = {
     'In Food': '#059669',
     'Out Food': '#ea580c',
@@ -264,11 +258,14 @@ const CATEGORY_COLORS = {
     'Others': '#475569'
 };
 
+const SEGMENT_COLORS = { bills: '#3b82f6', specials: '#8b5cf6', daily: '#10b981' };
+
 // ---- Coin accumulator ----
 let accumCategory = null;
 let accumAmount   = 0;
 let accumTimer    = null;
 let accumEnd      = 0;
+let timerFillEl   = null; // cached DOM ref for 50ms interval
 const ACCUM_DURATION = 5000;
 
 function addToAccum(category, amount) {
@@ -287,10 +284,10 @@ function addToAccum(category, amount) {
 
 function showAccumOverlay() {
     const overlay = document.getElementById('coinAccumOverlay');
+    timerFillEl = document.getElementById('coinAccumTimerFill');
     overlay.style.setProperty('--accum-color', CATEGORY_COLORS[accumCategory]);
     document.getElementById('coinAccumCategory').textContent = accumCategory;
-    document.getElementById('coinAccumAmount').textContent = '€0';
-    document.getElementById('coinAccumTimerFill').style.width = '100%';
+    timerFillEl.style.width = '100%';
     overlay.classList.add('active');
     startAccumTimer();
 }
@@ -305,21 +302,20 @@ function hideAccumOverlay() {
 
 function startAccumTimer() {
     clearInterval(accumTimer);
-    accumEnd  = Date.now() + ACCUM_DURATION;
+    accumEnd   = Date.now() + ACCUM_DURATION;
     accumTimer = setInterval(() => {
         const remaining = accumEnd - Date.now();
         if (remaining <= 0) {
             commitAccum();
         } else {
-            document.getElementById('coinAccumTimerFill').style.width =
-                ((remaining / ACCUM_DURATION) * 100) + '%';
+            timerFillEl.style.width = ((remaining / ACCUM_DURATION) * 100) + '%';
         }
     }, 50);
 }
 
 function resetAccumTimer() {
     accumEnd = Date.now() + ACCUM_DURATION;
-    document.getElementById('coinAccumTimerFill').style.width = '100%';
+    timerFillEl.style.width = '100%';
 }
 
 function commitAccum() {
@@ -330,9 +326,6 @@ function commitAccum() {
     addCoinExpense(category, amount);
 }
 
-function cancelAccum() {
-    hideAccumOverlay();
-}
 // --------------------------
 
 // Save a daily coin expense directly (used by accumulator & X-coin custom entry)
@@ -373,37 +366,12 @@ function confirmCustomCoin() {
     if (!amount || amount <= 0) return;
     const category = coinCustomCategory;
     coinCustomCategory = null;
-    clearAmount(); // resets mode too, but we fix display below
-    // Back to coin grid
+    currentAmount = '';
+    document.getElementById('amountInput').value = '';
     document.getElementById('coinCategoryGrid').style.display = 'flex';
     document.getElementById('digitEntryArea').style.display = 'none';
     document.getElementById('customCoinConfirm').style.display = 'none';
     addCoinExpense(category, amount);
-}
-
-// Add expense (legacy path used by bills/specials if ever needed, kept for compatibility)
-function addExpense(category) {
-    const amount = parseFloat(currentAmount);
-    if (!amount || amount === 0) return;
-
-    const expense = {
-        id: Date.now(),
-        amount: amount,
-        segment: selectedSegment,
-        category: category,
-        label: category,
-        date: Date.now(),
-        type: transactionType // 'expense' or 'income'
-    };
-
-    data.expenses.unshift(expense);
-    saveData();
-    render();
-    clearAmount();
-
-    const sign = transactionType === 'income' ? '+' : '-';
-    const segmentColors = { bills: '#3b82f6', specials: '#8b5cf6', daily: '#10b981' };
-    showToast(`${sign}€${amount} · ${category}`, segmentColors[selectedSegment]);
 }
 
 // Label modal
@@ -452,8 +420,7 @@ function saveLabelExpense() {
     closeLabelModal();
 
     const sign = transactionType === 'income' ? '+' : '-';
-    const segmentColors = { bills: '#3b82f6', specials: '#8b5cf6', daily: '#10b981' };
-    showToast(`${sign}€${amount} · ${label}`, segmentColors[selectedSegment]);
+    showToast(`${sign}€${amount} · ${label}`, SEGMENT_COLORS[selectedSegment]);
 }
 
 // Delete expense (make it global for onclick)

@@ -678,12 +678,6 @@ h1 {
     color: white;
 }
 
-.coin-cat-label.in-food        { background: #059669; }
-.coin-cat-label.out-food       { background: #ea580c; }
-.coin-cat-label.shopping       { background: #9333ea; }
-.coin-cat-label.entertainment  { background: #0891b2; }
-.coin-cat-label.others         { background: #475569; }
-
 .coin-set {
     display: flex;
     gap: 6px;
@@ -712,11 +706,12 @@ h1 {
     filter: brightness(0.85);
 }
 
-.coin.in-food        { background: #059669; }
-.coin.out-food       { background: #ea580c; }
-.coin.shopping       { background: #9333ea; }
-.coin.entertainment  { background: #0891b2; }
-.coin.others         { background: #475569; }
+/* Shared category colors for labels + coins */
+.coin-cat-label.in-food,       .coin.in-food       { background: #059669; }
+.coin-cat-label.out-food,      .coin.out-food      { background: #ea580c; }
+.coin-cat-label.shopping,      .coin.shopping      { background: #9333ea; }
+.coin-cat-label.entertainment, .coin.entertainment { background: #0891b2; }
+.coin-cat-label.others,        .coin.others        { background: #475569; }
 
 .coin.coin-x {
     background: #334155;
