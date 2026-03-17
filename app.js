@@ -639,8 +639,60 @@ function render() {
     // Render category breakdown
     renderCategoryBreakdown();
 
+    // Render daily budget indicator
+    renderDailyIndicator();
+
     // Render expenses list
     renderExpenses();
+}
+
+// Render daily budget indicator (over/under budget bar + text)
+function renderDailyIndicator() {
+    const indicator = document.getElementById('dailyIndicator');
+    if (!data.daily || data.daily <= 0) {
+        indicator.style.display = 'none';
+        return;
+    }
+
+    const now = Date.now();
+    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+    const recentExpenses = data.expenses.filter(e => e.segment === 'daily' && e.date >= thirtyDaysAgo);
+
+    if (recentExpenses.length === 0) {
+        indicator.style.display = 'none';
+        return;
+    }
+
+    const actualTotal = recentExpenses.reduce((sum, exp) => {
+        return sum + (exp.type === 'income' ? -exp.amount : exp.amount);
+    }, 0);
+
+    const oldestDate = Math.min(...recentExpenses.map(e => e.date));
+    const daysOfData = Math.min(30, Math.max(1, (now - oldestDate) / (24 * 60 * 60 * 1000)));
+
+    const budget30 = data.daily * 30;
+    const budgetSoFar = data.daily * daysOfData;
+    const difference = actualTotal - budgetSoFar;
+    const isOver = difference > 0;
+    const daysEquivalent = Math.abs(difference) / data.daily;
+
+    // Fill: fraction of 30-day budget used (capped at 100% visually)
+    const fillPct = Math.min(100, Math.max(0, (actualTotal / budget30) * 100));
+    // Marker: where we should be at this point in the 30-day window
+    const markerPct = Math.min(100, (daysOfData / 30) * 100);
+
+    const color = isOver ? '#f87171' : '#4ade80';
+    document.getElementById('dailyIndicatorFill').style.width = fillPct + '%';
+    document.getElementById('dailyIndicatorFill').style.background = color;
+    document.getElementById('dailyIndicatorMarker').style.left = markerPct + '%';
+
+    const sign = isOver ? '▲' : '▼';
+    const daysStr = daysEquivalent < 10 ? daysEquivalent.toFixed(1) : fmt(daysEquivalent) + '';
+    document.getElementById('dailyIndicatorText').textContent =
+        `${sign} €${fmt(Math.abs(difference))} ${isOver ? 'over' : 'under'} · ${daysStr}d`;
+    document.getElementById('dailyIndicatorText').style.color = color;
+
+    indicator.style.display = 'block';
 }
 
 // Render category breakdown
