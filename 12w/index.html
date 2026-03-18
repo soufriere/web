@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1a1a2e">
-    <title>12 Week Challenge</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="theme-color" content="#0d1117">
+    <title>12W</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
     <style>
@@ -19,274 +19,336 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #f5f5f0;
-            padding: 16px;
+            background: #0d1117;
+            color: #e6edf3;
+            padding: 20px 16px 32px;
             min-height: 100vh;
             touch-action: manipulation;
         }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        /* ── Header ── */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
         }
 
         h1 {
-            font-size: 18px;
-            color: #666;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 400;
-        }
-
-        .goals {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-
-        .goal {
-            text-align: center;
-        }
-
-        .goal-label {
-            font-size: 14px;
-            font-weight: 600;
+            font-size: 13px;
+            font-weight: 500;
+            color: #7d8590;
             text-transform: uppercase;
-            color: #333;
+            letter-spacing: 1.5px;
+        }
+
+        .icon-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #7d8590;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+
+        .icon-btn:active { background: #30363d; }
+
+        /* ── Contribution grid ── */
+        .contrib-wrap {
+            width: 100%;
+        }
+
+        .grid-header {
+            display: grid;
+            grid-template-columns: 22px repeat(4, 1fr);
+            margin-bottom: 4px;
+        }
+
+        .goal-header {
+            text-align: center;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            padding-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .grid-body {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .grid-row {
+            display: grid;
+            grid-template-columns: 22px repeat(4, 1fr);
+            align-items: center;
+        }
+
+        /* Extra gap every 4 rows → visual month grouping */
+        .grid-row.sep {
+            margin-top: 5px;
+        }
+
+        .week-num {
+            font-size: 9px;
+            color: #484f58;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+
+        .boxes {
+            display: flex;
+            justify-content: center;
+            gap: 3px;
         }
 
         .box {
-            width: 20px;
-            height: 20px;
-            border: 2px solid #2c3e85;
-            border-radius: 2px;
+            width: 15px;
+            height: 15px;
+            border-radius: 3px;
             cursor: pointer;
-            transition: all 0.2s;
-            position: relative;
+            flex-shrink: 0;
+            transition: transform 0.08s;
         }
 
-        .box.half {
-            background: linear-gradient(to top, #60a5fa 50%, transparent 50%);
-            border-color: #60a5fa;
-        }
-
-        .box.filled {
-            background: #2c3e85;
-        }
+        .box:active { transform: scale(0.82); }
 
         .box.recent {
-            border-color: #22c55e;
-            background: #22c55e;
+            outline: 1.5px solid rgba(230,237,243,0.6);
+            outline-offset: 1px;
         }
 
-        .box.recent.half {
-            border-color: #22c55e;
-            background: linear-gradient(to top, #22c55e 50%, transparent 50%);
-        }
-
-        .weeks {
-            display: grid;
-            gap: 16px;
-        }
-
-        .week {
-            display: grid;
-            grid-template-columns: 40px repeat(4, 1fr);
-            gap: 12px;
-            padding: 12px 0;
-            border-bottom: 1px solid #eee;
+        /* ── Legend ── */
+        .legend {
+            display: flex;
             align-items: center;
+            gap: 4px;
+            margin-bottom: 10px;
+            justify-content: flex-end;
         }
 
-        .week:last-child {
-            border-bottom: none;
+        .legend-label {
+            font-size: 9px;
+            color: #484f58;
         }
 
-        .week-number {
-            font-size: 14px;
-            color: #999;
+        .legend-box {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        /* ── Stats row ── */
+        .stats {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .stat {
+            background: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            padding: 8px 6px;
             text-align: center;
-            font-weight: 500;
         }
 
-        .week-boxes {
+        .stat-name {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .stat-bar-bg {
+            height: 4px;
+            background: #21262d;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        .stat-pct {
+            font-size: 11px;
+            font-weight: 600;
+            color: #e6edf3;
+        }
+
+        /* ── Actions ── */
+        .actions {
+            margin-top: 16px;
             display: flex;
-            gap: 3px;
-            justify-content: center;
-        }
-
-        .reset-btn {
-            margin-top: 24px;
-            width: 100%;
-            padding: 12px;
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            opacity: 0.7;
-        }
-
-        .reset-btn:active {
-            opacity: 1;
-        }
-
-        .settings-btn {
-            padding: 12px;
-            background: #2c3e85;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            padding: 16px;
-        }
-
-        .modal.active {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 500px;
-            width: 100%;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 14px;
-            font-weight: 500;
-            margin-bottom: 8px;
-            color: #666;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: monospace;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #2c3e85;
-        }
-
-        .form-help {
-            font-size: 12px;
-            color: #999;
-            margin-top: 4px;
-        }
-
-        .modal-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 20px;
+            gap: 8px;
         }
 
         .btn {
+            flex: 1;
             padding: 10px;
-            border: none;
+            border: 1px solid #30363d;
             border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
+            background: #161b22;
+            font-size: 12px;
+            font-weight: 500;
             cursor: pointer;
         }
 
-        .btn-primary {
-            background: #2c3e85;
-            color: white;
+        .btn:active { opacity: 0.7; }
+        .btn-sync { color: #e6edf3; }
+        .btn-reset { color: #f85149; }
+
+        /* ── Modal (bottom sheet) ── */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            align-items: flex-end;
+            justify-content: center;
+            padding: 0 0 0;
         }
 
-        .btn-secondary {
-            background: #ddd;
-            color: #333;
+        .modal.active { display: flex; }
+
+        .modal-sheet {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 14px 14px 0 0;
+            padding: 20px 16px 36px;
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .modal-handle {
+            width: 36px;
+            height: 4px;
+            background: #30363d;
+            border-radius: 2px;
+            margin: 0 auto 16px;
+        }
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-btn {
+            display: block;
+            width: 100%;
+            padding: 11px 14px;
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            text-align: left;
+            margin-bottom: 8px;
+        }
+
+        .modal-btn:active { background: #30363d; }
+
+        .section-label {
+            font-size: 11px;
+            color: #7d8590;
+            margin: 14px 0 6px;
+        }
+
+        textarea.sync-input {
+            width: 100%;
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+            border-radius: 6px;
+            padding: 10px;
+            font-size: 12px;
+            font-family: monospace;
+            resize: none;
+            height: 72px;
+        }
+
+        textarea.sync-input:focus {
+            outline: none;
+            border-color: #58a6ff;
+        }
+
+        .modal-close {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: transparent;
+            border: 1px solid #30363d;
+            color: #7d8590;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
-    <div class="container">
+
+    <header>
         <h1>12 week challenge</h1>
-        
-        <div class="goals">
-            <div class="goal">
-                <div class="goal-label">RUN</div>
-            </div>
-            <div class="goal">
-                <div class="goal-label">BODY</div>
-            </div>
-            <div class="goal">
-                <div class="goal-label">READ</div>
-            </div>
-            <div class="goal">
-                <div class="goal-label">WRITE</div>
-            </div>
+        <button class="icon-btn" onclick="openSettings()">⇅ sync</button>
+    </header>
+
+    <div class="contrib-wrap">
+
+        <div class="legend">
+            <span class="legend-label">less</span>
+            <div class="legend-box" style="background:#21262d"></div>
+            <div class="legend-box" style="background:#4a3060"></div>
+            <div class="legend-box" style="background:#a855f7"></div>
+            <span class="legend-label">more</span>
         </div>
 
-        <div class="weeks" id="weeks"></div>
+        <div class="grid-header">
+            <div></div>
+            <div class="goal-header" style="color:#f97316">RUN</div>
+            <div class="goal-header" style="color:#3b82f6">BODY</div>
+            <div class="goal-header" style="color:#a855f7">READ</div>
+            <div class="goal-header" style="color:#22c55e">WRITE</div>
+        </div>
 
-        <button class="settings-btn" onclick="openSettings()" style="margin-top: 24px; width: 100%;">Sync Settings</button>
+        <div class="grid-body" id="weeks"></div>
 
-        <button class="reset-btn" onclick="resetAll()">Reset All</button>
     </div>
 
+    <div class="stats" id="stats"></div>
+
+    <div class="actions">
+        <button class="btn btn-sync" onclick="openSettings()">Sync</button>
+        <button class="btn btn-reset" onclick="resetAll()">Reset</button>
+    </div>
+
+    <!-- Sync modal -->
     <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-title">Sync via URL</div>
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">Sync</div>
 
-            <div class="form-group">
-                <label class="form-label">Share your progress</label>
-                <button class="btn btn-primary" style="width: 100%; margin-bottom: 8px;" onclick="copySyncURL()">Copy Sync Link</button>
-                <div class="form-help">Copies a URL with your data encoded. Open it on any device to sync!</div>
-            </div>
+            <button class="modal-btn" onclick="copySyncURL()">📤 &nbsp;Copy sync link</button>
 
-            <div class="form-group" style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #eee;">
-                <label class="form-label">Load from URL</label>
-                <textarea class="form-input" id="syncUrlInput" placeholder="Paste sync URL here..." rows="3" style="resize: vertical;"></textarea>
-                <div class="form-help">Paste a sync URL to import data</div>
-                <button class="btn btn-primary" style="width: 100%; margin-top: 8px;" onclick="loadFromURL()">Import Data</button>
-            </div>
+            <div class="section-label">Import from URL</div>
+            <textarea class="sync-input" id="syncUrlInput" placeholder="Paste sync URL here…"></textarea>
+            <button class="modal-btn" style="margin-top:8px" onclick="loadFromURL()">📥 &nbsp;Import data</button>
 
-            <div class="modal-buttons" style="margin-top: 24px;">
-                <button class="btn btn-secondary" onclick="closeSettings()">Close</button>
-            </div>
+            <button class="modal-close" onclick="closeSettings()">Close</button>
         </div>
     </div>
 
@@ -294,21 +356,27 @@
         const STORAGE_KEY = '12week_challenge';
         const WEEKS = 12;
         const BOXES_PER_WEEK = { run: 3, body: 3, read: 3, write: 4 };
+        const GOALS = ['run', 'body', 'read', 'write'];
+
+        const COLORS = {
+            run:   { empty: '#21262d', half: '#7c2d12', filled: '#f97316', label: '#f97316' },
+            body:  { empty: '#21262d', half: '#1e3a5f', filled: '#3b82f6', label: '#3b82f6' },
+            read:  { empty: '#21262d', half: '#3b1f6e', filled: '#a855f7', label: '#a855f7' },
+            write: { empty: '#21262d', half: '#14532d', filled: '#22c55e', label: '#22c55e' },
+        };
+
+        // ── Data ──────────────────────────────────────────────
 
         function loadData() {
             const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                return JSON.parse(saved);
-            }
-            
+            if (saved) return JSON.parse(saved);
             const data = { weeks: [], recentChanges: [] };
-            
             for (let i = 0; i < WEEKS; i++) {
                 data.weeks.push({
-                    run: Array(3).fill(0),
-                    body: Array(3).fill(0),
-                    read: Array(3).fill(0),
-                    write: Array(4).fill(0)
+                    run:   Array(3).fill(0),
+                    body:  Array(3).fill(0),
+                    read:  Array(3).fill(0),
+                    write: Array(4).fill(0),
                 });
             }
             return data;
@@ -319,191 +387,176 @@
         }
 
         function addRecentChange(data, weekIdx, goal, boxIdx) {
-            const changeId = `${weekIdx}-${goal}-${boxIdx}`;
-            data.recentChanges = data.recentChanges.filter(id => id !== changeId);
-            data.recentChanges.push(changeId);
-            if (data.recentChanges.length > 3) {
-                data.recentChanges.shift();
-            }
+            const id = `${weekIdx}-${goal}-${boxIdx}`;
+            data.recentChanges = data.recentChanges.filter(x => x !== id);
+            data.recentChanges.push(id);
+            if (data.recentChanges.length > 3) data.recentChanges.shift();
         }
 
         function isRecentChange(data, weekIdx, goal, boxIdx) {
-            const changeId = `${weekIdx}-${goal}-${boxIdx}`;
-            return data.recentChanges.includes(changeId);
+            return data.recentChanges.includes(`${weekIdx}-${goal}-${boxIdx}`);
         }
 
-        function createBox(state, isRecent, onClick) {
-            const box = document.createElement('div');
-            const classes = ['box'];
-            if (state === 1) classes.push('half');
-            if (state === 2) classes.push('filled');
-            if (isRecent && state > 0) classes.push('recent');
-            box.className = classes.join(' ');
-            box.onclick = onClick;
-            return box;
-        }
+        // ── Render ────────────────────────────────────────────
 
         function renderWeeks(data) {
             const container = document.getElementById('weeks');
             container.innerHTML = '';
-            
+
             data.weeks.forEach((week, weekIdx) => {
-                const weekDiv = document.createElement('div');
-                weekDiv.className = 'week';
-                
-                // Add week number
-                const weekNum = document.createElement('div');
-                weekNum.className = 'week-number';
-                weekNum.textContent = weekIdx + 1;
-                weekDiv.appendChild(weekNum);
-                
-                ['run', 'body', 'read', 'write'].forEach(goal => {
-                    const goalDiv = document.createElement('div');
-                    goalDiv.className = 'week-boxes';
-                    
+                const row = document.createElement('div');
+                row.className = 'grid-row' + (weekIdx > 0 && weekIdx % 4 === 0 ? ' sep' : '');
+
+                // Week number label
+                const label = document.createElement('div');
+                label.className = 'week-num';
+                label.textContent = weekIdx + 1;
+                row.appendChild(label);
+
+                // Goal columns
+                GOALS.forEach(goal => {
+                    const boxesDiv = document.createElement('div');
+                    boxesDiv.className = 'boxes';
+
                     week[goal].forEach((state, boxIdx) => {
-                        const isRecent = isRecentChange(data, weekIdx, goal, boxIdx);
-                        const box = createBox(state, isRecent, () => {
-                            // Cycle through states: 0 (empty) -> 2 (filled) -> 1 (half) -> 0 (empty)
-                            const currentState = data.weeks[weekIdx][goal][boxIdx];
-                            if (currentState === 0) {
-                                data.weeks[weekIdx][goal][boxIdx] = 2; // empty -> filled
-                            } else if (currentState === 2) {
-                                data.weeks[weekIdx][goal][boxIdx] = 1; // filled -> half
-                            } else {
-                                data.weeks[weekIdx][goal][boxIdx] = 0; // half -> empty
-                            }
+                        const box = document.createElement('div');
+                        box.className = 'box' + (isRecentChange(data, weekIdx, goal, boxIdx) && state > 0 ? ' recent' : '');
+                        const c = COLORS[goal];
+                        box.style.background = state === 0 ? c.empty : state === 1 ? c.half : c.filled;
+
+                        box.addEventListener('click', () => {
+                            const cur = data.weeks[weekIdx][goal][boxIdx];
+                            // Cycle: 0 → 2 → 1 → 0
+                            data.weeks[weekIdx][goal][boxIdx] = cur === 0 ? 2 : cur === 2 ? 1 : 0;
                             addRecentChange(data, weekIdx, goal, boxIdx);
                             saveData(data);
                             renderWeeks(data);
+                            renderStats(data);
                         });
-                        goalDiv.appendChild(box);
+
+                        boxesDiv.appendChild(box);
                     });
-                    
-                    weekDiv.appendChild(goalDiv);
+
+                    row.appendChild(boxesDiv);
                 });
-                
-                container.appendChild(weekDiv);
+
+                container.appendChild(row);
             });
         }
 
-        function resetAll() {
-            if (confirm('Reset all progress?')) {
-                localStorage.removeItem(STORAGE_KEY);
-                const data = loadData();
-                render(data);
-            }
+        function renderStats(data) {
+            const container = document.getElementById('stats');
+            container.innerHTML = '';
+
+            GOALS.forEach(goal => {
+                const total = WEEKS * BOXES_PER_WEEK[goal];
+                const done = data.weeks.reduce((sum, w) => sum + w[goal].reduce((s, v) => s + (v === 2 ? 1 : v === 1 ? 0.5 : 0), 0), 0);
+                const pct = Math.round((done / total) * 100);
+                const c = COLORS[goal];
+
+                const stat = document.createElement('div');
+                stat.className = 'stat';
+                stat.innerHTML = `
+                    <div class="stat-name" style="color:${c.label}">${goal}</div>
+                    <div class="stat-bar-bg">
+                        <div class="stat-bar-fill" style="background:${c.filled};width:${pct}%"></div>
+                    </div>
+                    <div class="stat-pct">${pct}%</div>
+                `;
+                container.appendChild(stat);
+            });
         }
 
         function render(data) {
             renderWeeks(data);
+            renderStats(data);
         }
 
-        // ===== SYNC FUNCTIONS =====
+        // ── Actions ───────────────────────────────────────────
+
+        function resetAll() {
+            if (confirm('Reset all progress?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                render(loadData());
+            }
+        }
+
+        // ── Sync ──────────────────────────────────────────────
 
         function encodeData(data) {
-            const json = JSON.stringify(data);
-            return btoa(encodeURIComponent(json));
+            return btoa(encodeURIComponent(JSON.stringify(data)));
         }
 
         function decodeData(encoded) {
             try {
-                const json = decodeURIComponent(atob(encoded));
-                return JSON.parse(json);
-            } catch (e) {
-                console.error('Failed to decode data:', e);
+                return JSON.parse(decodeURIComponent(atob(encoded)));
+            } catch {
                 return null;
             }
         }
 
         function copySyncURL() {
-            const data = loadData();
-            const encoded = encodeData(data);
-            const url = `${window.location.origin}${window.location.pathname}#data=${encoded}`;
-
+            const encoded = encodeData(loadData());
+            const url = `${location.origin}${location.pathname}#data=${encoded}`;
             navigator.clipboard.writeText(url).then(() => {
-                alert('Sync URL copied to clipboard! Share it to sync across devices.');
+                alert('Sync link copied!');
             }).catch(() => {
-                // Fallback for older browsers
-                const textarea = document.createElement('textarea');
-                textarea.value = url;
-                document.body.appendChild(textarea);
-                textarea.select();
+                const ta = document.createElement('textarea');
+                ta.value = url;
+                document.body.appendChild(ta);
+                ta.select();
                 document.execCommand('copy');
-                document.body.removeChild(textarea);
-                alert('Sync URL copied to clipboard!');
+                document.body.removeChild(ta);
+                alert('Sync link copied!');
             });
         }
 
         function loadFromURL() {
-            const urlInput = document.getElementById('syncUrlInput');
-            const url = urlInput.value.trim();
-
-            if (!url) {
-                alert('Please paste a sync URL');
-                return;
-            }
-
-            try {
-                // Extract hash from URL
-                const hashMatch = url.match(/#data=([^&]+)/);
-                if (!hashMatch) {
-                    alert('Invalid sync URL format');
-                    return;
-                }
-
-                const encoded = hashMatch[1];
-                const importedData = decodeData(encoded);
-
-                if (!importedData) {
-                    alert('Failed to decode data');
-                    return;
-                }
-
-                if (confirm('This will overwrite your current data. Continue?')) {
-                    saveData(importedData);
-                    render(importedData);
-                    alert('Data imported successfully!');
-                    closeSettings();
-                    urlInput.value = '';
-                }
-            } catch (error) {
-                console.error('Import error:', error);
-                alert('Failed to import data. Please check the URL.');
+            const raw = document.getElementById('syncUrlInput').value.trim();
+            if (!raw) { alert('Paste a sync URL first'); return; }
+            const match = raw.match(/#data=([^&]+)/);
+            if (!match) { alert('Invalid sync URL'); return; }
+            const imported = decodeData(match[1]);
+            if (!imported) { alert('Could not decode data'); return; }
+            if (confirm('Overwrite your current data?')) {
+                saveData(imported);
+                render(imported);
+                alert('Imported!');
+                closeSettings();
+                document.getElementById('syncUrlInput').value = '';
             }
         }
 
         function checkURLForData() {
-            const hash = window.location.hash;
-            if (hash.startsWith('#data=')) {
-                const encoded = hash.substring(6);
-                const importedData = decodeData(encoded);
-
-                if (importedData && confirm('Found sync data in URL. Load this data?')) {
-                    saveData(importedData);
-                    window.location.hash = '';
-                    return importedData;
-                }
+            const hash = location.hash;
+            if (!hash.startsWith('#data=')) return null;
+            const imported = decodeData(hash.substring(6));
+            if (imported && confirm('Found sync data in URL. Load it?')) {
+                saveData(imported);
+                location.hash = '';
+                return imported;
             }
             return null;
         }
 
         function openSettings() {
-            const modal = document.getElementById('settingsModal');
-            modal.classList.add('active');
+            document.getElementById('settingsModal').classList.add('active');
         }
 
         function closeSettings() {
-            const modal = document.getElementById('settingsModal');
-            modal.classList.remove('active');
+            document.getElementById('settingsModal').classList.remove('active');
         }
 
-        // Check for data in URL on load
-        const urlData = checkURLForData();
-        const data = urlData || loadData();
+        // Close modal on backdrop click
+        document.getElementById('settingsModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSettings();
+        });
+
+        // ── Init ──────────────────────────────────────────────
+
+        const data = checkURLForData() || loadData();
         render(data);
 
-        // PWA Service Worker registration
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
