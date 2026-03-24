@@ -895,3 +895,48 @@ h1 {
     resize: vertical;
     margin-bottom: 16px;
 }
+
+/* ── Google Sheets Sync ───────────────────────────────────────────────── */
+
+.setting-item--sheets label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.setting-hint {
+    font-size: 11px;
+    color: #94a3b8;
+    font-weight: normal;
+}
+
+.sheets-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.sheets-actions .modal-button {
+    width: auto;
+    padding: 10px 16px;
+    flex-shrink: 0;
+}
+
+.modal-button.secondary {
+    background: #334155;
+    color: #e2e8f0;
+}
+
+.modal-button.secondary:hover {
+    background: #475569;
+}
+
+.sheets-sync-status {
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+.sheets-sync-status.sync-ok  { color: #4ade80; }
+.sheets-sync-status.sync-ing { color: #fbbf24; }
+.sheets-sync-status.sync-err { color: #f87171; }
