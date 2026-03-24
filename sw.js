@@ -1,9 +1,10 @@
-const CACHE_NAME = 'budget-tracker-v7';
+const CACHE_NAME = 'budget-tracker-v8';
 const urlsToCache = [
   './',
   './index.html',
   './styles.css',
   './app.js',
+  './sheets-sync.js',
   './manifest.json'
 ];
 

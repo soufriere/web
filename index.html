@@ -30,20 +30,6 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Coin accumulator overlay -->
-    <div id="coinAccumOverlay" class="coin-accum-overlay">
-        <div class="coin-accum-card">
-            <div class="coin-accum-top">
-                <span class="coin-accum-category" id="coinAccumCategory">In Food</span>
-                <button class="coin-accum-cancel" id="coinAccumCancel">✕</button>
-            </div>
-            <div class="coin-accum-amount" id="coinAccumAmount">€0</div>
-            <div class="coin-accum-timer-bar">
-                <div class="coin-accum-timer-fill" id="coinAccumTimerFill"></div>
-            </div>
-        </div>
-    </div>
-
     <div class="container">
         <div class="header">
             <h1>Budget Tracker</h1>
@@ -121,6 +107,7 @@
                         <button class="coin in-food" data-category="In Food" data-amount="1">1€</button>
                         <button class="coin in-food" data-category="In Food" data-amount="2">2€</button>
                         <button class="coin in-food" data-category="In Food" data-amount="5">5€</button>
+                        <button class="coin in-food" data-category="In Food" data-amount="10">10€</button>
                         <button class="coin coin-x in-food" data-category="In Food" data-amount="x">X€</button>
                     </div>
                 </div>
@@ -130,6 +117,7 @@
                         <button class="coin out-food" data-category="Out Food" data-amount="1">1€</button>
                         <button class="coin out-food" data-category="Out Food" data-amount="2">2€</button>
                         <button class="coin out-food" data-category="Out Food" data-amount="5">5€</button>
+                        <button class="coin out-food" data-category="Out Food" data-amount="10">10€</button>
                         <button class="coin coin-x out-food" data-category="Out Food" data-amount="x">X€</button>
                     </div>
                 </div>
@@ -139,6 +127,7 @@
                         <button class="coin shopping" data-category="Shopping" data-amount="1">1€</button>
                         <button class="coin shopping" data-category="Shopping" data-amount="2">2€</button>
                         <button class="coin shopping" data-category="Shopping" data-amount="5">5€</button>
+                        <button class="coin shopping" data-category="Shopping" data-amount="10">10€</button>
                         <button class="coin coin-x shopping" data-category="Shopping" data-amount="x">X€</button>
                     </div>
                 </div>
@@ -148,6 +137,7 @@
                         <button class="coin entertainment" data-category="Entertainment" data-amount="1">1€</button>
                         <button class="coin entertainment" data-category="Entertainment" data-amount="2">2€</button>
                         <button class="coin entertainment" data-category="Entertainment" data-amount="5">5€</button>
+                        <button class="coin entertainment" data-category="Entertainment" data-amount="10">10€</button>
                         <button class="coin coin-x entertainment" data-category="Entertainment" data-amount="x">X€</button>
                     </div>
                 </div>
@@ -157,7 +147,22 @@
                         <button class="coin others" data-category="Others" data-amount="1">1€</button>
                         <button class="coin others" data-category="Others" data-amount="2">2€</button>
                         <button class="coin others" data-category="Others" data-amount="5">5€</button>
+                        <button class="coin others" data-category="Others" data-amount="10">10€</button>
                         <button class="coin coin-x others" data-category="Others" data-amount="x">X€</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coin accumulator — shown inline below the coin grid -->
+            <div id="coinAccumOverlay" class="coin-accum-overlay">
+                <div class="coin-accum-card">
+                    <div class="coin-accum-top">
+                        <span class="coin-accum-category" id="coinAccumCategory">In Food</span>
+                        <button class="coin-accum-cancel" id="coinAccumCancel">✕</button>
+                    </div>
+                    <div class="coin-accum-amount" id="coinAccumAmount">€0</div>
+                    <div class="coin-accum-timer-bar">
+                        <div class="coin-accum-timer-fill" id="coinAccumTimerFill"></div>
                     </div>
                 </div>
             </div>
@@ -205,6 +210,7 @@
                     <span class="sheets-sync-status" id="sheetsSyncStatus"></span>
                 </div>
                 <button class="modal-button primary" id="saveSettings">Save Settings</button>
+                <button class="modal-button secondary" id="reloadFromServer">Reload Website from Server</button>
                 <button class="modal-button danger" id="deleteAllData">Delete All Data</button>
             </div>
         </div>
