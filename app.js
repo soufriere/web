@@ -67,11 +67,15 @@ function loadData() {
     importFromURLHash();
 
     render();
+
+    // Pull from Google Sheets in background if configured
+    if (typeof pullFromSheets === 'function') pullFromSheets(true);
 }
 
 // Save data
 function saveData() {
     localStorage.setItem('budgetTrackerData', JSON.stringify(data));
+    if (typeof schedulePush === 'function') schedulePush();
 }
 
 // Initialize
@@ -132,6 +136,7 @@ function setupEventListeners() {
     document.getElementById('closeSettings').addEventListener('click', closeSettings);
     document.getElementById('saveSettings').addEventListener('click', saveSettings);
     document.getElementById('deleteAllData').addEventListener('click', deleteAllData);
+    document.getElementById('pullFromSheetsBtn').addEventListener('click', () => pullFromSheets(false));
 
     // Label modal
     document.getElementById('closeLabelModal').addEventListener('click', closeLabelModal);
@@ -470,6 +475,8 @@ function openSettings() {
     document.getElementById('billsInput').value = data.bills;
     document.getElementById('specialsInput').value = data.specials;
     document.getElementById('dailyInput').value = data.daily;
+    document.getElementById('sheetsUrlInput').value = getSheetsUrl();
+    refreshSyncStatus();
     document.getElementById('settingsModal').classList.add('active');
 }
 
@@ -481,6 +488,7 @@ function saveSettings() {
     data.bills = parseFloat(document.getElementById('billsInput').value) || 0;
     data.specials = parseFloat(document.getElementById('specialsInput').value) || 0;
     data.daily = parseFloat(document.getElementById('dailyInput').value) || 0;
+    setSheetsUrl(document.getElementById('sheetsUrlInput').value);
     saveData();
     render();
     closeSettings();
