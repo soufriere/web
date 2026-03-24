@@ -137,6 +137,7 @@ function setupEventListeners() {
     document.getElementById('saveSettings').addEventListener('click', saveSettings);
     document.getElementById('deleteAllData').addEventListener('click', deleteAllData);
     document.getElementById('pullFromSheetsBtn').addEventListener('click', () => pullFromSheets(false));
+    document.getElementById('reloadFromServer').addEventListener('click', hardReload);
 
     // Label modal
     document.getElementById('closeLabelModal').addEventListener('click', closeLabelModal);
@@ -274,7 +275,7 @@ let accumCategory = null;
 let accumAmount   = 0;
 let accumTimer    = null;
 let accumEnd      = 0;
-const ACCUM_DURATION = 5000;
+const ACCUM_DURATION = 2500;
 
 function addToAccum(category, amount) {
     if (accumCategory && accumCategory !== category) {
@@ -893,6 +894,23 @@ function mergeData(importedData) {
 
 // Make exportToURLHash global for onclick
 window.exportToURLHash = exportToURLHash;
+
+// Hard reload: clear SW cache then reload from network
+async function hardReload() {
+    try {
+        if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            await Promise.all(regs.map(r => r.unregister()));
+        }
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+        }
+    } catch (e) {
+        // proceed with reload even if cache clearing failed
+    }
+    location.reload(true);
+}
 
 // Register service worker
 if ('serviceWorker' in navigator) {
