@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 1: What Is Statistics? — Statistics: A First Course</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="kicker">Part I &middot; Descriptive Statistics &amp; Exploratory Data Analysis &middot; Chapter 1</div>
+<h1>What Is Statistics?</h1>
+
+<p>Every day, decisions are made under uncertainty: a doctor chooses a treatment based on clinical trial results, an engineer decides whether a batch of components meets tolerance, a company decides whether a new website design increases sales, and a government decides how to allocate resources based on a census. In each case, someone had to collect information, summarize it, and draw a conclusion that goes beyond the specific data in hand. That is the work of <strong>statistics</strong>: the science of collecting, organizing, analyzing, and interpreting data in order to make decisions and draw defensible conclusions in the presence of uncertainty.</p>
+
+<p>This chapter introduces the vocabulary and the two broad branches of the subject &mdash; descriptive and inferential statistics &mdash; and works through the logic that connects a sample of data to a conclusion about a much larger population.</p>
+
+<h2>1.1 Why Study Statistics?</h2>
+
+<p>Statistics is not primarily about arithmetic. It is about reasoning carefully from limited, noisy information to conclusions that are useful and honest about their own uncertainty. A course in statistics teaches you to:</p>
+<ul>
+  <li>Summarize large amounts of data in a way that reveals patterns without distorting them.</li>
+  <li>Design studies and experiments that produce data capable of answering the question actually being asked.</li>
+  <li>Quantify how confident a conclusion should be, rather than treating every number as if it were exact.</li>
+  <li>Recognize when a data-based claim is being used to mislead, whether through a badly drawn graph, a biased sample, or a confusion of correlation with causation.</li>
+</ul>
+
+<figure>
+  <img src="../images/ch1_teaser.png" alt="Bar chart showing statistics used across business, medicine, sports, government, engineering, and social science">
+  <figcaption>Figure 1.1 &mdash; Statistical reasoning is a general-purpose skill used across virtually every field that relies on data (illustrative figures).</figcaption>
+</figure>
+
+<h2>1.2 Populations, Samples, and Why We Need Both</h2>
+
+<div class="box definition">
+  <span class="label">Definition</span>
+  A <strong>population</strong> is the complete set of individuals, objects, or measurements that a study is meant to describe. A <strong>sample</strong> is a subset of the population that is actually observed and measured.
+</div>
+
+<p>In principle, if you could measure every member of a population, you would never need inferential statistics &mdash; you could simply compute exactly what you want to know. In practice, populations are almost always too large, too expensive, too dangerous, or too dynamic to measure completely. A pharmaceutical company cannot give an experimental drug to every person who might ever take it; a factory cannot destructively test every lightbulb it manufactures to find out how long they last. Instead, we measure a sample and use it to make a statement about the population.</p>
+
+<p>This move &mdash; from a sample to a population &mdash; is only valid if the sample is representative of the population. A large sample that is biased is often worse than a small sample that is representative, because a large biased sample creates false confidence. The famous example is the 1936 <em>Literary Digest</em> poll, which surveyed over two million people (an enormous sample) but drew its list of respondents from telephone directories and car registrations &mdash; a population skewed toward wealthier Americans during the Great Depression. The poll confidently predicted the wrong winner of the U.S. presidential election. Chapter 2 develops the sampling methods that are used to avoid this trap.</p>
+
+<div class="box">
+  <span class="label">Example 1.1</span>
+  A university wants to know the average number of hours its 30,000 undergraduates study per week. Surveying all 30,000 students is impractical. Instead, the registrar draws a random sample of 400 students and calculates their average study time. Here, the <em>population</em> is all 30,000 undergraduates, and the <em>sample</em> is the 400 students who were surveyed. The average computed from the 400 students is used to estimate the (unknown) average for all 30,000.
+</div>
+
+<h2>1.3 Descriptive Statistics vs. Inferential Statistics</h2>
+
+<p>The field divides naturally into two complementary branches.</p>
+
+<h3>Descriptive statistics</h3>
+<p><strong>Descriptive statistics</strong> organizes, summarizes, and presents data so that its important features are easy to see. Computing an average, drawing a histogram, or reporting a percentage are all descriptive tasks. Descriptive statistics makes no claim about anything beyond the data actually collected &mdash; if you calculate the average height of the 30 students in your classroom, that number is simply a fact about those 30 students.</p>
+
+<h3>Inferential statistics</h3>
+<p><strong>Inferential statistics</strong> uses a sample to draw conclusions, make predictions, or test claims about a population, and &mdash; critically &mdash; attaches a measure of confidence or uncertainty to those conclusions. Estimating the unemployment rate of a country from a labor force survey, testing whether a new drug lowers blood pressure more than a placebo, and predicting an election outcome from a poll are all inferential tasks. Chapters 13 onward are devoted to this branch.</p>
+
+<table>
+<tr><th>Descriptive Statistics</th><th>Inferential Statistics</th></tr>
+<tr><td>Summarizes the data you actually have</td><td>Generalizes beyond the data you have</td></tr>
+<tr><td>No uncertainty to report &mdash; it is what it is</td><td>Always accompanied by a measure of uncertainty (a margin of error, a p-value, a confidence level)</td></tr>
+<tr><td>Example: "In our sample, 62% of respondents preferred Brand A."</td><td>Example: "We are 95% confident that between 58% and 66% of all consumers prefer Brand A."</td></tr>
+</table>
+
+<h2>1.4 Variables and Their Roles</h2>
+
+<div class="box definition">
+  <span class="label">Definition</span>
+  A <strong>variable</strong> is any characteristic that can be measured or recorded and that takes different values across individuals in a study.
+</div>
+
+<p>Height, blood type, annual income, political party affiliation, and response time are all variables. Chapter 2 classifies variables in detail (categorical vs. numerical, discrete vs. continuous, and the four levels of measurement), because the type of variable determines which summaries, graphs, and statistical procedures are appropriate. Using a mean to summarize a categorical variable like "eye color," for instance, is meaningless &mdash; there is no such thing as the "average" eye color &mdash; while it is perfectly appropriate for a numerical variable like "resting heart rate."</p>
+
+<p>Studies frequently distinguish an <strong>explanatory variable</strong> (also called an independent variable or predictor), which is thought to influence or explain, from a <strong>response variable</strong> (or dependent variable), which is the outcome being explained. In a study of exercise and blood pressure, hours of weekly exercise is the explanatory variable and blood pressure is the response variable.</p>
+
+<h2>1.5 The Statistical Process, Start to Finish</h2>
+<p>Most statistical work, whether a term project or a published clinical trial, follows the same broad arc:</p>
+<ol>
+  <li><strong>Define the question.</strong> What population, and what characteristic of that population, do you actually want to know about?</li>
+  <li><strong>Design the data collection.</strong> Decide how a sample will be drawn or an experiment will be run so the resulting data can actually answer the question (Chapter 2).</li>
+  <li><strong>Collect the data.</strong> Execute the plan, keeping careful track of how each observation was obtained.</li>
+  <li><strong>Describe the data.</strong> Summarize and visualize the sample (Chapters 3&ndash;6) to understand its center, spread, and shape, and to catch errors or surprises before moving on.</li>
+  <li><strong>Model uncertainty.</strong> Use probability (Chapters 7&ndash;12) to describe how sample results would vary if the study were repeated.</li>
+  <li><strong>Draw inferences.</strong> Use the tools of estimation and hypothesis testing (Chapters 13 onward) to generalize from the sample to the population, with an honest statement of uncertainty.</li>
+  <li><strong>Communicate the conclusion</strong>, including its limitations, clearly and without overstatement (Chapter 28).</li>
+</ol>
+
+<div class="box caution">
+  <span class="label">Common Pitfall</span>
+  A statistical procedure cannot fix a bad question or bad data. If the sample is not representative of the population you care about, no amount of sophisticated analysis in later steps will make the conclusion valid. This is why Chapter 2, on data collection, comes before any calculation is introduced.
+</div>
+
+<h2>1.6 Statistics, Anecdotes, and "Common Sense"</h2>
+<p>Human intuition is a poor guide to phenomena that involve randomness, large numbers, or accumulated small effects, which is precisely the terrain statistics is built for. People systematically misjudge the likelihood of rare events, see patterns in random noise (the so-called "hot hand" and "gambler's fallacy" are both examples), and generalize too quickly from a small number of personal anecdotes. A single friend who smoked for 40 years without developing lung cancer is a real observation, but it says very little about the population-level relationship between smoking and lung cancer risk, which is established using data from hundreds of thousands of people. Learning to prefer systematically collected data and quantified uncertainty over anecdote and intuition is one of the most transferable skills this course teaches.</p>
+
+<h2>Chapter 1 Summary</h2>
+<ul>
+  <li>Statistics is the science of collecting, summarizing, and drawing conclusions from data under uncertainty.</li>
+  <li>A <em>population</em> is the entire group of interest; a <em>sample</em> is the subset actually observed.</li>
+  <li><em>Descriptive statistics</em> summarizes data in hand; <em>inferential statistics</em> generalizes from a sample to a population, with a stated level of uncertainty.</li>
+  <li>A <em>variable</em> is a measured characteristic; variables can play the role of explanatory (predictor) or response (outcome).</li>
+  <li>Good data collection is a prerequisite for valid conclusions &mdash; no analysis can repair a badly chosen sample.</li>
+</ul>
+
+<div class="exercises">
+<h2>Exercises</h2>
+<ol>
+  <li>Explain, in your own words, the difference between a population and a sample. Give an example of each drawn from a topic that interests you.</li>
+  <li>A city wants to know the average commute time of its residents. It surveys 500 people who happen to be riding the city bus on a Tuesday morning. Identify the population, the sample, and explain why this sample might not be representative of the population.</li>
+  <li>Classify each of the following statements as descriptive or inferential:
+    <ol type="a">
+      <li>"Of the 50 patients in this trial, 35 reported reduced symptoms."</li>
+      <li>"Based on this trial, we estimate that between 60% and 78% of all patients with this condition would experience reduced symptoms."</li>
+      <li>"The average test score in Ms. Ruiz's third-period class was 84.2."</li>
+      <li>"National test scores are projected to rise by roughly 2 points next year, based on this year's sample of districts."</li>
+    </ol>
+  </li>
+  <li>For a study relating hours of sleep to reaction time in a driving simulator, identify the explanatory variable and the response variable.</li>
+  <li>Give an original example of a situation where anecdotal evidence ("this happened to someone I know") might lead to a conclusion that is contradicted by properly collected statistical data.</li>
+</ol>
+
+<h3>Selected Solutions</h3>
+<details class="solution"><summary>Exercise 2</summary><div class="content">Population: all residents of the city (or all commuters in the city). Sample: the 500 bus riders surveyed. The sample is likely unrepresentative because it systematically excludes people who commute by car, bike, or on foot, and because Tuesday-morning bus riders may have different commute times than the general population &mdash; this is a form of sampling bias called convenience sampling, discussed further in Chapter 2.</div></details>
+<details class="solution"><summary>Exercise 3</summary><div class="content">(a) Descriptive &mdash; it reports a fact about the 50 patients actually studied. (b) Inferential &mdash; it generalizes to "all patients" with a stated range. (c) Descriptive &mdash; a fact about one specific class. (d) Inferential &mdash; a projection based on sample data, extended beyond the data in hand.</div></details>
+<details class="solution"><summary>Exercise 4</summary><div class="content">Explanatory variable: hours of sleep. Response variable: reaction time in the simulator.</div></details>
+</ol>
+</div>
+
+<nav class="chapternav">
+  <a href="index.html">&larr; Table of Contents</a>
+  <span class="center">Chapter 1 of 28</span>
+  <a href="ch02-data-types-and-collection.html">Chapter 2: Data Types &amp; Collection &rarr;</a>
+</nav>
+
+<footer class="pagefoot">Statistics: A First Course &middot; Draft edition</footer>
+
+</body>
+</html>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 6: The Normal Distribution and Standard Scores — Statistics: A First Course</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="kicker">Part I &middot; Descriptive Statistics &amp; Exploratory Data Analysis &middot; Chapter 6</div>
+<h1>The Normal Distribution and Standard Scores</h1>
+
+<p>Many measured quantities in nature and human affairs &mdash; heights, standardized test scores, measurement errors, blood pressure &mdash; cluster into a characteristic bell-shaped pattern: most values near the center, with progressively fewer values as you move away in either direction, symmetrically. This chapter introduces the mathematical model for that pattern, the <strong>normal distribution</strong>, and the standardized (z-score) scale that lets us compare values from different normal distributions on common ground. This chapter closes Part I and sets up the probability language of Part II.</p>
+
+<h2>6.1 The Normal Curve</h2>
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>normal distribution</strong> is a continuous, symmetric, bell-shaped distribution fully described by two parameters: its mean &mu; (which sets the center) and its standard deviation &sigma; (which sets the spread). We write X ~ N(&mu;, &sigma;) to mean "X follows a normal distribution with mean &mu; and standard deviation &sigma;."
+</div>
+
+<figure>
+  <img src="../images/ch6_normal_curve.png" alt="Bell-shaped standard normal density curve">
+  <figcaption>Figure 6.1 &mdash; The standard normal distribution, N(0, 1): mean 0, standard deviation 1. Every normal distribution has this same fundamental bell shape, differing only in where it is centered and how spread out it is.</figcaption>
+</figure>
+
+<p>The normal curve has several important properties: it is symmetric about &mu;; the mean, median, and mode all coincide at the center; the curve is bell-shaped, highest at &mu; and decreasing smoothly toward zero in both directions without ever quite reaching it; and the total area under the curve equals 1, since it represents 100% of the distribution's probability (this connection to probability is developed formally in Chapter 11). Changing &mu; shifts the curve left or right without changing its shape; changing &sigma; stretches or compresses it &mdash; a larger &sigma; produces a shorter, wider curve, and a smaller &sigma; produces a taller, narrower one.</p>
+
+<h2>6.2 The Empirical Rule</h2>
+<p>For any normal distribution, the proportion of data falling within a given number of standard deviations of the mean follows a fixed, famous pattern known as the <strong>68-95-99.7 rule</strong>, or the <strong>empirical rule</strong>:</p>
+
+<figure>
+  <img src="../images/ch6_empirical_rule.png" alt="Normal curve shaded to show 68% within 1 standard deviation, 95% within 2, and 99.7% within 3">
+  <figcaption>Figure 6.2 &mdash; The empirical rule: approximately 68.3% of values fall within &plusmn;1&sigma; of the mean, 95.4% within &plusmn;2&sigma;, and 99.7% within &plusmn;3&sigma;.</figcaption>
+</figure>
+
+<div class="box">
+  <span class="label">Example 6.1</span>
+  Adult male heights in a population are approximately normal with &mu; = 70 inches and &sigma; = 3 inches. By the empirical rule:
+  <ul>
+    <li>About 68% of men are between 67 and 73 inches (70 &plusmn; 3).</li>
+    <li>About 95% of men are between 64 and 76 inches (70 &plusmn; 6).</li>
+    <li>About 99.7% of men are between 61 and 79 inches (70 &plusmn; 9).</li>
+  </ul>
+  A man who is 80 inches tall is more than 3 standard deviations above the mean &mdash; genuinely rare, consistent with less than 0.3% of the population lying outside &plusmn;3&sigma; combined (above and below).
+</div>
+
+<h2>6.3 Standardization: The z-score</h2>
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>z-score</strong> (or standardized score) of an observation x tells you how many standard deviations x lies above or below the mean:
+</div>
+<div class="formula-block">
+z = (x &minus; &mu;) / &sigma;
+</div>
+<p>A positive z-score means the observation is above the mean; a negative z-score means it is below the mean; z = 0 means the observation equals the mean exactly. Standardizing converts <em>any</em> normal distribution, regardless of its original mean and standard deviation, into the <strong>standard normal distribution</strong>, N(0, 1) &mdash; the same curve shown in Figure 6.1.</p>
+
+<figure>
+  <img src="../images/ch6_zscore_shift.png" alt="Two normal curves side by side: an IQ distribution and its standardized z equivalent, both shaded up to the same relative point">
+  <figcaption>Figure 6.3 &mdash; Standardizing an IQ score of 115 from N(100, 15) into a z-score of 1.00 on the standard normal N(0,1). The shaded area &mdash; and therefore the probability &mdash; is identical in both panels; only the labeling of the x-axis has changed.</figcaption>
+</figure>
+
+<div class="box">
+  <span class="label">Example 6.2 &mdash; Comparing Across Different Scales</span>
+  A student scores 1300 on the SAT (&mu; = 1050, &sigma; = 200) and 30 on the ACT (&mu; = 21, &sigma; = 5). Which score is more impressive, relative to other test-takers?
+  <div class="formula-block">
+z<sub>SAT</sub> = (1300 &minus; 1050) / 200 = 1.25<br>
+z<sub>ACT</sub> = (30 &minus; 21) / 5 = 1.80
+  </div>
+  Even though 1300 and 30 are not directly comparable numbers, their z-scores are on the same standardized scale: the ACT score of 30 is 1.80 standard deviations above its mean, notably more impressive than the SAT score, which is only 1.25 standard deviations above its mean.
+</div>
+
+<h2>6.4 Finding Proportions and Values with the Standard Normal Table</h2>
+<p>Because every normal distribution can be standardized to N(0,1), a single table (or software function) of standard normal probabilities can answer questions about <em>any</em> normal distribution. A standard normal table reports the area under the curve to the left of a given z (that is, the proportion of the distribution below that z-score).</p>
+
+<div class="box">
+  <span class="label">Example 6.3</span>
+  Using Example 6.1's height distribution, N(70, 3), what proportion of men are shorter than 65 inches?
+  <div class="formula-block">z = (65 &minus; 70) / 3 = &minus;1.67</div>
+  Looking up z = &minus;1.67 in a standard normal table gives an area to the left of approximately 0.0475. So about 4.75% of men are shorter than 65 inches.
+</div>
+
+<p>The same process runs in reverse: given a target proportion, a standard normal table (or its inverse function) returns the corresponding z-score, which can then be converted back to the original scale using x = &mu; + z&sigma;.</p>
+
+<div class="box">
+  <span class="label">Example 6.4 &mdash; Working Backward</span>
+  A university wants to identify the cutoff SAT score, N(1050, 200), for the top 10% of test-takers. The z-score corresponding to the 90th percentile is approximately z = 1.28 (from a standard normal table).
+  <div class="formula-block">x = &mu; + z&sigma; = 1050 + (1.28)(200) = 1050 + 256 = 1306</div>
+  A score of approximately 1306 or higher places a student in the top 10% of test-takers, under this normal model.
+</div>
+
+<h2>6.5 Assessing Normality</h2>
+<p>The empirical rule and z-score calculations above are only valid if the underlying data is actually (approximately) normally distributed. Before applying them, it is good practice to check a histogram for a roughly symmetric, bell-shaped pattern (Chapter 5), and to be alert for skew, multiple modes, or heavy outliers, any of which signal that a normal model is a poor fit. More formal tools for assessing normality (such as a normal probability plot) are typically covered in a second course; for now, a careful look at the histogram is sufficient.</p>
+
+<div class="box caution">
+  <span class="label">Common Pitfall</span>
+  Not all bell-shaped data is normal, and not all real-world data is bell-shaped at all. Income, reaction times, and population sizes are commonly right-skewed, not normal, and applying the empirical rule to such data will give badly wrong answers. Always check the shape before assuming normality.
+</div>
+
+<h2>6.6 Why the Normal Distribution Matters So Much</h2>
+<p>Beyond describing many naturally occurring variables directly, the normal distribution plays an even larger role for a surprising reason developed fully in Chapter 12: the <strong>Central Limit Theorem</strong> shows that the distribution of a <em>sample mean</em>, computed from many samples, tends toward a normal shape as sample size grows &mdash; regardless of the shape of the original population. This is why the normal distribution, and the z-score machinery built in this chapter, underlies the vast majority of confidence intervals and hypothesis tests introduced starting in Chapter 14.</p>
+
+<h2>Chapter 6 Summary</h2>
+<ul>
+  <li>The <em>normal distribution</em> N(&mu;, &sigma;) is a symmetric, bell-shaped continuous distribution fully determined by its mean and standard deviation.</li>
+  <li>The <em>empirical rule</em> states that about 68%, 95%, and 99.7% of a normal distribution's values fall within 1, 2, and 3 standard deviations of the mean, respectively.</li>
+  <li>The <em>z-score</em>, z = (x&minus;&mu;)/&sigma;, standardizes any normal observation onto the common N(0,1) scale, enabling comparison across different distributions.</li>
+  <li>A standard normal table converts between z-scores and proportions (areas under the curve) in both directions.</li>
+  <li>The normal model should only be applied after checking that the data is reasonably symmetric and bell-shaped.</li>
+</ul>
+
+<div class="exercises">
+<h2>Exercises</h2>
+<ol>
+  <li>A distribution of standardized test scores is N(500, 100). Find the z-score for a score of 650, and for a score of 380.</li>
+  <li>Using the empirical rule and the distribution in Exercise 1, what range of scores contains approximately 95% of test-takers?</li>
+  <li>Adult female heights are approximately N(64, 2.5) inches. What proportion of women are taller than 68 inches? (z for 68 is (68&minus;64)/2.5 = 1.60; the area to the <em>left</em> of z = 1.60 in a standard normal table is approximately 0.9452.)</li>
+  <li>Two employees are evaluated on different performance scales. Employee A scores 82 on a scale with &mu;=75, &sigma;=10. Employee B scores 8.8 on a scale with &mu;=8.0, &sigma;=0.5. Using z-scores, determine which employee performed better relative to their peers.</li>
+  <li>Explain why it would be inappropriate to apply the empirical rule directly to a data set of individual household incomes in a country.</li>
+</ol>
+
+<h3>Selected Solutions</h3>
+<details class="solution"><summary>Exercise 1</summary><div class="content">z for 650: (650&minus;500)/100 = 1.50. z for 380: (380&minus;500)/100 = &minus;1.20.</div></details>
+<details class="solution"><summary>Exercise 2</summary><div class="content">95% falls within &mu; &plusmn; 2&sigma; = 500 &plusmn; 200, i.e., approximately 300 to 700.</div></details>
+<details class="solution"><summary>Exercise 3</summary><div class="content">Area to the left of z=1.60 is about 0.9452, so the area to the <em>right</em> (taller than 68 inches) is 1 &minus; 0.9452 = 0.0548, or about 5.5% of women.</div></details>
+<details class="solution"><summary>Exercise 4</summary><div class="content">z<sub>A</sub> = (82&minus;75)/10 = 0.70. z<sub>B</sub> = (8.8&minus;8.0)/0.5 = 1.60. Employee B's z-score is higher, meaning Employee B performed better relative to their own peer group, even though 8.8 is a much smaller raw number than 82.</div></details>
+</ol>
+</div>
+
+<nav class="chapternav">
+  <a href="ch05-visualizing-data.html">&larr; Chapter 5: Visualizing Data</a>
+  <span class="center">Chapter 6 of 28</span>
+  <a href="ch07-probability-foundations.html">Chapter 7: Foundations of Probability &rarr;</a>
+</nav>
+
+<footer class="pagefoot">Statistics: A First Course &middot; Draft edition</footer>
+
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 4: Measures of Variability and Shape — Statistics: A First Course</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="kicker">Part I &middot; Descriptive Statistics &amp; Exploratory Data Analysis &middot; Chapter 4</div>
+<h1>Describing Data: Measures of Variability and Shape</h1>
+
+<p>Two data sets can have identical means and yet look completely different. A class where every student scores between 78 and 82 and a class where scores range from 40 to 100 could both average 80 &mdash; but they describe very different situations. This chapter develops the tools for measuring how <strong>spread out</strong> data is: range, variance, standard deviation, and the interquartile range, along with the five-number summary and the boxplot that visualizes it.</p>
+
+<h2>4.1 The Range</h2>
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>range</strong> is the difference between the maximum and minimum values in a data set: Range = max &minus; min.
+</div>
+<p>The range is easy to compute but uses only two data points, ignoring everything in between, and is extremely sensitive to a single outlier. It is a useful first glance but rarely used as a serious measure of spread on its own.</p>
+
+<h2>4.2 Variance and Standard Deviation</h2>
+<p>A more informative approach measures how far, on average, each observation is from the mean &mdash; its <strong>deviation</strong>, x<sub>i</sub> &minus; x&#772;.</p>
+
+<figure>
+  <img src="../images/ch4_deviations.png" alt="Bar chart of eight observations with vertical segments showing each point's deviation from the mean">
+  <figcaption>Figure 4.1 &mdash; Each green segment is one observation's deviation from the mean. Variance is essentially the average of these deviations, squared.</figcaption>
+</figure>
+
+<p>Simply averaging the deviations always gives zero (positive and negative deviations cancel exactly), so instead we square each deviation before averaging, which is the idea behind <strong>variance</strong>.</p>
+
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>sample variance</strong>, denoted s&sup2;, and <strong>sample standard deviation</strong>, denoted s, are:
+</div>
+<div class="formula-block">
+s&sup2; = &Sigma;(x<sub>i</sub> &minus; x&#772;)&sup2; / (n &minus; 1) &nbsp;&nbsp;&nbsp;&nbsp; s = &radic;s&sup2;
+</div>
+<p>The population versions, denoted &sigma;&sup2; and &sigma;, divide by N (the full population size) instead of n&minus;1:</p>
+<div class="formula-block">
+&sigma;&sup2; = &Sigma;(x<sub>i</sub> &minus; &mu;)&sup2; / N
+</div>
+
+<div class="box caution">
+  <span class="label">Why n &minus; 1? (Bessel's Correction)</span>
+  When the mean used in the formula is the <em>sample</em> mean x&#772; rather than the true population mean &mu;, the deviations x<sub>i</sub> &minus; x&#772; tend to be slightly smaller on average than the true deviations x<sub>i</sub> &minus; &mu;, because x&#772; is calculated from, and therefore fits, the very data being measured. Dividing by n &minus; 1 instead of n corrects this downward bias so that s&sup2; is, on average, a better estimate of the true population variance &sigma;&sup2;. This will matter a great deal starting in Chapter 13, when s is used to build confidence intervals and hypothesis tests.
+</div>
+
+<div class="box">
+  <span class="label">Example 4.1</span>
+  Five quiz scores: 4, 8, 6, 5, 7 (x&#772; = 6).
+  <table>
+  <tr><th>x<sub>i</sub></th><th>x<sub>i</sub> &minus; x&#772;</th><th>(x<sub>i</sub> &minus; x&#772;)&sup2;</th></tr>
+  <tr><td>4</td><td>&minus;2</td><td>4</td></tr>
+  <tr><td>8</td><td>2</td><td>4</td></tr>
+  <tr><td>6</td><td>0</td><td>0</td></tr>
+  <tr><td>5</td><td>&minus;1</td><td>1</td></tr>
+  <tr><td>7</td><td>1</td><td>1</td></tr>
+  </table>
+  &Sigma;(x<sub>i</sub> &minus; x&#772;)&sup2; = 4+4+0+1+1 = 10.
+  <div class="formula-block">s&sup2; = 10 / (5 &minus; 1) = 2.5 &nbsp;&nbsp;&nbsp;&nbsp; s = &radic;2.5 &asymp; 1.58</div>
+</div>
+
+<p>Standard deviation is preferred over variance for describing spread because it is expressed in the <em>same units</em> as the original data (if the data is in dollars, s&sup2; is in "squared dollars," which has no intuitive meaning, while s is in dollars). Roughly speaking, s measures a "typical" distance of an observation from the mean.</p>
+
+<h2>4.3 Percentiles and Quartiles</h2>
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>p-th percentile</strong> of a data set is the value below which p percent of the observations fall. The <strong>quartiles</strong> divide sorted data into four equal parts: Q1 (25th percentile), Q2 (50th percentile, the median), and Q3 (75th percentile).
+</div>
+
+<p>To find quartiles by hand: sort the data, locate the median (Q2), then Q1 is the median of the lower half and Q3 is the median of the upper half. (Different software packages use slightly different conventions for handling ties and even splits; for this course, use the "median of each half" method unless told otherwise.)</p>
+
+<h2>4.4 The Interquartile Range and the Five-Number Summary</h2>
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>interquartile range</strong> is IQR = Q3 &minus; Q1: the range of the middle 50% of the data. It is a resistant measure of spread, unaffected by outliers, in the same way the median is a resistant measure of center.
+</div>
+
+<p>Combining the minimum, Q1, median, Q3, and maximum gives the <strong>five-number summary</strong>, a compact description of a data set's center, spread, and range that is resistant to outliers throughout.</p>
+
+<h3>The 1.5 &times; IQR rule for outliers</h3>
+<p>A common rule of thumb flags any observation as a potential outlier if it falls more than 1.5 &times; IQR below Q1 or above Q3:</p>
+<div class="formula-block">
+Lower fence = Q1 &minus; 1.5 &times; IQR &nbsp;&nbsp;&nbsp;&nbsp; Upper fence = Q3 + 1.5 &times; IQR
+</div>
+
+<h2>4.5 The Boxplot</h2>
+<p>A <strong>boxplot</strong> (or box-and-whisker plot) is a visual display of the five-number summary that also flags outliers using the 1.5 &times; IQR rule.</p>
+
+<figure>
+  <img src="../images/ch4_boxplot_anatomy.png" alt="Boxplot showing Q1, median, Q3, whiskers, and outlier points beyond the fences">
+  <figcaption>Figure 4.2 &mdash; Anatomy of a boxplot. The box spans Q1 to Q3 (the IQR); the line inside is the median; whiskers extend to the most extreme values within the fences; points beyond the fences are plotted individually as outliers.</figcaption>
+</figure>
+
+<div class="box">
+  <span class="label">Example 4.2</span>
+  Exam scores: 55, 62, 68, 70, 72, 75, 78, 80, 82, 85, 98. Sorted already, n = 11, median (6th value) = 75. Lower half (55, 62, 68, 70, 72): Q1 = 68. Upper half (78, 80, 82, 85, 98): Q3 = 82. IQR = 82 &minus; 68 = 14.
+  <div class="formula-block">Lower fence = 68 &minus; 1.5(14) = 47 &nbsp;&nbsp;&nbsp;&nbsp; Upper fence = 82 + 1.5(14) = 103</div>
+  Both 55 and 98 are within the fences, so this data set has no flagged outliers by this rule, even though 98 looks unusually high at a glance &mdash; the rule is a guideline, not an absolute test.
+</div>
+
+<h2>4.6 Comparing Spread Across Data Sets</h2>
+<p>Standard deviation and IQR are most useful in comparison &mdash; between two groups, or between a value and a distribution.</p>
+<div class="box">
+  <span class="label">Example 4.3</span>
+  Two machines fill bottles with a target volume of 500 mL. Machine A has s = 2 mL; Machine B has s = 8 mL. Both may have a mean of 500 mL, but Machine A is far more consistent &mdash; individual bottles from Machine B are much more likely to be noticeably over- or under-filled. In quality control, reducing variability (not just hitting the right average) is often the primary goal.
+</div>
+
+<h2>4.7 The Empirical Rule (Preview)</h2>
+<p>For data that follows a roughly bell-shaped (normal) distribution, standard deviation has a remarkably precise interpretation: about 68% of values fall within 1 standard deviation of the mean, about 95% within 2, and about 99.7% within 3. This <strong>empirical rule</strong> is developed fully in Chapter 6, once the normal distribution itself has been introduced &mdash; but it is worth previewing here as the payoff for why standard deviation, specifically, is the standard measure of spread used throughout the rest of this book.</p>
+
+<h2>Chapter 4 Summary</h2>
+<ul>
+  <li>The <em>range</em> is the crudest measure of spread; it uses only the max and min.</li>
+  <li><em>Variance</em> (s&sup2; or &sigma;&sup2;) averages squared deviations from the mean; <em>standard deviation</em> (s or &sigma;) is its square root and shares the units of the original data.</li>
+  <li>Sample variance divides by n &minus; 1 (Bessel's correction) to correctly estimate the population variance.</li>
+  <li><em>Quartiles</em> divide sorted data into four equal parts; the <em>IQR</em> = Q3 &minus; Q1 is a resistant measure of spread.</li>
+  <li>The <em>five-number summary</em> (min, Q1, median, Q3, max) and the <em>boxplot</em> that visualizes it are resistant, compact descriptions of a distribution, including flagged outliers via the 1.5 &times; IQR rule.</li>
+</ul>
+
+<div class="exercises">
+<h2>Exercises</h2>
+<ol>
+  <li>Compute the sample variance and standard deviation of: 2, 4, 4, 4, 5, 5, 7, 9. (This is the data set from Figure 4.1; the mean is 5.)</li>
+  <li>Explain in one or two sentences why standard deviation is usually reported instead of variance when describing data to a general audience.</li>
+  <li>For the data set 12, 15, 18, 21, 22, 24, 27, 30, 45, find the five-number summary and use the 1.5 &times; IQR rule to determine whether 45 should be flagged as an outlier.</li>
+  <li>Two sections of the same course report exam means of 78. Section A has s = 4; Section B has s = 15. Which section had more consistent performance? What might explain a standard deviation as large as 15 in Section B?</li>
+  <li>True or false, with justification: "If two data sets have the same range, they must have the same standard deviation."</li>
+</ol>
+
+<h3>Selected Solutions</h3>
+<details class="solution"><summary>Exercise 1</summary><div class="content">Deviations from mean 5: &minus;3, &minus;1, &minus;1, &minus;1, 0, 0, 2, 4. Squared: 9, 1, 1, 1, 0, 0, 4, 16. Sum = 32. s&sup2; = 32/(8&minus;1) = 32/7 &asymp; 4.57. s = &radic;4.57 &asymp; 2.14.</div></details>
+<details class="solution"><summary>Exercise 3</summary><div class="content">Sorted, n = 9, median (5th value) = 22. Lower half (12,15,18,21): Q1 = (15+18)/2 = 16.5. Upper half (24,27,30,45): Q3 = (27+30)/2 = 28.5. IQR = 12. Upper fence = 28.5 + 1.5(12) = 46.5. Since 45 &lt; 46.5, it is not flagged as an outlier by this rule, though it is clearly the largest and most extreme value in the set.</div></details>
+<details class="solution"><summary>Exercise 5</summary><div class="content">False. Range only depends on the two most extreme values, while standard deviation depends on every value's distance from the mean. Two data sets can share a minimum and maximum (and thus the same range) while having very different amounts of spread among the values in between &mdash; for example, {0, 1, 1, 1, 10} and {0, 5, 5, 5, 10} both have range 10 but very different standard deviations.</div></details>
+</ol>
+</div>
+
+<nav class="chapternav">
+  <a href="ch03-central-tendency.html">&larr; Chapter 3: Central Tendency</a>
+  <span class="center">Chapter 4 of 28</span>
+  <a href="ch05-visualizing-data.html">Chapter 5: Visualizing Data &rarr;</a>
+</nav>
+
+<footer class="pagefoot">Statistics: A First Course &middot; Draft edition</footer>
+
+</body>
+</html>

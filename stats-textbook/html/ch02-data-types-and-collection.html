@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 2: Data Types, Sources, and Collection — Statistics: A First Course</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="kicker">Part I &middot; Descriptive Statistics &amp; Exploratory Data Analysis &middot; Chapter 2</div>
+<h1>Data: Types, Sources, and Collection</h1>
+
+<p>Before any summary or analysis is possible, data has to be collected, and collected in a way that actually supports the question being asked. This chapter covers how variables are classified, the major methods for selecting a sample, and the difference between an observational study and a designed experiment &mdash; a distinction that determines whether a study can ever support a causal claim.</p>
+
+<h2>2.1 Types of Variables</h2>
+
+<p>Variables are first split into two broad kinds.</p>
+
+<div class="box definition">
+  <span class="label">Definition</span>
+  A <strong>categorical (qualitative) variable</strong> places each individual into one of several groups or categories. A <strong>numerical (quantitative) variable</strong> takes numerical values for which arithmetic operations like averaging are meaningful.
+</div>
+
+<p>Categorical examples: blood type, marital status, country of birth, whether a customer completed a purchase (yes/no). Numerical examples: age, weight, number of children, reaction time.</p>
+
+<p>Numerical variables are further split into two kinds:</p>
+<ul>
+  <li><strong>Discrete</strong> variables take a countable set of values, typically whole numbers, often arising from counting: the number of siblings a person has, the number of defective items in a batch, the number of emails received in a day.</li>
+  <li><strong>Continuous</strong> variables can take any value in an interval, arising from measuring: height, weight, time, temperature. Two continuous measurements are (in principle) never exactly equal, limited only by the precision of the measuring instrument.</li>
+</ul>
+
+<p>Categorical variables have their own important subtype:</p>
+<ul>
+  <li><strong>Nominal</strong> categories have no inherent order: eye color, blood type, country.</li>
+  <li><strong>Ordinal</strong> categories have a meaningful order, but the "distance" between categories is not numerically defined: a survey response of "disagree, neutral, agree, strongly agree," or a letter grade of A, B, C, D, F.</li>
+</ul>
+
+<h2>2.2 The Four Levels of Measurement</h2>
+<p>A more refined classification, due to psychologist S. S. Stevens, organizes variables into four <strong>levels of measurement</strong>, each allowing more mathematical operations than the last.</p>
+
+<table>
+<tr><th>Level</th><th>Order meaningful?</th><th>Equal intervals?</th><th>True zero?</th><th>Examples</th></tr>
+<tr><td>Nominal</td><td>No</td><td>No</td><td>No</td><td>Blood type, eye color, yes/no</td></tr>
+<tr><td>Ordinal</td><td>Yes</td><td>No</td><td>No</td><td>Letter grade, satisfaction rating, class rank</td></tr>
+<tr><td>Interval</td><td>Yes</td><td>Yes</td><td>No</td><td>Temperature in &deg;C, calendar year, SAT score</td></tr>
+<tr><td>Ratio</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Height, weight, income, time, age</td></tr>
+</table>
+
+<p>The key practical distinction is between interval and ratio data: because interval data has no true zero, ratios are not meaningful. 20&deg;C is not "twice as hot" as 10&deg;C, because 0&deg;C does not represent an absence of temperature &mdash; it is an arbitrary reference point. By contrast, 20 kilograms genuinely is twice as heavy as 10 kilograms, because 0 kg represents a true absence of mass. This is why you will see weighted averages and ratios computed freely for ratio data, but not for interval data.</p>
+
+<div class="box caution">
+  <span class="label">Common Pitfall</span>
+  Numbers used as labels are not numerical data. A "zip code" or a "jersey number" looks numeric but is nominal &mdash; averaging zip codes produces a meaningless number. Always ask what the numbers represent, not just whether they look like numbers.
+</div>
+
+<h2>2.3 Populations, Sampling Frames, and Sampling Methods</h2>
+<p>Recall from Chapter 1 that we almost always study a sample rather than a whole population. The list (or procedure) used to actually select individuals is called the <strong>sampling frame</strong>, and it may differ from the true population in important ways &mdash; for instance, a sampling frame built from telephone directories excludes people without a listed phone number.</p>
+
+<h3>Probability sampling methods</h3>
+<p>In a <strong>probability sample</strong>, every member of the population has a known, nonzero chance of being selected, which is what allows the mathematics of inferential statistics (Chapters 13+) to apply.</p>
+<ul>
+  <li><strong>Simple random sample (SRS):</strong> every possible sample of a given size is equally likely to be chosen; equivalent to drawing names from a hat. The gold standard against which other methods are compared.</li>
+  <li><strong>Stratified sample:</strong> the population is divided into homogeneous subgroups ("strata," e.g., by age group or region), and an SRS is drawn independently from each stratum. This guarantees representation of every subgroup and can reduce variability in the estimate when the strata differ meaningfully on the variable of interest.</li>
+  <li><strong>Cluster sample:</strong> the population is divided into groups ("clusters," e.g., city blocks or school classrooms), a random sample of whole clusters is selected, and every individual within a selected cluster is included. Useful when a complete list of individuals is unavailable or when travel/cost makes an SRS impractical &mdash; but generally less statistically efficient than an SRS of the same size.</li>
+  <li><strong>Systematic sample:</strong> individuals are selected at a fixed interval from a randomly chosen starting point (e.g., every 20th customer who enters a store). Simple to execute, and behaves like an SRS provided there is no hidden periodic pattern in the list that lines up with the interval.</li>
+</ul>
+
+<h3>Non-probability sampling and its dangers</h3>
+<p>A <strong>convenience sample</strong> selects whichever individuals are easiest to reach (people in a mall, students in your own class, an online poll open to whoever clicks it). Convenience samples are cheap but carry a high risk of <strong>selection bias</strong> &mdash; a systematic tendency to over- or under-represent parts of the population &mdash; and generally cannot support valid inference to a broader population, no matter how large they are.</p>
+
+<div class="box">
+  <span class="label">Example 2.1</span>
+  A university newspaper wants to estimate what fraction of students support a proposed tuition increase. It posts an online poll on its website. Students who feel strongly (usually those opposed) are more likely to click through and respond than students who are indifferent. This is <strong>voluntary response bias</strong>, a specific kind of selection bias, and it will tend to overstate opposition regardless of sample size.
+</div>
+
+<h2>2.4 Bias in Data Collection</h2>
+<p>Beyond selection bias, several other sources of bias distort data even when the sampling method is sound:</p>
+<ul>
+  <li><strong>Nonresponse bias:</strong> individuals selected for the sample who do not respond may differ systematically from those who do (a mail survey about financial literacy may be ignored disproportionately by people who struggle with it).</li>
+  <li><strong>Response bias:</strong> the way a question is asked, or who is asking it, changes the answer given. Respondents may not answer truthfully about sensitive topics, or may be influenced by the wording of a question.</li>
+  <li><strong>Wording effects:</strong> "Do you support providing assistance to the poor?" and "Do you support increasing welfare spending?" can produce very different results despite probing similar underlying attitudes.</li>
+</ul>
+
+<div class="box caution">
+  <span class="label">Common Pitfall</span>
+  A larger sample size reduces <em>random</em> sampling error but does nothing to correct bias. A biased sample of 1,000,000 is still biased; the <em>Literary Digest</em> poll from Chapter 1 is the classic cautionary tale.
+</div>
+
+<h2>2.5 Observational Studies vs. Designed Experiments</h2>
+<p>How data is generated determines what conclusions it can support &mdash; this is one of the most important ideas in the entire course.</p>
+
+<div class="box definition">
+  <span class="label">Definition</span>
+  In an <strong>observational study</strong>, researchers measure variables as they naturally occur, without intervening. In a <strong>designed experiment</strong>, researchers actively assign subjects to different treatments and then measure the outcome.
+</div>
+
+<p>Only a properly designed experiment can, in general, support a <strong>causal</strong> claim (that changing X causes a change in Y). An observational study can only establish <strong>association</strong> (that X and Y tend to occur together), because in an observational study any number of unmeasured <strong>confounding variables</strong> &mdash; variables related to both the explanatory and response variable &mdash; may be the true explanation for an observed relationship.</p>
+
+<div class="box">
+  <span class="label">Example 2.2 &mdash; Confounding</span>
+  Observational data shows that towns with more ice cream shops per capita also have higher rates of drowning. Ice cream sales did not cause the drownings. The confounding variable is <em>outdoor temperature</em>: hot weather increases both ice cream sales and swimming (and thus drowning risk). Without an experiment that manipulates ice cream availability directly, this observational association cannot support a causal claim.
+</div>
+
+<h3>The logic of a controlled experiment</h3>
+<p>A well-designed experiment neutralizes confounding through several key features:</p>
+<ul>
+  <li><strong>Random assignment</strong> of subjects to treatment groups, which tends to balance both known and <em>unknown</em> confounders across groups, on average.</li>
+  <li>A <strong>control group</strong> that does not receive the treatment (or receives a standard/placebo treatment), providing a baseline for comparison.</li>
+  <li><strong>Blinding:</strong> in a <strong>single-blind</strong> study, subjects do not know which treatment they received; in a <strong>double-blind</strong> study, neither the subjects nor the researchers evaluating outcomes know, which prevents both the placebo effect and evaluator bias from distorting results.</li>
+  <li><strong>Replication</strong> &mdash; applying each treatment to enough subjects that chance variation between individuals tends to average out, which is what allows a real treatment effect to be distinguished from noise.</li>
+</ul>
+
+<div class="box">
+  <span class="label">Example 2.3 &mdash; Designing an Experiment</span>
+  A company wants to know whether a new website layout increases the rate at which visitors complete a purchase. It randomly assigns each visitor to see either the old layout (control) or the new layout (treatment) &mdash; a widely used technique called <strong>A/B testing</strong>, which is simply a controlled experiment run online. Because assignment is random, any difference in purchase rate between the two groups that is too large to be explained by chance can be attributed to the layout change itself, not to pre-existing differences between the visitors in each group.
+</div>
+
+<h2>2.6 Observational Study Designs</h2>
+<p>When an experiment is impossible or unethical &mdash; you cannot randomly assign people to smoke for 20 years &mdash; researchers rely on observational designs, which vary in how strong a case they can build for association:</p>
+<ul>
+  <li><strong>Cross-sectional study:</strong> data is collected from a population at a single point in time (e.g., a single survey).</li>
+  <li><strong>Retrospective (case-control) study:</strong> researchers start with an outcome (e.g., a diagnosis) and look backward at past exposures, comparing "cases" to similar "controls" without the outcome.</li>
+  <li><strong>Prospective (cohort) study:</strong> researchers identify a group before the outcome occurs and follow them forward in time, recording exposures and eventual outcomes.</li>
+</ul>
+<p>Prospective studies are generally more convincing than retrospective ones because they reduce recall bias (the tendency for memory of past exposure to be distorted by knowledge of the outcome) and allow researchers to control data quality as it is collected, but they are slower and more expensive to run.</p>
+
+<h2>Chapter 2 Summary</h2>
+<ul>
+  <li>Variables are categorical or numerical; numerical variables are discrete or continuous; and every variable can be classified by its level of measurement (nominal, ordinal, interval, ratio).</li>
+  <li>Probability sampling (simple random, stratified, cluster, systematic) supports valid statistical inference; non-probability sampling (convenience, voluntary response) generally does not, regardless of sample size.</li>
+  <li>Bias &mdash; selection, nonresponse, response, and wording bias &mdash; distorts conclusions and is not fixed by increasing sample size.</li>
+  <li>Only designed experiments with random assignment can generally support causal claims; observational studies establish association, which may be explained by confounding variables.</li>
+  <li>Control groups, blinding, and replication are the core tools that make an experiment's causal conclusions trustworthy.</li>
+</ul>
+
+<div class="exercises">
+<h2>Exercises</h2>
+<ol>
+  <li>Classify each variable as categorical or numerical; if numerical, state whether it is discrete or continuous: (a) number of goals scored in a soccer match, (b) time to run a marathon, (c) brand of laptop owned, (d) shoe size (US sizing), (e) daily rainfall in millimeters.</li>
+  <li>For each variable in Exercise 1, identify its level of measurement.</li>
+  <li>A researcher wants to know the average GPA of students at a large university. She obtains a list of all students enrolled in Intro to Psychology and surveys all of them. Is this a probability sample? What population does this sample actually represent well, and why might it not represent the university's full student body?</li>
+  <li>A news headline reads: "Study finds coffee drinkers live longer." The underlying study observed 50,000 adults over 20 years and recorded their coffee consumption and mortality, without assigning anyone to drink coffee. Explain why this headline should not be read as a causal claim, and suggest one plausible confounding variable.</li>
+  <li>Design (in words) a randomized controlled experiment to test whether a new fertilizer increases crop yield, naming the treatment group, control group, and how randomization and replication would be used.</li>
+</ol>
+
+<h3>Selected Solutions</h3>
+<details class="solution"><summary>Exercise 1</summary><div class="content">(a) Numerical, discrete. (b) Numerical, continuous. (c) Categorical. (d) Numerical, discrete (US shoe sizes increase in fixed steps, typically half-sizes, and represent a count-like ordered scale in practice, though sometimes treated as ordinal). (e) Numerical, continuous.</div></details>
+<details class="solution"><summary>Exercise 3</summary><div class="content">This is a convenience sample of Intro to Psychology students, not a probability sample of the whole university. It may reasonably represent the population of students who take introductory psychology (often first- and second-years, and disproportionately students in fields that require the course), but is unlikely to represent the full student body well, since upperclassmen, students in other majors, and non-enrolled populations are excluded.</div></details>
+<details class="solution"><summary>Exercise 4</summary><div class="content">This is an observational study (coffee consumption was measured, not assigned), so it can only establish association, not causation. A plausible confound: overall health-consciousness or socioeconomic status &mdash; people who can afford and choose to drink coffee regularly may also have better healthcare access, diet, or exercise habits that independently extend lifespan.</div></details>
+</ol>
+</div>
+
+<nav class="chapternav">
+  <a href="ch01-what-is-statistics.html">&larr; Chapter 1: What Is Statistics?</a>
+  <span class="center">Chapter 2 of 28</span>
+  <a href="ch03-central-tendency.html">Chapter 3: Central Tendency &rarr;</a>
+</nav>
+
+<footer class="pagefoot">Statistics: A First Course &middot; Draft edition</footer>
+
+</body>
+</html>

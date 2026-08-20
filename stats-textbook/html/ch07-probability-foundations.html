@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chapter 7: Foundations of Probability — Statistics: A First Course</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="kicker">Part II &middot; Probability &middot; Chapter 7</div>
+<h1>Foundations of Probability</h1>
+
+<p>Part I developed tools for summarizing data that has already been collected. Beginning here in Part II, we build the mathematical language needed to describe uncertainty <em>before</em> data is collected &mdash; which is exactly what is needed to say how much confidence a sample-based conclusion deserves. This chapter introduces the basic vocabulary and rules of probability: sample spaces, events, and the rules for combining probabilities.</p>
+
+<h2>7.1 Sample Spaces and Events</h2>
+<div class="box definition">
+  <span class="label">Definition</span>
+  A <strong>random experiment</strong> is any process with an uncertain outcome that can, in principle, be repeated. The <strong>sample space</strong>, denoted S, is the set of all possible outcomes of a random experiment. An <strong>event</strong> is any subset of the sample space &mdash; a collection of one or more outcomes.
+</div>
+
+<div class="box">
+  <span class="label">Example 7.1</span>
+  Rolling a single six-sided die is a random experiment with sample space S = {1, 2, 3, 4, 5, 6}. The event "rolling an even number" is the subset E = {2, 4, 6}. The event "rolling a number greater than 4" is the subset F = {5, 6}.
+</div>
+
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>probability</strong> of an event A, written P(A), is a number between 0 and 1 (inclusive) that measures how likely A is to occur. P(A) = 0 means A is impossible; P(A) = 1 means A is certain.
+</div>
+
+<p>When every outcome in a finite sample space is equally likely (as with a fair die or a fair coin), probability can be computed directly:</p>
+<div class="formula-block">
+P(A) = (number of outcomes in A) / (number of outcomes in S)
+</div>
+<p>This "classical" approach does not work when outcomes are not equally likely (a loaded die, or a real-world event like "it rains tomorrow"); Section 7.2 develops the general rules that apply regardless.</p>
+
+<h2>7.2 The Axioms and Basic Rules of Probability</h2>
+<p>Three basic facts, sometimes called the axioms of probability, underlie everything else in this chapter:</p>
+<ol>
+  <li>0 &le; P(A) &le; 1 for any event A.</li>
+  <li>P(S) = 1 &mdash; some outcome in the sample space always occurs.</li>
+  <li>If A and B cannot both occur (they are <strong>mutually exclusive</strong>, or disjoint), then P(A or B) = P(A) + P(B).</li>
+</ol>
+
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>complement</strong> of event A, written A&prime; (or A<sup>c</sup>), is the event that A does <em>not</em> occur. Because A and A&prime; together account for the entire sample space and cannot both happen:
+</div>
+<div class="formula-block">
+P(A&prime;) = 1 &minus; P(A)
+</div>
+<p>The complement rule is often the fastest route to an answer when "at least one" is involved &mdash; direct calculation of "at least one" events can require summing many cases, while their complement ("none") is often a single, simple calculation.</p>
+
+<div class="box">
+  <span class="label">Example 7.2</span>
+  A fair coin is flipped 4 times. What is the probability of getting at least one heads?
+  <p>Direct calculation would require adding the probabilities of exactly 1, 2, 3, and 4 heads. Instead, use the complement: "at least one heads" is the complement of "zero heads" (all tails).</p>
+  <div class="formula-block">
+P(0 heads) = P(TTTT) = (1/2)<sup>4</sup> = 1/16<br>
+P(at least 1 heads) = 1 &minus; 1/16 = 15/16
+  </div>
+</div>
+
+<h2>7.3 Combining Events: Union and Intersection</h2>
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>union</strong> of events A and B, written A &cup; B (read "A or B"), is the event that A occurs, B occurs, or both. The <strong>intersection</strong>, written A &cap; B (read "A and B"), is the event that both A and B occur.
+</div>
+
+<figure>
+  <img src="../images/ch7_venn_events.png" alt="Three Venn diagrams: overlapping events, mutually exclusive events, and a subset relationship">
+  <figcaption>Figure 7.1 &mdash; Venn diagrams for two overlapping events (left), mutually exclusive events with no overlap (center), and a subset relationship (right).</figcaption>
+</figure>
+
+<h3>The general addition rule</h3>
+<p>When A and B can overlap, simply adding P(A) + P(B) double-counts the outcomes in the overlap A &cap; B. The <strong>general addition rule</strong> corrects for this:</p>
+<div class="formula-block">
+P(A &cup; B) = P(A) + P(B) &minus; P(A &cap; B)
+</div>
+<p>When A and B are mutually exclusive, P(A &cap; B) = 0, and this reduces to the simple addition rule from Section 7.2.</p>
+
+<div class="box">
+  <span class="label">Example 7.3</span>
+  Among 100 students, 40 take Statistics, 30 take Economics, and 15 take both. What is the probability a randomly selected student takes Statistics or Economics?
+  <div class="formula-block">
+P(Stat &cup; Econ) = P(Stat) + P(Econ) &minus; P(Stat &cap; Econ) = 0.40 + 0.30 &minus; 0.15 = 0.55
+  </div>
+</div>
+
+<h2>7.4 Conditional Probability (A First Look)</h2>
+<div class="box definition">
+  <span class="label">Definition</span>
+  The <strong>conditional probability</strong> of A given B, written P(A | B), is the probability that A occurs, given the information that B has already occurred:
+</div>
+<div class="formula-block">
+P(A | B) = P(A &cap; B) / P(B), &nbsp;&nbsp; provided P(B) &gt; 0
+</div>
+<p>Conditioning on B effectively shrinks the sample space down to just the outcomes where B is true, and asks what fraction of <em>those</em> outcomes also satisfy A. Chapter 8 is devoted entirely to conditional probability, independence, and their applications (including Bayes' theorem); this section previews just the definition so that it can be used immediately in Section 7.5.</p>
+
+<div class="box">
+  <span class="label">Example 7.4</span>
+  Using Example 7.3's 100 students: given that a student takes Statistics, what is the probability they also take Economics?
+  <div class="formula-block">
+P(Econ | Stat) = P(Econ &cap; Stat) / P(Stat) = 0.15 / 0.40 = 0.375
+  </div>
+  Notice this differs from the plain (unconditional) probability of taking Economics, 0.30 &mdash; knowing a student takes Statistics has changed the probability they also take Economics, a first hint of the idea of dependence between events, developed fully in Chapter 8.
+</div>
+
+<h2>7.5 The Multiplication Rule</h2>
+<p>Rearranging the definition of conditional probability gives the <strong>general multiplication rule</strong>, used to find the probability that two events both occur:</p>
+<div class="formula-block">
+P(A &cap; B) = P(A) &times; P(B | A)
+</div>
+
+<h3>Independent events</h3>
+<div class="box definition">
+  <span class="label">Definition</span>
+  Two events A and B are <strong>independent</strong> if the occurrence of one does not change the probability of the other: P(A | B) = P(A) (equivalently, P(B | A) = P(B)).
+</div>
+<p>For independent events, the multiplication rule simplifies, since knowing B occurred tells us nothing new about A:</p>
+<div class="formula-block">
+P(A &cap; B) = P(A) &times; P(B), &nbsp;&nbsp; if A and B are independent
+</div>
+
+<div class="box caution">
+  <span class="label">Common Pitfall: Independent &ne; Mutually Exclusive</span>
+  These two ideas are frequently confused, but they are almost opposites. Mutually exclusive events (Section 7.2) can <em>never</em> happen together, which means learning that one occurred tells you the other definitely did not &mdash; the strongest possible form of dependence, not independence. Two events with positive probability cannot be both mutually exclusive and independent.
+</div>
+
+<div class="box">
+  <span class="label">Example 7.5</span>
+  A fair coin is flipped and a fair die is rolled. These are independent (the coin has no influence on the die). What is the probability of getting heads <em>and</em> rolling a 6?
+  <div class="formula-block">
+P(Heads &cap; Six) = P(Heads) &times; P(Six) = (1/2) &times; (1/6) = 1/12
+  </div>
+</div>
+
+<h2>7.6 Tree Diagrams</h2>
+<p>A <strong>tree diagram</strong> organizes a multi-stage random process into branches, with each branch labeled by a (conditional) probability. Multiplying probabilities along a path from the start to an outcome gives the probability of that entire sequence of events &mdash; a direct visual application of the multiplication rule.</p>
+
+<figure>
+  <img src="../images/ch7_tree_diagram.png" alt="Tree diagram for a disease screening test showing disease status branching into test result branches">
+  <figcaption>Figure 7.2 &mdash; A tree diagram for a diagnostic screening test. A rare disease has prevalence P(D) = 0.01. The test correctly detects disease 99% of the time (a "true positive" rate) but also has a 5% false-positive rate among healthy people.</figcaption>
+</figure>
+
+<div class="box">
+  <span class="label">Example 7.6</span>
+  Using Figure 7.2, what is the probability that a random person tests positive <em>and</em> actually has the disease?
+  <div class="formula-block">
+P(D &cap; Test+) = P(D) &times; P(Test+ | D) = 0.01 &times; 0.99 = 0.0099
+  </div>
+  What is the overall probability of testing positive, regardless of true disease status? Add the probabilities of both paths that lead to a positive test:
+  <div class="formula-block">
+P(Test+) = P(D)P(Test+|D) + P(D&prime;)P(Test+|D&prime;) = (0.01)(0.99) + (0.99)(0.05) = 0.0099 + 0.0495 = 0.0594
+  </div>
+  Notice that most positive tests (0.0495 out of 0.0594, or about 83%) come from healthy people who tested positive by chance &mdash; a surprising and important result for a rare disease that Chapter 8's development of Bayes' theorem will explain systematically.
+</div>
+
+<h2>Chapter 7 Summary</h2>
+<ul>
+  <li>A <em>sample space</em> lists all possible outcomes of a random experiment; an <em>event</em> is any subset of outcomes.</li>
+  <li>Probabilities are between 0 and 1; the probability of the whole sample space is 1; and the <em>complement rule</em>, P(A&prime;) = 1 &minus; P(A), often simplifies "at least one" problems.</li>
+  <li>The <em>general addition rule</em>, P(A &cup; B) = P(A) + P(B) &minus; P(A &cap; B), avoids double-counting overlapping events; it simplifies when events are mutually exclusive.</li>
+  <li><em>Conditional probability</em>, P(A|B) = P(A &cap; B)/P(B), updates the probability of A given that B is known to have occurred.</li>
+  <li>The <em>multiplication rule</em>, P(A &cap; B) = P(A)P(B|A), simplifies to P(A)P(B) when A and B are <em>independent</em>; independence and mutual exclusivity are distinct (nearly opposite) concepts.</li>
+  <li><em>Tree diagrams</em> organize multi-stage random processes and apply the multiplication and addition rules visually.</li>
+</ul>
+
+<div class="exercises">
+<h2>Exercises</h2>
+<ol>
+  <li>A standard deck of 52 playing cards has 13 cards in each of 4 suits. What is the probability of drawing a card that is a heart or a face king (i.e., the event "heart" union the event "king")? (There are 13 hearts and 4 kings, with 1 card &mdash; the king of hearts &mdash; in both.)</li>
+  <li>Using the complement rule, find the probability of rolling at least one 6 in four rolls of a fair die.</li>
+  <li>In a group of 200 patients, 120 have high blood pressure, 80 have high cholesterol, and 50 have both. Find the probability that a randomly chosen patient has high blood pressure <em>or</em> high cholesterol, and the conditional probability that a patient has high cholesterol given that they have high blood pressure.</li>
+  <li>Are "high blood pressure" and "high cholesterol" from Exercise 3 independent? Justify your answer by comparing P(cholesterol) to P(cholesterol | blood pressure).</li>
+  <li>Two events A and B satisfy P(A) = 0.3 and P(B) = 0.4, and A and B are mutually exclusive. Can A and B also be independent? Explain using the definitions in Sections 7.2 and 7.5.</li>
+</ol>
+
+<h3>Selected Solutions</h3>
+<details class="solution"><summary>Exercise 1</summary><div class="content">P(heart &cup; king) = P(heart) + P(king) &minus; P(heart &cap; king) = 13/52 + 4/52 &minus; 1/52 = 16/52 = 4/13 &asymp; 0.308.</div></details>
+<details class="solution"><summary>Exercise 2</summary><div class="content">P(no 6 in one roll) = 5/6. P(no 6 in four rolls) = (5/6)<sup>4</sup> &asymp; 0.482. P(at least one 6) = 1 &minus; 0.482 &asymp; 0.518.</div></details>
+<details class="solution"><summary>Exercise 3</summary><div class="content">P(BP &cup; Chol) = 120/200 + 80/200 &minus; 50/200 = 0.60 + 0.40 &minus; 0.25 = 0.75. P(Chol | BP) = P(Chol &cap; BP)/P(BP) = (50/200)/(120/200) = 50/120 &asymp; 0.417.</div></details>
+<details class="solution"><summary>Exercise 4</summary><div class="content">P(cholesterol) = 80/200 = 0.40. P(cholesterol | blood pressure) &asymp; 0.417 (from Exercise 3). Since these are not equal, the events are <em>not</em> independent &mdash; having high blood pressure is associated with a slightly higher chance of also having high cholesterol in this sample.</div></details>
+<details class="solution"><summary>Exercise 5</summary><div class="content">No. If A and B are mutually exclusive with both probabilities positive, then P(A &cap; B) = 0, but independence would require P(A &cap; B) = P(A)P(B) = 0.3 &times; 0.4 = 0.12 &ne; 0. Since these two required values of P(A &cap; B) conflict, A and B cannot be both mutually exclusive and independent (matching the Common Pitfall box in Section 7.5).</div></details>
+</ol>
+</div>
+
+<nav class="chapternav">
+  <a href="ch06-normal-distribution.html">&larr; Chapter 6: Normal Distribution</a>
+  <span class="center">Chapter 7 of 28</span>
+  <a href="ch08-conditional-probability.html">Chapter 8: Conditional Probability &rarr;</a>
+</nav>
+
+<footer class="pagefoot">Statistics: A First Course &middot; Draft edition</footer>
+
+</body>
+</html>
