@@ -58,6 +58,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .ctx .cbar i.tight s{display:none}
 .ctx .cbar i.tiny b{font-size:11px;letter-spacing:-.02em}
 .ctx .cbar i:first-child{border-radius:9px 6px 6px 9px}.ctx .cbar i:last-child{border-radius:6px 9px 9px 6px}
+.ctx .cbar.cats2{height:30px;margin-top:4px}
+.ctx .cbar.cats2 i{min-width:54px;padding:0 6px;border-radius:5px;color:#fff}
+.ctx .cbar.cats2 i:first-child{border-radius:7px 5px 5px 7px}.ctx .cbar.cats2 i:last-child{border-radius:5px 7px 7px 5px}
+.ctx .cbar.cats2 i s{font-size:10px}.ctx .cbar.cats2 i b{font-size:11.5px}
+.ctx .cbar.cats2 i.bare *{display:none}
 .ctx .ccap{font-size:12px;color:var(--mut);margin-top:6px}
 .ctx .ccap u{text-decoration:none;color:var(--acc);font-weight:600}
 .monthnav{display:flex;align-items:center;gap:6px;margin:6px 0 2px}
@@ -79,7 +84,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .pace .g{color:var(--good);font-weight:600}
 
 /* categories */
-.cats{margin:18px 0 6px;display:grid;gap:2px}
+.cats{margin:8px 0 6px;display:grid;gap:2px}
+.dtl{display:flex;align-items:center;gap:6px;margin:14px 0 0;padding:6px 2px;font-size:12.5px;font-weight:700;letter-spacing:.08em;color:var(--mut)}
+.dtl::after{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg) translateY(-2px);transition:transform .2s}
+.dtl[aria-expanded="true"]::after{transform:rotate(-135deg) translateY(-1px)}
+.dtl:hover{color:var(--ink)}
 .crow{display:grid;grid-template-columns:92px 1fr 64px;align-items:center;gap:10px;padding:5px 6px;border-radius:8px;text-align:left}
 .crow.on{background:var(--surf)}
 .crow.dim{opacity:.45}
@@ -211,8 +220,9 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <div class="big"><span class="amt" id="mSpent"></span><span class="of">of <span id="mTarget" class="num"></span> daily budget</span></div>
     <div class="track" id="track"><div class="seg base" id="sBase"></div><div class="seg ovr" id="sOvr"></div><div class="end" id="sEnd"></div><div class="tick" id="sTick"></div></div>
     <p class="pace" id="pace"></p>
-    <div class="cats" id="cats"></div>
-    <p class="cap" id="catCap"></p>
+    <button class="dtl" id="dtl" aria-expanded="false" aria-controls="catsWrap">DETAILS</button>
+    <div id="catsWrap" hidden><div class="cats" id="cats"></div>
+    <p class="cap" id="catCap"></p></div>
     <div class="spec" id="spec"></div>
     <div id="filter"></div>
     <div id="list"></div>
@@ -432,7 +442,7 @@ window.addEventListener('storage',ev=>{   // other tab on this device (only matt
   try{S=norm(JSON.parse(ev.newValue));lastRaw=ev.newValue;render();toast('Updated from another window',false);}catch(e){}
 });
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist();}catch(e){}
-let UI={min:false}; try{UI=Object.assign(UI,JSON.parse(localStorage.getItem(UIKEY)||'{}'));}catch(e){}
+let UI={min:false,det:false}; try{UI=Object.assign(UI,JSON.parse(localStorage.getItem(UIKEY)||'{}'));}catch(e){}
 const saveUI=()=>{try{localStorage.setItem(UIKEY,JSON.stringify(UI));}catch(e){}};
 
 /* ---------- dates & money ---------- */
@@ -473,16 +483,27 @@ function renderCtx(){
   const segs=[['Fixed',F,'var(--mut)',fmt0(F)],['Daily',D,CAT_BAR_D,fmt0(D)],['Specials',B,'var(--plum)',fmt0(B)],
     [Sv>=0?`Saved ${pct}%`:'Short',Math.abs(Sv),Sv>=0?'var(--good)':'var(--warn)',fmt0(Math.abs(Sv))]];
   el.innerHTML=`<span class="cbar">${segs.filter(x=>x[1]>0).map(([n,v,c,a])=>`<i style="flex:${v} 1 0;background:${c}" title="${n} ${a}"><s>${n}</s><b>${a}</b></i>`).join('')}</span>
+   ${catBar()}
    <span class="ccap" style="display:block">Of ${fmt0(I)} income. ${cap}. <u>${ctxPlan?'Show this month':'Show plan'}</u></span>`;
   // shrink labels that don't fit: drop the name, then tighten the amount
-  el.querySelectorAll('.cbar i').forEach(i=>{ if(i.scrollWidth>i.clientWidth) i.classList.add('tight'); if(i.scrollWidth>i.clientWidth) i.classList.add('tiny'); });
+  el.querySelectorAll('.cbar i').forEach(i=>{ if(i.scrollWidth>i.clientWidth) i.classList.add('tight'); if(i.scrollWidth>i.clientWidth) i.classList.add('tiny'); if(i.scrollWidth>i.clientWidth) i.classList.add('bare'); });
 }
 const CAT_BAR_D='var(--acc)';
+// second row: this month's daily spend split into LUXURY (dining + shopping + leisure) vs the rest
+const LUX=['dining','shopping','leisure'];
+function catBar(){
+  const tot={}; for(const e of inM('d',viewM)){const c=catOf(e);tot[c]=(tot[c]||0)+e.amt;}
+  const T=Object.values(tot).reduce((a,v)=>a+v,0); if(T<=0) return '';
+  const L=LUX.reduce((a,c)=>a+(tot[c]||0),0), R=T-L, pc=v=>Math.round(v/T*100);
+  const tip=ids=>ids.filter(c=>tot[c]).sort((a,b)=>tot[b]-tot[a]).map(c=>`${CAT[c].n} ${fmt0(tot[c])}`).join(', ');
+  const segs=[[`Luxury ${pc(L)}%`,L,'#B5443C',tip(LUX)],[`Rest ${pc(R)}%`,R,'#5D6A79',tip(CATS.map(c=>c.id).filter(c=>!LUX.includes(c)))]];
+  return `<span class="cbar cats2" aria-label="Daily spend: luxury versus the rest">${segs.filter(x=>x[1]>0).map(([n,v,c,t])=>`<i style="flex:${v} 1 0;background:${c}" title="${t}"><s>${n}</s><b>${fmt0(v)}</b></i>`).join('')}</span>`;
+}
 $('#ctx').onclick=()=>{ctxPlan=!ctxPlan;renderCtx();};
 
 /* ---------- month view ---------- */
 function renderMonth(){
-  renderCtx();
+  renderCtx(); applyDet();
   const cm=curM(), T=+S.t.d||0, fm=firstM();
   $('#mTitle').textContent=mName(viewM);
   $('#nextM').disabled=viewM>=cm;
@@ -685,6 +706,8 @@ function setView(v){
 $('#tabs').onclick=ev=>{const b=ev.target.closest('button');if(b)setView(b.dataset.view);};
 $('#prevM').onclick=()=>{viewM=addM(viewM,-1);catF=null;render();};
 $('#nextM').onclick=()=>{if(viewM<curM()){viewM=addM(viewM,1);catF=null;render();}};
+function applyDet(){const open=UI.det||!!catF;$('#catsWrap').hidden=!open;$('#dtl').setAttribute('aria-expanded',open);}
+$('#dtl').onclick=()=>{const open=$('#dtl').getAttribute('aria-expanded')==='true';UI.det=!open;if(open)catF=null;saveUI();render();};
 $('#cats').onclick=ev=>{const b=ev.target.closest('.crow');if(!b)return;catF=catF===b.dataset.cat?null:b.dataset.cat;render();};
 document.addEventListener('click',ev=>{
   if(ev.target.id==='clrF'){catF=null;render();}
