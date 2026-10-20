@@ -53,6 +53,25 @@ select,input.plain{background:var(--card2);color:var(--fg);border:0;border-radiu
 .modal .card{max-width:420px;width:100%}
 #toast{position:fixed;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:var(--card2);padding:10px 16px;border-radius:12px;display:none;z-index:30;box-shadow:0 4px 20px #0008}
 details summary{list-style:none} details summary::-webkit-details-marker{display:none}
+/* compact workout view */
+.whd{padding:10px 12px;margin:6px 0}
+.wx{background:var(--card);border-radius:12px;margin:5px 0;overflow:hidden;border:1px solid transparent}
+.wx.open{border-color:var(--acc)}
+.wh{display:flex;align-items:center;gap:8px;padding:9px 12px;font-size:15px;cursor:pointer}
+.wh .em{font-size:17px;flex:none}
+.wh .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.wh .sum{color:var(--mut);font-size:13px;font-variant-numeric:tabular-nums;flex:none}
+.sd{display:flex;gap:3px;flex:none}.sd i{width:8px;height:8px;border-radius:50%;background:var(--card2)}.sd i.on{background:var(--ok)}
+.wx.fin .wh{opacity:.5}.wx.fin .wh .nm{font-weight:400}
+.wb{padding:0 12px 10px}
+.wb .mut{font-size:12px}.wb .hint{font-size:12px}
+.wb .set{grid-template-columns:18px 1fr 1fr 44px;gap:5px;margin:5px 0}
+.wb .step button{width:36px;height:40px}.wb .step input{height:40px;font-size:17px}.wb .chk{height:40px}
+.tools{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}.tools .btn.small{margin:0;padding:7px 11px;font-size:13px}
+.fld{font-size:12px;color:var(--mut);margin-top:10px}.fld input,.fld select,.fld textarea{margin-top:4px}
+textarea.plain{background:var(--card2);color:var(--fg);border:0;border-radius:10px;padding:11px;font:inherit;font-size:16px;width:100%;resize:vertical}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modal{overflow-y:auto;align-items:flex-start}.modal .card{margin:auto 0}
 </style></head><body>
 <nav id="nav"></nav><main id="app"></main>
 <div id="timer"><div class="in"><div class="t" id="tt">0:00</div><div style="flex:1"><div class="mut">Rest</div><div style="background:var(--card2);border-radius:3px"><div class="bar" id="tb"></div></div></div><button class="btn small sec" data-act="rest" data-d="-15">−15</button><button class="btn small sec" data-act="rest" data-d="15">+15</button><button class="btn small" data-act="rest" data-d="0">Skip</button></div></div>
@@ -150,14 +169,14 @@ function header(){const p=prog(),tw=thisWeek(),pw=S.settings.perWeek;
 function nav(){const t=[['plan','Next'],['work','Workout'],['stats','Progress'],['hist','History'],['set','⚙︎']];
  document.getElementById('nav').innerHTML=t.map(([k,l])=>`<button class="${tab===k?'on':''}" data-tab="${k}">${l}${k==='work'&&S.cur?' ●':''}</button>`).join('')}
 function render(){nav();document.getElementById('app').innerHTML={plan:rPlan,work:rWork,stats:rStats,hist:rHist,set:rSet}[tab]()}
-function addSelect(act,excl){const o=S.ex.filter(e=>!excl.includes(e.id)).map(e=>`<option value="${e.id}">${e.e} ${esc(e.name)}${e.active?'':' (off)'}</option>`).join('');return o?`<select data-act="${act}"><option value="">+ Add exercise…</option>${o}</select>`:''}
+function addSelect(act,excl){const o=S.ex.filter(e=>!excl.includes(e.id)).map(e=>`<option value="${e.id}">${e.e} ${esc(e.name)}${e.active?'':' (off)'}</option>`).join('');return`<select data-act="${act}"><option value="">+ Add exercise…</option>${o}<option value="__new">＋ New exercise…</option></select>`}
 
 function rPlan(){
  if(S.cur)return header()+`<div class="card"><h2>Workout in progress</h2><button class="btn" data-tab="work">Resume</button></div>`;
  if(!S.plan||!S.plan.every(X)){S.plan=buildPlan();save()}
  const p=prog();
  return header()+`<div class="card"><h2>Next up: workout #${p.done+1}</h2><div class="mut">${LINES[p.done%LINES.length]}</div>
- ${S.plan.map(id=>{const e=X(id);return`<div class="ex"><div style="font-size:22px">${e.e}</div><div class="nm"><div>${esc(e.name)}</div><div class="mut">${why(e)}</div><div class="hint">${esc(advice(e).text)}</div></div><button class="x" data-act="plrm" data-id="${id}">✕</button></div>`}).join('')}
+ ${S.plan.map(id=>{const e=X(id);return`<div class="ex"><div style="font-size:22px">${e.e}</div><div class="nm"><div data-act="edit" data-id="${id}" style="cursor:pointer">${esc(e.name)} <span class="mut">✎</span></div><div class="mut">${why(e)}</div><div class="hint">${esc(advice(e).text)}</div></div><button class="x" data-act="plrm" data-id="${id}">✕</button></div>`}).join('')}
  ${addSelect('pladd',S.plan)}
  <button class="btn" data-act="start">Start workout</button><button class="btn sec" data-act="regen">Re-suggest</button></div>`}
 
@@ -165,13 +184,51 @@ function stepper(i,j,f,v){return`<div class="step"><button data-act="inc" data-i
 function rWork(){
  if(!S.cur)return`<div class="card"><h2>No workout running</h2><button class="btn" data-tab="plan">See next workout</button></div>`;
  const c=S.cur,min=Math.floor((Date.now()-c.started)/60000),ticked=c.items.reduce((a,it)=>a+it.sets.filter(s=>s.done).length,0),total=c.items.reduce((a,it)=>a+it.sets.length,0);
- return`<div class="card"><div class="row"><div style="flex:1"><h2>${ticked}/${total} sets</h2><div class="mut">${min} min in</div></div></div><div style="background:var(--card2);border-radius:3px;margin-top:8px"><div style="height:6px;border-radius:3px;background:var(--ok);width:${total?ticked/total*100:0}%"></div></div></div>`+
- c.items.map((it,i)=>{const e=X(it.ex),last=lastSets(e),cd=e.kind==='cardio';
- return`<div class="card"><div class="row" style="align-items:flex-start"><div style="flex:1"><h2>${e.e} ${esc(e.name)}</h2><div class="mut">Last: ${last?last.map(s=>fs(e,s)).join(', '):e.best?'best '+fs(e,arrSet(e.best)):'—'}</div>${e.note?`<div class="mut">${esc(e.note)}</div>`:''}<div class="hint">${esc(advice(e).text)}</div></div><button class="x" data-act="wrm" data-i="${i}">✕</button></div>
- <div class="set" style="margin:10px 0 0"><div></div><div class="lbl">${cd?e.unit:e.kind==='assist'?'assist kg':'kg'}</div><div class="lbl">${cd?'':'reps'}</div><div></div></div>
- ${it.sets.map((s,j)=>`<div class="set ${s.done?'done':''}"><div class="mut">${j+1}</div>${stepper(i,j,'w',s.w)}${cd?'<div></div>':stepper(i,j,'r',s.r)}<button class="chk ${s.done?'on':''}" data-act="done" data-i="${i}" data-j="${j}">✓</button></div>`).join('')}
- ${cd?'':`<button class="btn small sec" data-act="addset" data-i="${i}">+ set</button><button class="btn small sec" data-act="rmset" data-i="${i}">− set</button>`}</div>`}).join('')+
- `<div class="card">${addSelect('wadd',c.items.map(x=>x.ex))}<button class="btn" data-act="finish">Finish workout</button><button class="btn sec" data-act="cancel">Discard</button></div>`}
+ const oi=openIdx();
+ return`<div class="card whd"><div class="row"><b style="flex:1">${ticked}/${total} sets</b><span class="mut">${min} min</span></div><div style="background:var(--card2);border-radius:3px;margin-top:6px"><div style="height:5px;border-radius:3px;background:var(--ok);width:${total?ticked/total*100:0}%"></div></div></div>`+
+ c.items.map((it,i)=>{const e=X(it.ex);if(!e)return'';const cd=e.kind==='cardio',nd=it.sets.filter(s=>s.done).length,fin=nd===it.sets.length,op=i===oi;
+  const ref=it.sets.find(s=>!s.done)||it.sets[it.sets.length-1],sum=ref?fs(e,ref):'';
+  const head=`<div class="wh" data-act="open" data-i="${i}"><span class="em">${e.e}</span><span class="nm">${esc(e.name)}</span><span class="sum">${fin?'✓':esc(sum)}</span><span class="sd">${it.sets.map(s=>`<i class="${s.done?'on':''}"></i>`).join('')}</span></div>`;
+  if(!op)return`<div class="wx ${fin?'fin':''}">${head}</div>`;
+  const last=lastSets(e);
+  return`<div class="wx open">${head}<div class="wb"><div class="mut">Last: ${last?last.map(s=>fs(e,s)).join(', '):e.best?'best '+fs(e,arrSet(e.best)):'—'}${e.note?' · '+esc(e.note):''}</div><div class="hint">${esc(advice(e).text)}</div>
+  <div class="set" style="margin:6px 0 0"><div></div><div class="lbl">${cd?e.unit:e.kind==='assist'?'assist kg':'kg'}</div><div class="lbl">${cd?'':'reps'}</div><div></div></div>
+  ${it.sets.map((s,j)=>`<div class="set ${s.done?'done':''}"><div class="mut">${j+1}</div>${stepper(i,j,'w',s.w)}${cd?'<div></div>':stepper(i,j,'r',s.r)}<button class="chk ${s.done?'on':''}" data-act="done" data-i="${i}" data-j="${j}">✓</button></div>`).join('')}
+  <div class="tools">${cd?'':`<button class="btn small sec" data-act="addset" data-i="${i}">+ set</button><button class="btn small sec" data-act="rmset" data-i="${i}">− set</button>`}<button class="btn small sec" data-act="edit" data-id="${e.id}">✎ Edit</button><button class="btn small sec" data-act="wrm" data-i="${i}">✕ Remove</button></div></div></div>`}).join('')+
+ `<div class="card whd">${addSelect('wadd',c.items.map(x=>x.ex))}<button class="btn" data-act="finish">Finish workout</button><button class="btn sec" data-act="cancel">Discard</button></div>`}
+// which exercise is expanded: explicit choice, else first unfinished
+function openIdx(){const c=S.cur;if(!c)return-1;if(c.open==='')return-1;if(c.open!=null){const k=c.items.findIndex(it=>it.ex===c.open);if(k>=0)return k}
+ const k=c.items.findIndex(it=>it.sets.some(s=>!s.done));return k}
+// tick moves the exercise to the top (unfinished) or below the unfinished ones (finished)
+function reorder(i){const c=S.cur,it=c.items.splice(i,1)[0];
+ if(it.sets.some(s=>!s.done)){c.items.unshift(it);c.open=it.ex}
+ else{let k=c.items.findIndex(x=>x.sets.every(s=>s.done));if(k<0)k=c.items.length;c.items.splice(k,0,it);c.open=null}}
+// weight change cascades to later, not-yet-ticked sets
+function cascade(i,j){const ss=S.cur.items[i].sets,w=ss[j].w;for(let k=j+1;k<ss.length;k++)if(!ss[k].done){ss[k].w=w;const inp=document.querySelector(`.step input[data-i="${i}"][data-j="${k}"][data-f="w"]`);if(inp)inp.value=w}}
+const GROUPS=['warmup','vpull','chest','back','shoulder','arms'];
+function editEx(id,ctx){const e=id?X(id):{e:'🏋️',name:'',kind:'lift',group:'arms',tSets:3,tReps:12,step:2.5,unit:'',note:''};
+ const opt=(v,a)=>a.map(x=>`<option ${x===v?'selected':''}>${x}</option>`).join('');
+ modal(`<h2>${id?'Edit exercise':'New exercise'}</h2>
+ <div class="g2"><div class="fld" style="grid-column:span 2">Name<input class="plain" id="ed-name" value="${esc(e.name)}"></div>
+ <div class="fld">Emoji<input class="plain" id="ed-e" value="${esc(e.e)}"></div>
+ <div class="fld">Type<select id="ed-kind">${opt(e.kind,['lift','assist','cardio'])}</select></div>
+ <div class="fld">Group<select id="ed-group">${opt(e.group,GROUPS)}</select></div>
+ <div class="fld">Weight step<input class="plain" id="ed-step" inputmode="decimal" value="${e.step??''}"></div>
+ <div class="fld">Target sets<input class="plain" id="ed-ts" inputmode="numeric" value="${e.tSets??''}"></div>
+ <div class="fld">Target reps<input class="plain" id="ed-tr" inputmode="numeric" value="${e.tReps??''}"></div>
+ <div class="fld" style="grid-column:span 2">Note / description<textarea class="plain" id="ed-note" rows="3">${esc(e.note||'')}</textarea></div></div>
+ <div class="mut" style="margin-top:6px">assist = machine assistance (less kg = harder) · cardio = one distance field${e.unit?' ('+esc(e.unit)+')':''}</div>
+ <button class="btn" data-act="edsave" data-id="${id||''}" data-ctx="${ctx||''}">Save</button>
+ ${id?`<button class="btn sec" data-act="eddel" data-id="${id}" style="color:var(--bad)">Delete exercise</button>`:''}
+ <button class="btn sec" data-act="close">Cancel</button>`);setTimeout(()=>{const n=document.getElementById('ed-name');if(n&&!id)n.focus()},50)}
+function saveEx(id,ctx){const v=k=>document.getElementById('ed-'+k).value.trim(),num=(k,d)=>{const n=parseFloat(v(k).replace(',','.'));return isFinite(n)?n:d};
+ const name=v('name');if(!name){toast('Give it a name');return false}
+ let e=id?X(id):null;if(!e){e={id:'x'+Date.now().toString(36),start:null,best:null,n:0,active:true};S.ex.push(e)}
+ Object.assign(e,{name,e:v('e')||'🏋️',kind:v('kind'),group:v('group'),step:num('step',1),tSets:Math.max(1,Math.round(num('ts',3))),tReps:Math.max(0,Math.round(num('tr',10))),note:v('note')});
+ if(e.kind==='cardio'&&!e.unit)e.unit='m';
+ if(!id&&ctx==='pladd'&&S.plan)S.plan=sortPlan([...S.plan,e.id]);
+ if(!id&&ctx==='wadd'&&S.cur){S.cur.items.unshift({ex:e.id,sets:prefill(e)});S.cur.open=e.id}
+ return true}
 
 function spark(a){a=a.filter(v=>v!=null&&isFinite(v));if(a.length<2)return'';const W=84,H=26,mn=Math.min(...a),mx=Math.max(...a),sp=mx-mn||1;
  const pts=a.map((v,i)=>`${(i/(a.length-1)*W).toFixed(1)},${(H-3-(v-mn)/sp*(H-6)).toFixed(1)}`).join(' ');
@@ -199,7 +256,7 @@ function rHist(){if(!S.sessions.length)return'<div class="card mut">No sessions 
 
 function rSet(){const st=S.settings,f=(k,l,t='number')=>`<div class="mut" style="margin-top:10px">${l}</div><input class="plain" style="margin-top:4px" type="${t}" ${t==='number'?'inputmode="numeric"':''} value="${esc(st[k])}" data-set="${k}">`;
  return`<div class="card"><h2>Block</h2>${f('startDate','Block start date','date')}${f('prior','Workouts done before this app')}${f('weeks','Goal (weeks)')}${f('perWeek','Workouts per week')}${f('per','Exercises per workout (excl. warm-up)')}${f('rest','Rest timer (seconds)')}</div>
- <div class="card"><h2>Exercises</h2><div class="mut">on = can be suggested · 📌 = every session</div>${S.ex.map(e=>`<div class="ex"><div class="nm">${e.e} ${esc(e.name)}</div><label class="mut"><input type="checkbox" data-exa="active" data-id="${e.id}" ${e.active?'checked':''}> on</label><label class="mut"><input type="checkbox" data-exa="pin" data-id="${e.id}" ${e.pin?'checked':''}> 📌</label></div>`).join('')}</div>
+ <div class="card"><h2>Exercises</h2><div class="mut">on = can be suggested · 📌 = every session</div>${S.ex.map(e=>`<div class="ex"><div class="nm" data-act="edit" data-id="${e.id}" style="cursor:pointer">${e.e} ${esc(e.name)} <span class="mut">✎</span>${e.note?`<div class="mut">${esc(e.note)}</div>`:''}</div><label class="mut"><input type="checkbox" data-exa="active" data-id="${e.id}" ${e.active?'checked':''}> on</label><label class="mut"><input type="checkbox" data-exa="pin" data-id="${e.id}" ${e.pin?'checked':''}> 📌</label></div>`).join('')}<button class="btn sec" data-act="new">＋ New exercise</button></div>
  <div class="card"><h2>Backup</h2><div class="mut">Data lives only in this browser. Export every few weeks.</div><button class="btn sec" data-act="exp">Export JSON</button><label class="btn sec" style="text-align:center">Import JSON<input id="imp" type="file" accept="application/json,.json" hidden></label><button class="btn sec" data-act="reset" style="color:var(--bad)">Reset everything</button></div>`}
 
 // ---------- actions ----------
@@ -229,9 +286,16 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-tab],[da
  if(b.dataset.tab){tab=b.dataset.tab;render();scrollTo(0,0);return}
  const a=b.dataset.act,i=+b.dataset.i,j=+b.dataset.j,c=S.cur;
  switch(a){
-  case'inc':{const s=c.items[i].sets[j],e=X(c.items[i].ex),f=b.dataset.f,st=f==='w'?(e.step||1):1;s[f]=Math.max(0,r1((+s[f]||0)+st*(+b.dataset.d)));b.parentNode.querySelector('input').value=s[f];save();return}
-  case'done':{const s=c.items[i].sets[j];s.done=!s.done;save();render();if(s.done&&X(c.items[i].ex).kind!=='cardio')startRest(+S.settings.rest||90);return}
-  case'addset':{const ss=c.items[i].sets,l=ss[ss.length-1]||{w:0,r:0};ss.push({w:l.w,r:l.r,done:false});break}
+  case'inc':{const s=c.items[i].sets[j],e=X(c.items[i].ex),f=b.dataset.f,st=f==='w'?(e.step||1):1;s[f]=Math.max(0,r1((+s[f]||0)+st*(+b.dataset.d)));b.parentNode.querySelector('input').value=s[f];if(f==='w')cascade(i,j);save();return}
+  case'done':{const it=c.items[i],s=it.sets[j];s.done=!s.done;const rest=s.done&&X(it.ex).kind!=='cardio';if(s.done)reorder(i);save();render();if(s.done)scrollTo(0,0);if(rest)startRest(+S.settings.rest||90);return}
+  case'open':{const id=c.items[i].ex;c.open=openIdx()===i?'':id;break}
+  case'edit':editEx(b.dataset.id);return;
+  case'new':editEx(null);return;
+  case'edsave':if(!saveEx(b.dataset.id,b.dataset.ctx))return;b.closest('.modal').remove();toast('Saved');break;
+  case'eddel':{const id=b.dataset.id;if(hist(id).length){toast('Has logged history — switch it off instead');return}
+   if(S.cur&&S.cur.items.some(x=>x.ex===id)){toast('Remove it from the workout first');return}
+   if(!confirm('Delete '+X(id).name+'?'))return;S.ex=S.ex.filter(e=>e.id!==id);if(S.plan)S.plan=S.plan.filter(x=>x!==id);b.closest('.modal').remove();break}
+  case'addset':{const ss=c.items[i].sets,l=ss[ss.length-1]||{w:0,r:0};ss.push({w:l.w,r:l.r,done:false});c.open=c.items[i].ex;break}
   case'rmset':{const ss=c.items[i].sets;if(ss.length>1&&!ss[ss.length-1].done)ss.pop();else{toast('Only removes an unticked last set');return}break}
   case'wrm':if(!confirm('Remove '+X(c.items[i].ex).name+'?'))return;c.items.splice(i,1);break;
   case'plrm':S.plan=S.plan.filter(x=>x!==b.dataset.id);break;
@@ -248,9 +312,10 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-tab],[da
  save();render()});
 
 document.addEventListener('change',ev=>{const t=ev.target,a=t.dataset.act;
- if(t.matches('.step input')){const s=S.cur.items[+t.dataset.i].sets[+t.dataset.j];s[t.dataset.f]=Math.max(0,parseFloat(String(t.value).replace(',','.'))||0);t.value=s[t.dataset.f];save();return}
+ if(t.matches('.step input')){const s=S.cur.items[+t.dataset.i].sets[+t.dataset.j];s[t.dataset.f]=Math.max(0,parseFloat(String(t.value).replace(',','.'))||0);t.value=s[t.dataset.f];if(t.dataset.f==='w')cascade(+t.dataset.i,+t.dataset.j);save();return}
+ if((a==='pladd'||a==='wadd')&&t.value==='__new'){t.value='';editEx(null,a);return}
  if(a==='pladd'&&t.value){S.plan=sortPlan([...S.plan,t.value]);save();render();return}
- if(a==='wadd'&&t.value){S.cur.items.push({ex:t.value,sets:prefill(X(t.value))});save();render();return}
+ if(a==='wadd'&&t.value){S.cur.items.unshift({ex:t.value,sets:prefill(X(t.value))});S.cur.open=t.value;save();render();scrollTo(0,0);return}
  if(t.dataset.set){const k=t.dataset.set;S.settings[k]=t.type==='number'?(+t.value||0):t.value;if(k==='per')S.plan=null;save();render();return}
  if(t.dataset.exa){X(t.dataset.id)[t.dataset.exa]=t.checked;S.plan=null;save();render();return}
  if(t.id==='imp'&&t.files[0])importFile(t.files[0]);

@@ -1,4 +1,4 @@
-const VERSION='vtaper-v1';
+const VERSION='vtaper-v2';
 const PRECACHE=['./','./index.html','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(VERSION).then(c=>c.addAll(PRECACHE)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{for(const k of await caches.keys())if(k.startsWith('vtaper-')&&k!==VERSION)await caches.delete(k);await self.clients.claim()})())});
