@@ -257,7 +257,7 @@ function rHist(){if(!S.sessions.length)return'<div class="card mut">No sessions 
 function rSet(){const st=S.settings,f=(k,l,t='number')=>`<div class="mut" style="margin-top:10px">${l}</div><input class="plain" style="margin-top:4px" type="${t}" ${t==='number'?'inputmode="numeric"':''} value="${esc(st[k])}" data-set="${k}">`;
  return`<div class="card"><h2>Block</h2>${f('startDate','Block start date','date')}${f('prior','Workouts done before this app')}${f('weeks','Goal (weeks)')}${f('perWeek','Workouts per week')}${f('per','Exercises per workout (excl. warm-up)')}${f('rest','Rest timer (seconds)')}</div>
  <div class="card"><h2>Exercises</h2><div class="mut">on = can be suggested · 📌 = every session</div>${S.ex.map(e=>`<div class="ex"><div class="nm" data-act="edit" data-id="${e.id}" style="cursor:pointer">${e.e} ${esc(e.name)} <span class="mut">✎</span>${e.note?`<div class="mut">${esc(e.note)}</div>`:''}</div><label class="mut"><input type="checkbox" data-exa="active" data-id="${e.id}" ${e.active?'checked':''}> on</label><label class="mut"><input type="checkbox" data-exa="pin" data-id="${e.id}" ${e.pin?'checked':''}> 📌</label></div>`).join('')}<button class="btn sec" data-act="new">＋ New exercise</button></div>
- <div class="card"><h2>Backup</h2><div class="mut">Data lives only in this browser. Export every few weeks.</div><button class="btn sec" data-act="exp">Export JSON</button><label class="btn sec" style="text-align:center">Import JSON<input id="imp" type="file" accept="application/json,.json" hidden></label><button class="btn sec" data-act="reset" style="color:var(--bad)">Reset everything</button></div>`}
+ <div class="mut" style="text-align:center;margin:6px 0">App version 3 · compact workout</div><div class="card"><h2>Backup</h2><div class="mut">Data lives only in this browser. Export every few weeks.</div><button class="btn sec" data-act="exp">Export JSON</button><label class="btn sec" style="text-align:center">Import JSON<input id="imp" type="file" accept="application/json,.json" hidden></label><button class="btn sec" data-act="reset" style="color:var(--bad)">Reset everything</button></div>`}
 
 // ---------- actions ----------
 function start(){if(!S.plan||!S.plan.length)return toast('Add an exercise first');S.cur={started:Date.now(),items:S.plan.map(id=>({ex:id,sets:prefill(X(id))}))};S.plan=null;save();tab='work';render();scrollTo(0,0)}
@@ -325,5 +325,8 @@ document.addEventListener('focusin',e=>{if(e.target.matches('.step input'))setTi
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 setInterval(tick,250);render();
 </script>
-<script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});</script>
+<script>
+if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).then(r=>{r.update();document.addEventListener('visibilitychange',()=>{if(!document.hidden)r.update()})}).catch(()=>{});
+ let reloaded=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(reloaded)return;reloaded=true;location.reload()})}
+</script>
 </body></html>
