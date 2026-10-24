@@ -420,10 +420,16 @@ function mutate(ops){
 
 /* ---------- one-time migration to budget buckets ---------- */
 function migrate(){
-  if((+S.t.mig||0)>=2) return;
-  const ops=[{op:'t',t:{mig:2,inc:4500,nr:0,pf:0,fs:1100,bE:900,bD:500,bL:800}}];
-  for(const e of S.x.d) if(e.cat==='coffee'&&/beer|drink|wine|cocktail|\bbar\b/i.test(e.note||'')) ops.push({op:'put',L:'d',e:{...e,cat:'drinks'}});
-  for(const e of S.x.b) if(!e.bk&&/glasses|shutter|tado|thermostat|run shoes|polic/i.test(e.note||'')) ops.push({op:'put',L:'b',e:{...e,bk:'es'}});
+  const m=+S.t.mig||0; if(m>=3) return;
+  const ops=[];
+  if(m<2){
+    ops.push({op:'t',t:{inc:4500,nr:0,pf:0,fs:1100,bE:900,bD:500,bL:800}});
+    for(const e of S.x.d) if(e.cat==='coffee'&&/beer|drink|wine|cocktail|\bbar\b/i.test(e.note||'')) ops.push({op:'put',L:'d',e:{...e,cat:'drinks'}});
+    for(const e of S.x.b) if(!e.bk&&/glasses|shutter|tado|thermostat|run shoes|polic/i.test(e.note||'')) ops.push({op:'put',L:'b',e:{...e,bk:'es'}});
+  }
+  // v3: meals of €13 or less count as Food (healthy), above that they stay Treats
+  for(const e of S.x.d) if(e.cat==='dining'&&!e.bk&&e.amt>0&&e.amt<=13) ops.push({op:'put',L:'d',e:{...e,cat:'groceries'}});
+  ops.push({op:'t',t:{mig:3}});
   mutate(ops); render();
 }
 
