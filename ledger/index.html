@@ -137,6 +137,11 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .st.f{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
 .st.p{border:1.5px dashed var(--warn);color:var(--warn)}
 @media (max-width:420px){.tabs button{padding:6px 9px}.syncb{font-size:0;gap:0}}
+.xbtn{margin-left:4px;padding:2px 8px;border-radius:999px;border:1px solid var(--plum);color:var(--plum);font-size:12.5px;font-weight:600;white-space:nowrap}
+.pace .mv{color:var(--plum);font-weight:600}
+.trl{display:block;margin-top:6px;font-size:13px}
+.trc{display:inline-flex;align-items:center;gap:4px;margin:2px 4px 0 0;padding:1px 4px 1px 8px;border-radius:999px;background:color-mix(in srgb,var(--plum) 14%,transparent);color:var(--plum);font-weight:600;white-space:nowrap}
+.trc button{width:20px;height:20px;border-radius:50%;color:var(--plum);font-weight:700}
 .warnbar{margin:10px 0 0;padding:10px 12px;border-radius:10px;background:var(--warn);color:#fff;font-size:14px;font-weight:600}
 .empty{color:var(--mut);text-align:center;padding:28px 0}
 
@@ -323,6 +328,13 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 
 <div class="toast" id="toast" role="status"><span id="tMsg"></span><button id="tUndo">Undo</button></div>
 
+<dialog id="xdlg">
+  <h2>Move to specials</h2>
+  <p class="hint" id="xInfo" style="margin:0 0 4px"></p>
+  <label>Amount (€)<input id="xA" type="number" inputmode="decimal" step="1" min="1"></label>
+  <div class="btns"><span></span><span><button class="btn" id="xX">Cancel</button> <button class="btn pri" id="xGo">Move</button></span></div>
+</dialog>
+
 <dialog id="dlg">
   <h2 id="dT">Edit entry</h2>
   <div class="two">
@@ -417,6 +429,12 @@ function mutate(ops){
   if(CAN_SYNC){const r=ops.findLastIndex?ops.findLastIndex(o=>o.op==='replace'):-1;PENDING=r>=0?ops.slice(r):PENDING.concat(ops);lsSet(PKEY,PENDING);}
   const ok=saveLocal(); flush(); return ok||SYNC==='on';
 }
+
+/* ---------- daily → specials transfers ---------- */
+const trs=()=>Array.isArray(S.t.tr)?S.t.tr:[];
+const trM=m=>r2(trs().filter(x=>x.m===m).reduce((a,x)=>a+x.amt,0));
+const trY=y=>r2(trs().filter(x=>x.m.startsWith(y)).reduce((a,x)=>a+x.amt,0));
+const budgetFor=m=>Math.max(0,(+S.t.d||0)-trM(m));
 
 /* ---------- one-time migration to budget buckets ---------- */
 function migrate(){
@@ -570,7 +588,7 @@ $('#ctx').onclick=()=>{ctxPlan=!ctxPlan;renderCtx();};
 /* ---------- month view ---------- */
 function renderMonth(){
   renderCtx(); applyDet();
-  const cm=curM(), T=+S.t.d||0, fm=firstM();
+  const cm=curM(), T=budgetFor(viewM), fm=firstM(), moved=trM(viewM);
   $('#mTitle').textContent=mName(viewM);
   $('#nextM').disabled=viewM>=cm;
   $('#prevM').disabled=viewM<=fm;
@@ -593,6 +611,9 @@ function renderMonth(){
   } else if(viewM<cm){
     p = spent<=T ? `Closed <span class="g">${fmt0(T-spent)} under budget</span>.` : `Closed <span class="w">${fmt0(spent-T)} over budget</span>.`;
   }
+  const room=viewM===cm?T-spent:viewM<cm?T-spent:0;
+  if(moved) p+=` <span class="mv">${fmt0(moved)} moved to specials</span>`;
+  if(room>=1) p+=` <button class="xbtn" id="xOpen">Move to specials</button>`;
   $('#pace').innerHTML=p;
 
   // categories vs typical by this point (avg of up to 3 previous full months)
@@ -610,7 +631,7 @@ function renderMonth(){
   $('#catCap').textContent = prev.length&&day&&rows.length ? `Ticks: your typical spend by ${viewM===cm?'this day':'month end'} (average of the previous ${prev.length} month${prev.length>1?'s':''}). Tap a category to filter.` : '';
 
   // specials: whole calendar-year total spread over 12 months
-  const yr=viewM.slice(0,4), yAll=S.x.b.filter(e=>e.date.startsWith(yr)), yB=sum(yAll), yPj=sum(yAll.filter(e=>e.st==='p')), perM=yB/12, TB=+S.t.b||0;
+  const yr=viewM.slice(0,4), yAll=S.x.b.filter(e=>e.date.startsWith(yr)), yB=sum(yAll), yPj=sum(yAll.filter(e=>e.st==='p')), perM=yB/12, TB=(+S.t.b||0)+trY(yr)/12;
   $('#spec').innerHTML=`<p class="l1"><span>Specials this month</span><span class="num">${fmt(sum(b))}</span></p>
     <p class="l2">${yr} total ${fmt0(yB)}, which is <span class="${perM>TB?'w':''}">${fmt0(perM)}/mo</span> against a ${fmt0(TB)} target${yPj?`, incl. ${fmt0(yPj)} projected`:''}. <button id="seeSpec" style="color:var(--plum);font-weight:600;text-decoration:underline">Open specials</button></p>`;
 
@@ -652,12 +673,14 @@ function resetSDate(){const d=$('#sD');d.min=viewY+'-01-01';d.max=viewY+'-12-31'
 function renderSpecials(){
   const [lo,hi]=yRange(); const y=viewY;
   $('#yTitle').textContent=`Specials ${y}`; $('#prevY').disabled=+y<=lo; $('#nextY').disabled=+y>=hi;
-  const all=S.x.b.filter(e=>e.date.startsWith(y)), tot=sum(all), pj=sum(all.filter(isPj)), fin=r2(tot-pj), TB=+S.t.b||0, TY=TB*12;
+  const all=S.x.b.filter(e=>e.date.startsWith(y)), tot=sum(all), pj=sum(all.filter(isPj)), fin=r2(tot-pj), mv=trY(y), TY=(+S.t.b||0)*12+mv, TB=TY/12;
   $('#yTot').textContent=fmt0(tot); $('#yOf').innerHTML=`<span class="num">${fmt0(tot/12)}</span>/mo of ${fmt0(TB)}`;
   const max=Math.max(TY,tot,1), f=Math.max(0,fin), q=Math.max(0,pj);
   $('#yF').style.width=(f/max*100)+'%'; $('#yP').style.left=(f/max*100)+'%'; $('#yP').style.width=(q/max*100)+'%';
   $('#yEnd').style.left=`calc(${TY/max*100}% - 1px)`; $('#yEnd').hidden=!TY;
   $('#ySum').innerHTML=all.length?`<b>${fmt0(fin)}</b> final, <span class="${pj?'w':''}">${fmt0(pj)} projected</span>. ${TY?(tot<=TY?`<span class="g">${fmt0(TY-tot)} under</span>`:`<span class="w">${fmt0(tot-TY)} over</span>`)+` the ${fmt0(TY)} yearly target.`:''}`:'Nothing logged for this year.';
+  const ty=trs().filter(x=>x.m.startsWith(y)).sort((a,b)=>a.m.localeCompare(b.m));
+  if(ty.length) $('#ySum').innerHTML+=`<span class="trl">Target includes ${fmt0(mv)} moved from daily: ${ty.map(x=>`<span class="trc">${mName(x.m,{month:'short'})} ${fmt0(x.amt)}<button data-untr="${x.id}" aria-label="Undo this transfer">×</button></span>`).join(' ')}</span>`;
   document.querySelectorAll('#spSort button').forEach(b=>b.classList.toggle('on',b.dataset.s===spSort));
   $('#sList').innerHTML=specList(y); resetSDate(); flashId=null;
 }
@@ -687,7 +710,7 @@ document.addEventListener('click',ev=>{
 
 /* ---------- history ---------- */
 function renderHistory(){
-  const cm=curM(), fm=firstM(), T=+S.t.d||0;
+  const cm=curM(), fm=firstM(), T=+S.t.d||0, BT=m=>budgetFor(m);
   const months=[];for(let m=cm;m>=fm;m=addM(m,-1))months.push(m);
   const full=months.filter(m=>m<cm&&m>fm);
   const md=Object.fromEntries(months.map(m=>[m,sum(inM('d',m))])), mb=Object.fromEntries(months.map(m=>[m,sum(inM('b',m))]));
@@ -699,12 +722,12 @@ function renderHistory(){
   const cat={};for(const c of CATS)cat[c.id]=0;
   full.forEach((m,i)=>{for(const e of inM('d',m))cat[catOf(e)]+=e.amt*w[i]/W;});
   const ctot=Object.values(cat).reduce((a,b)=>a+b,0)||1, cmax=Math.max(1,...Object.values(cat));
-  const over=full.filter(m=>md[m]>T).length;
+  const over=full.filter(m=>md[m]>BT(m)).length;
   $('#v-history').innerHTML=`<h2>History</h2>
    ${full.length?`<p class="sumline">Typical month, weighted toward recent months: <b>${fmt0(avgD)}</b> daily spending (${over} of ${full.length} full months over budget). Specials ${yr}: <b>${fmt0(yB)}</b> total, <b>${fmt0(yB/12)}</b>/mo.</p>`:''}
    <div class="hrow hd"><span>Month</span><span>Daily vs budget</span><span class="v">Daily</span><span class="s">Special</span></div>
    ${months.map(m=>`<div class="hrow ${full.includes(m)?'':'cm'}"><span class="m">${mName(m,{month:'short',year:'2-digit'})}</span>
-     <span class="bar"><i style="width:${md[m]/max*100}%;background:${md[m]>T?'var(--warn)':'var(--acc)'}"></i><u style="left:calc(${T/max*100}% - 1px)"></u></span>
+     <span class="bar"><i style="width:${md[m]/max*100}%;background:${md[m]>BT(m)?'var(--warn)':'var(--acc)'}"></i><u style="left:calc(${BT(m)/max*100}% - 1px)"></u></span>
      <span class="v">${fmt0(md[m])}</span><span class="s">${mb[m]?fmt0(mb[m]):''}</span></div>`).join('')}
    <p class="hint">Grey months are partial (first logged month and the current one) and are left out of the averages. Each month back counts a bit less (weight halves every 3 months).</p>
    ${full.length?`<h3>Category averages per month, recent-weighted</h3><div class="ctab">${CATS.filter(c=>cat[c.id]>0).sort((a,b)=>cat[b.id]-cat[a.id]).map(c=>`
@@ -792,7 +815,7 @@ function applyMin(){$('#dock').classList.toggle('min',UI.min);$('#coll').textCon
 
 document.addEventListener('keydown',ev=>{
   if(ev.metaKey||ev.ctrlKey||ev.altKey)return;
-  if(ev.target.matches('input,textarea,select')||$('#dlg').open||view!=='month')return;
+  if(ev.target.matches('input,textarea,select')||$('#dlg').open||$('#xdlg').open||view!=='month')return;
   const k=ev.key;
   if(/^[0-9]$/.test(k))press(k);
   else if(k==='.'||k===',')press('.');
@@ -849,6 +872,29 @@ $('#eS').onclick=()=>{
   if($('#eBk').value)e.bk=$('#eBk').value;
   mutate([{op:'put',L,e}]); $('#dlg').close(); flashId=e.id; render(); toast('Changes saved',false);
 };
+
+/* ---------- transfer actions ---------- */
+let xMonth=null;
+document.addEventListener('click',ev=>{
+  if(ev.target.id==='xOpen'){
+    xMonth=viewM; const unspent=Math.max(0,r2(budgetFor(xMonth)-sum(inM('d',xMonth)))), left=Math.floor(unspent);
+    $('#xInfo').textContent=`Lowers ${mName(xMonth)}'s daily budget and adds the same amount to the ${xMonth.slice(0,4)} specials target. ${fmt(unspent)} is unspent.`;
+    $('#xA').value=left||''; $('#xA').max=Math.floor(budgetFor(xMonth)); $('#xdlg').showModal(); $('#xA').select();
+  }
+  const u=ev.target.closest('[data-untr]');
+  if(u){const x=trs().find(t=>String(t.id)===u.dataset.untr); if(!x)return;
+    mutate([{op:'t',t:{tr:trs().filter(t=>t!==x)}}]); render(); toast(`Moved ${fmt0(x.amt)} back to ${mName(x.m,{month:'long'})}`,false);}
+});
+$('#xX').onclick=()=>$('#xdlg').close();
+$('#xGo').onclick=()=>{
+  const a=r2(parseFloat($('#xA').value)), cap=budgetFor(xMonth);
+  if(!isFinite(a)||a<=0){toast('Enter an amount',false);return;}
+  if(a>cap){toast(`At most ${fmt0(cap)}: that is all of ${mName(xMonth,{month:'long'})}'s budget`,false);return;}
+  const x={id:newId(),m:xMonth,amt:a};
+  mutate([{op:'t',t:{tr:[...trs(),x]}}]); $('#xdlg').close(); render();
+  toast(`Moved ${fmt0(a)} to specials`,false);
+};
+$('#xA').addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();$('#xGo').click();}});
 
 /* ---------- settings actions ---------- */
 $('#tD').onchange=ev=>{const v=+ev.target.value;if(v>=0){mutate([{op:'t',t:{d:v}}]);toast('Daily budget saved',false);}};

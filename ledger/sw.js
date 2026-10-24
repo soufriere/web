@@ -1,4 +1,4 @@
-const VERSION='ledger-v5';
+const VERSION='ledger-v6';
 const FONTS='ledger-fonts';
 const FONT_CSS="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Public+Sans:wght@400;500;600;700&display=swap";
 const PRECACHE=['./','./index.html','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png'];
