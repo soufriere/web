@@ -64,6 +64,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .ctx .cbar.cats2 i s{font-size:10px}.ctx .cbar.cats2 i b{font-size:11.5px}
 .ctx .cbar.cats2 i.bare *{display:none}
 .ctx .ccap{font-size:12px;color:var(--mut);margin-top:6px}
+.ctx .ccap b{color:var(--ink);font-weight:700}.ctx .ccap .w{color:var(--warn);font-weight:600}
 .ctx .ccap u{text-decoration:none;color:var(--acc);font-weight:600}
 .monthnav{display:flex;align-items:center;gap:6px;margin:6px 0 2px}
 .monthnav h1{font:700 17px/1.2 var(--disp);margin:0;flex:1}
@@ -161,7 +162,10 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .note{flex:1;min-width:0;height:38px;border:1px solid var(--line);border-radius:9px;background:var(--bg);padding:0 10px;font-size:15px}
 .refund{height:38px;padding:0 10px;border-radius:9px;background:var(--key);font-size:13px;font-weight:600;color:var(--mut)}
 .refund.on{background:var(--good);color:#fff}
-.pad{display:grid;grid-template-columns:repeat(3,1fr) 1.3fr 1.3fr;grid-auto-rows:44px;gap:5px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr) repeat(3,1.3fr);grid-auto-rows:44px;gap:5px}
+.pad .c{font-size:12.5px!important;padding:0 3px 0 8px!important;letter-spacing:-.02em;text-overflow:ellipsis}
+@media (max-width:400px){.pad .c{font-size:12px!important;padding-left:7px!important}}@media (max-width:350px){.pad .c{font-size:11px!important}}
+.pad .c[data-b=es]{background:color-mix(in srgb,#2F64B0 10%,var(--key))}.pad .c[data-b=da]{background:color-mix(in srgb,#B7791F 10%,var(--key))}.pad .c[data-b=lu]{background:color-mix(in srgb,#8A3B6E 10%,var(--key))}
 .pad .k{background:var(--key);border-radius:10px;font:600 20px var(--body);font-variant-numeric:tabular-nums}
 .pad .k:active{background:var(--keyp)}
 .pad .c{position:relative;display:flex;align-items:center;gap:6px;padding:0 8px;border-radius:10px;background:var(--key);font-size:13px;font-weight:600;text-align:left;overflow:hidden;white-space:nowrap}
@@ -169,6 +173,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .pad .c:active,.pad .c.hit{background:var(--cc);color:#fff}
 .pad .c kbd{display:none;margin-left:auto;font:500 11px var(--body);color:var(--mut)}
 @media (hover:hover){.pad .c kbd{display:inline}}
+@media (max-width:600px){.pad .c kbd{display:none!important}}
 .pad .addsp{grid-column:4 / 6;grid-row:1 / 5;border-radius:12px;background:var(--plum);color:var(--acc-ink);font:700 17px var(--disp)}
 .pad .addsp:active{filter:brightness(1.1)}
 .dock.min .pad,.dock.min .amtrow{display:none}
@@ -277,10 +282,19 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <h3>Monthly targets</h3>
     <div class="fld"><span>Daily spending budget</span><input id="tD" type="number" inputmode="decimal" min="0" step="1"></div>
     <div class="fld"><span>Specials target (year total ÷ 12)</span><input id="tB" type="number" inputmode="decimal" min="0" step="1"></div>
-    <h3>Income context bar</h3>
-    <div class="fld"><span>Monthly income (take-home)</span><input id="tI" type="number" inputmode="decimal" min="0" step="1"></div>
-    <div class="fld"><span>Monthly fixed costs</span><input id="tF" type="number" inputmode="decimal" min="0" step="1"></div>
-    <p class="hint">Set your take-home income and fixed costs to see the context bar.</p>
+    <h3>Budget buckets (monthly)</h3>
+    <div class="fld"><span>Income (take-home)</span><input data-t="inc" type="number" inputmode="decimal" step="1"></div>
+    <div class="fld"><span>Net rent (added to income)</span><input data-t="nr" type="number" inputmode="decimal" step="1"></div>
+    <div class="fld"><span>PF cash (added to income)</span><input data-t="pf" type="number" inputmode="decimal" step="1"></div>
+    <div class="fld"><span>F.savings</span><input data-t="fs" type="number" inputmode="decimal" min="0" step="1"></div>
+    <div class="fld"><span>Fixed costs (counted in Essentials)</span><input data-t="fix" type="number" inputmode="decimal" min="0" step="1"></div>
+    <div class="fld"><span>Essentials budget (incl. fixed)</span><input data-t="bE" type="number" inputmode="decimal" min="0" step="1"></div>
+    <div class="fld"><span>Daily budget</span><input data-t="bD" type="number" inputmode="decimal" min="0" step="1"></div>
+    <div class="fld"><span>Luxury budget (incl. specials ÷ 12)</span><input data-t="bL" type="number" inputmode="decimal" min="0" step="1"></div>
+    <p class="hint">Leftover = income + net rent + PF cash − F.savings − Essentials − Daily − Luxury. Consumption = Essentials + Daily + Luxury.</p>
+    <h3>Category buckets</h3>
+    <div id="mapF"></div>
+    <p class="hint">Food is healthy food, Treats is pleasure food. Any single entry or special can be moved to another bucket in its edit dialog; specials default to Luxury.</p>
     <h3>Backup</h3>
     <p class="hint">Data lives in this browser only. Export regularly; the format matches your old tracker's export, so either can import the other.</p>
     <div class="btns"><button class="btn pri" id="exp">Copy backup</button><label class="btn" style="display:inline-flex;align-items:center;cursor:pointer">Import file<input type="file" id="impF" accept=".json,application/json" hidden></label><button class="btn" id="impP">Import pasted text</button></div>
@@ -289,7 +303,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <h3>Reset</h3>
     <div class="btns"><button class="btn dng" id="rSeed">Restore seed data</button><button class="btn dng" id="rAll">Erase everything</button></div>
     <h3>Keyboard</h3>
-    <p class="hint">Digits and . or , type the amount. Backspace deletes, minus toggles refund. Category letters save: c coffee, g groceries, d dining, s shopping, t transport, l leisure, h health, o other. Specials are added on the Specials tab.</p>
+    <p class="hint">Digits and . or , type the amount. Backspace deletes, minus toggles refund. Category letters save: f food, h health, c coffee, s shopping, o other, t treats, d drinks, l leisure, v travel. Specials are added on the Specials tab.</p>
   </section>
 </main>
 
@@ -320,6 +334,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <label id="eCw">Category<select id="eC"></select></label>
     <label id="eStw">Status<select id="eSt"><option value="f">Final</option><option value="p">Projected</option></select></label>
   </div>
+  <label>Budget bucket<select id="eBk"></select></label>
   <label>Note<input id="eN" autocomplete="off"></label>
   <div class="btns"><button class="btn dng" id="eDel">Delete</button><span><button class="btn" id="eX">Cancel</button> <button class="btn pri" id="eS">Save changes</button></span></div>
 </dialog>
@@ -327,15 +342,21 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 <script>
 const SEED = {"v":1,"t":{"d":1275,"b":393},"x":{"d":[],"b":[]}};
 const KEY='ledger.v1', UIKEY='ledger.ui';
+// b = default budget bucket: es Essentials, da Daily, lu Luxury (reassign per category in Settings, or per entry in the edit dialog)
+// ids are kept from older versions so existing entries keep their meaning: groceries = healthy food, dining = pleasure food
 const CATS=[
- {id:'coffee',n:'Coffee',k:'c',c:'#9A6A43'},
- {id:'groceries',n:'Groceries',k:'g',c:'#3D8D5B'},
- {id:'dining',n:'Dining',k:'d',c:'#C4473F'},
- {id:'shopping',n:'Shopping',k:'s',c:'#7255C7'},
- {id:'transport',n:'Transport',k:'t',c:'#2F7FB5'},
- {id:'leisure',n:'Leisure',k:'l',c:'#C99214'},
- {id:'health',n:'Health',k:'h',c:'#27A095'},
- {id:'other',n:'Other',k:'o',c:'#7D8896'}];
+ {id:'groceries',n:'Food',k:'f',c:'#3D8D5B',b:'es'},
+ {id:'health',n:'Health',k:'h',c:'#27A095',b:'es'},
+ {id:'coffee',n:'Coffee',k:'c',c:'#9A6A43',b:'da'},
+ {id:'shopping',n:'Shopping',k:'s',c:'#7255C7',b:'da'},
+ {id:'other',n:'Other',k:'o',c:'#7D8896',b:'da'},
+ {id:'dining',n:'Treats',k:'t',c:'#C4473F',b:'lu'},
+ {id:'drinks',n:'Drinks',k:'d',c:'#B5476E',b:'lu'},
+ {id:'leisure',n:'Leisure',k:'l',c:'#C99214',b:'lu'},
+ {id:'transport',n:'Travel',k:'v',c:'#2F7FB5',b:'lu'}];
+const BK={fs:{n:'F.savings',c:'#5D6A79'},es:{n:'Essentials',c:'#2F64B0'},da:{n:'Daily',c:'#B7791F'},lu:{n:'Luxury',c:'#8A3B6E'}};
+const catBk=id=>(S.t.map&&S.t.map[id])||(CAT[id]||CAT.other).b;
+const bucketOf=(e,L)=>BK[e.bk]&&e.bk!=='fs'?e.bk:(L==='b'?'lu':catBk(catOf(e)));
 const CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
 const catOf=e=>CAT[e.cat]?e.cat:'other';
 const $=s=>document.querySelector(s);
@@ -344,7 +365,7 @@ const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',
 /* ---------- storage ---------- */
 function norm(o){
   if(!o||typeof o!=='object'||!o.x||!Array.isArray(o.x.d)) throw new Error('Not a ledger backup: missing x.d list');
-  o.v=1; o.t=Object.assign({d:1275,b:393,inc:0,fix:0},o.t||{}); o.x.b=Array.isArray(o.x.b)?o.x.b:[];
+  o.v=1; o.t=Object.assign({d:1275,b:393,inc:0,fix:0,nr:0,pf:0,fs:0,bE:0,bD:0,bL:0},o.t||{}); o.x.b=Array.isArray(o.x.b)?o.x.b:[];
   for(const L of ['d','b']) o.x[L]=o.x[L].filter(e=>e&&/^\d{4}-\d\d-\d\d$/.test(e.date)&&isFinite(+e.amt)).map(e=>({...e,amt:+e.amt,note:e.note||''}));
   return o;
 }
@@ -397,6 +418,15 @@ function mutate(ops){
   const ok=saveLocal(); flush(); return ok||SYNC==='on';
 }
 
+/* ---------- one-time migration to budget buckets ---------- */
+function migrate(){
+  if((+S.t.mig||0)>=2) return;
+  const ops=[{op:'t',t:{mig:2,inc:4500,nr:0,pf:0,fs:1100,bE:900,bD:500,bL:800}}];
+  for(const e of S.x.d) if(e.cat==='coffee'&&/beer|drink|wine|cocktail|\bbar\b/i.test(e.note||'')) ops.push({op:'put',L:'d',e:{...e,cat:'drinks'}});
+  for(const e of S.x.b) if(!e.bk&&/glasses|shutter|tado|thermostat|run shoes|polic/i.test(e.note||'')) ops.push({op:'put',L:'b',e:{...e,bk:'es'}});
+  mutate(ops); render();
+}
+
 /* ---------- account sync (claude.ai db, private per-user subtree) ---------- */
 let SYNC=CAN_SYNC?'connecting':'off', DB=null, BASE=null, SERVER=null, flushing=false, again=false, syncErr='';
 function badge(){
@@ -413,7 +443,7 @@ function updWarn(){
 }
 const yearDocs=st=>{const o={};for(const L of['d','b'])for(const e of st.x[L]){const y='y'+e.date.slice(0,4);(o[y]=o[y]||{d:[],b:[]})[L].push(e);}return o;};
 function fromDocs(docs){
-  const st={v:1,t:{d:1275,b:393,inc:0,fix:0},x:{d:[],b:[]},col:false,hh:false};
+  const st={v:1,t:{d:1275,b:393,inc:0,fix:0,nr:0,pf:0,fs:0,bE:0,bD:0,bL:0},x:{d:[],b:[]},col:false,hh:false};
   for(const d of docs){const v=d.data()||{}; if(d.id==='meta'){st._meta=true;if(v.t)st.t=Object.assign(st.t,v.t);} else if(/^y\d{4}$/.test(d.id)){st.x.d.push(...(v.d||[]));st.x.b.push(...(v.b||[]));}}
   return norm(st);
 }
@@ -460,7 +490,7 @@ async function connect(){
   try{
     const [db,user]=await Promise.all([window.claude.use('db'),window.claude.use('user')]);
     const uid=user?await user.id():null;
-    if(!db||!uid){SYNC='off';badge();return;}
+    if(!db||!uid){SYNC='off';badge();migrate();return;}
     DB=db; BASE='data/users/'+uid; let first=true;
     unsub=DB.collection(BASE).onSnapshot(snap=>{
       if(first&&snap.metadata.fromCache) return;         // wait for a server-definitive view
@@ -475,7 +505,7 @@ async function connect(){
         }
         lsSet(PKEY,PENDING); if(!snap.empty&&!PENDING.length) lsSet(SKEY,true);
       }
-      S=applyOps(SERVER,PENDING); FROM_SEED=false; saveLocal(); updWarn(); render(); flush();
+      S=applyOps(SERVER,PENDING); FROM_SEED=false; saveLocal(); updWarn(); render(); flush(); migrate();
     },err=>{syncErr=err&&err.code||'error';SYNC='error';badge();updWarn();if(!FATAL.has(syncErr))reconnectSoon(15000);});
   }catch(e){syncErr=(e&&e.code)||String(e);SYNC='error';badge();updWarn();if(!FATAL.has(syncErr))reconnectSoon(15000);}
 }
@@ -510,36 +540,24 @@ let buf='', led='d', neg=false, entryDate=today(), lastAdd=null;
 /* ---------- income context bar ---------- */
 let ctxPlan=false;
 function renderCtx(){
-  const cm=curM(), I=+S.t.inc||0, F=+S.t.fix||0, dim=daysIn(viewM);
+  const t=S.t, cm=curM(), dim=daysIn(viewM), I=(+t.inc||0)+(+t.nr||0)+(+t.pf||0);
   const el=$('#ctx'); if(!I){el.hidden=true;return;} el.hidden=false;
-  let D,B,cap;
-  if(ctxPlan){D=+S.t.d||0;B=+S.t.b||0;cap='Plan, using your targets';}
+  const plan={fs:+t.fs||0,es:+t.bE||0,da:+t.bD||0,lu:+t.bL||0};
+  let v,cap;
+  if(ctxPlan){v=plan;cap='Plan, using your budgets';}
   else{
-    const spent=sum(inM('d',viewM)), day=viewM===cm?new Date().getDate():dim;
-    D=viewM===cm&&day<dim?spent/day*dim:spent;
-    B=sum(S.x.b.filter(e=>e.date.startsWith(viewM.slice(0,4))))/12;
-    cap=viewM===cm?`Daily projected from ${day} days, specials = year ÷ 12`:`Actual daily, specials = year ÷ 12`;
+    const day=viewM===cm?new Date().getDate():dim, k=viewM===cm&&day<dim?dim/day:1;
+    v={fs:plan.fs,es:+t.fix||0,da:0,lu:0};
+    for(const e of inM('d',viewM)) v[bucketOf(e,'d')]+=e.amt*k;
+    for(const e of S.x.b) if(e.date.startsWith(viewM.slice(0,4))) v[bucketOf(e,'b')]+=e.amt/12;
+    cap=(k>1?`Projected from ${day} days`:'Actual')+', fixed costs in Essentials, specials ÷ 12';
   }
-  const Sv=I-F-D-B, tot=Math.max(I,F+D+B), w=v=>Math.max(0,v)/tot*100;
-  const pct=Math.round(Math.abs(Sv)/I*100);
-  const segs=[['Fixed',F,'var(--mut)',fmt0(F)],['Daily',D,CAT_BAR_D,fmt0(D)],['Specials',B,'var(--plum)',fmt0(B)],
-    [Sv>=0?`Saved ${pct}%`:'Short',Math.abs(Sv),Sv>=0?'var(--good)':'var(--warn)',fmt0(Math.abs(Sv))]];
-  el.innerHTML=`<span class="cbar">${segs.filter(x=>x[1]>0).map(([n,v,c,a])=>`<i style="flex:${v} 1 0;background:${c}" title="${n} ${a}"><s>${n}</s><b>${a}</b></i>`).join('')}</span>
-   ${catBar()}
-   <span class="ccap" style="display:block">Of ${fmt0(I)} income. ${cap}. <u>${ctxPlan?'Show this month':'Show plan'}</u></span>`;
-  // shrink labels that don't fit: drop the name, then tighten the amount
-  el.querySelectorAll('.cbar i').forEach(i=>{ if(i.scrollWidth>i.clientWidth) i.classList.add('tight'); if(i.scrollWidth>i.clientWidth) i.classList.add('tiny'); if(i.scrollWidth>i.clientWidth) i.classList.add('bare'); });
-}
-const CAT_BAR_D='var(--acc)';
-// second row: this month's daily spend split into LUXURY (dining + shopping + leisure) vs the rest
-const LUX=['dining','shopping','leisure'];
-function catBar(){
-  const tot={}; for(const e of inM('d',viewM)){const c=catOf(e);tot[c]=(tot[c]||0)+e.amt;}
-  const T=Object.values(tot).reduce((a,v)=>a+v,0); if(T<=0) return '';
-  const L=LUX.reduce((a,c)=>a+(tot[c]||0),0), R=T-L, pc=v=>Math.round(v/T*100);
-  const tip=ids=>ids.filter(c=>tot[c]).sort((a,b)=>tot[b]-tot[a]).map(c=>`${CAT[c].n} ${fmt0(tot[c])}`).join(', ');
-  const segs=[[`Luxury ${pc(L)}%`,L,'#B5443C',tip(LUX)],[`Rest ${pc(R)}%`,R,'#5D6A79',tip(CATS.map(c=>c.id).filter(c=>!LUX.includes(c)))]];
-  return `<span class="cbar cats2" aria-label="Daily spend: luxury versus the rest">${segs.filter(x=>x[1]>0).map(([n,v,c,t])=>`<i style="flex:${v} 1 0;background:${c}" title="${t}"><s>${n}</s><b>${fmt0(v)}</b></i>`).join('')}</span>`;
+  const con=v.es+v.da+v.lu, lo=I-v.fs-con, pct=x=>Math.round(x/I*100);
+  const segs=[...['fs','es','da','lu'].map(b=>[BK[b].n,v[b],BK[b].c]),[lo>=0?`Left ${pct(lo)}%`:'Short',Math.abs(lo),lo>=0?'#2E8B57':'#C26A00']];
+  const over=ctxPlan?[]:['es','da','lu'].filter(b=>plan[b]&&v[b]>plan[b]+.5).map(b=>`${BK[b].n} <span class="w">${fmt0(v[b]-plan[b])} over</span>`);
+  el.innerHTML=`<span class="cbar">${segs.filter(x=>x[1]>0).map(([n,x,c])=>`<i style="flex:${x} 1 0;background:${c};color:#fff" title="${n} ${fmt0(x)}"><s>${n}</s><b>${fmt0(x)}</b></i>`).join('')}</span>
+   <span class="ccap" style="display:block">Consumption <b class="num">${pct(con)}%</b> of ${fmt0(I)} income${ctxPlan?'':` (plan ${pct(plan.es+plan.da+plan.lu)}%)`}${over.length?'. '+over.join(', '):''}. ${cap}. <u>${ctxPlan?'Show this month':'Show plan'}</u></span>`;
+  el.querySelectorAll('.cbar i').forEach(i=>{ if(i.scrollWidth>i.clientWidth) i.classList.add('tight'); if(i.scrollWidth>i.clientWidth) i.classList.add('tiny'); });
 }
 $('#ctx').onclick=()=>{ctxPlan=!ctxPlan;renderCtx();};
 
@@ -610,7 +628,7 @@ function renderMonth(){
 let spSort='date', viewY=today().slice(0,4), sNeg=false, sStTouched=false;
 const isPj=e=>e.st==='p';
 function spRow(e,withMonth){const p=isPj(e);
-  return `<div class="sprow ${p?'pj':''}"><button class="row sp ${e.id===flashId?'new':''}" data-id="${e.id}" data-l="b"><span class="dot" style="background:var(--plum)"></span><span class="t">${esc(e.note||'Special')}<small>${withMonth?mName(e.date.slice(0,7),{month:'short'}):dName(e.date)}</small></span><span class="a ${e.amt<0?'neg':''}">${fmt(e.amt)}</span></button><button class="st ${p?'p':'f'}" data-tog="${e.id}" aria-label="${p?'Projected cost, tap to mark final':'Final cost, tap to mark projected'}">${p?'Proj':'Final'}</button></div>`;}
+  return `<div class="sprow ${p?'pj':''}"><button class="row sp ${e.id===flashId?'new':''}" data-id="${e.id}" data-l="b"><span class="dot" style="background:var(--plum)"></span><span class="t">${esc(e.note||'Special')}<small>${withMonth?mName(e.date.slice(0,7),{month:'short'}):dName(e.date)}${bucketOf(e,'b')!=='lu'?' · '+BK[bucketOf(e,'b')].n:''}</small></span><span class="a ${e.amt<0?'neg':''}">${fmt(e.amt)}</span></button><button class="st ${p?'p':'f'}" data-tog="${e.id}" aria-label="${p?'Projected cost, tap to mark final':'Final cost, tap to mark projected'}">${p?'Proj':'Final'}</button></div>`;}
 function specList(y){
   const all=S.x.b.filter(e=>e.date.startsWith(y));
   if(!all.length) return `<p class="empty">No specials in ${y} yet. Add one above.</p>`;
@@ -691,7 +709,9 @@ function renderHistory(){
 
 /* ---------- settings ---------- */
 function renderSettings(){
-  $('#tD').value=S.t.d; $('#tB').value=S.t.b; $('#tI').value=S.t.inc; $('#tF').value=S.t.fix;
+  $('#tD').value=S.t.d; $('#tB').value=S.t.b;
+  document.querySelectorAll('[data-t]').forEach(i=>{i.value=S.t[i.dataset.t]??0;});
+  $('#mapF').innerHTML=CATS.map(c=>`<div class="fld"><span style="display:flex;align-items:center;gap:7px"><span class="dot" style="background:${c.c}"></span>${c.n}</span><select data-map="${c.id}" style="height:38px;border:1px solid var(--line);border-radius:9px;background:var(--surf);padding:0 8px">${['es','da','lu'].map(b=>`<option value="${b}" ${catBk(c.id)===b?'selected':''}>${BK[b].n}</option>`).join('')}</select></div>`).join('');
   let kb=0;try{kb=(localStorage.getItem(KEY)||'').length/1024;}catch(e){}
   const loc=STORE==='ok'?`Local copy saved${lastSaved?' at '+lastSaved.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'}):''}.`:STORE==='blocked'?'This browser blocks local storage.':'Last local write failed.';
   const sy={on:'Synced to your Claude account (private to you), so it survives Safari clearing storage and works across devices.',connecting:'Connecting to your Claude account…',error:`Account sync failed (${syncErr}); changes are queued and retried on reload.`,off:CAN_SYNC?'Account sync unavailable in this view; saving on this device only.':'Self-hosted copy: saving on this device only.'}[SYNC];
@@ -706,7 +726,7 @@ function buildPad(){
   for(let r=0;r<4;r++){
     for(let c=0;c<3;c++){const k=keys[r*3+c];h+=`<button class="k" data-k="${k}" style="grid-row:${r+1};grid-column:${c+1}" aria-label="${k==='⌫'?'Delete digit':k}">${k}</button>`;}
   }
-  if(led==='d') CATS.forEach((c,i)=>{h+=`<button class="c" data-c="${c.id}" style="--cc:${c.c};grid-row:${(i>>1)+1};grid-column:${4+(i&1)}">${c.n}<kbd>${c.k}</kbd></button>`;});
+  if(led==='d') ['es','da','lu'].forEach((b,j)=>CATS.filter(c=>catBk(c.id)===b).forEach((c,i)=>{h+=`<button class="c" data-c="${c.id}" data-b="${b}" title="${BK[b].n}" style="--cc:${c.c};grid-row:${i+1};grid-column:${4+j}">${c.n}<kbd>${c.k}</kbd></button>`;}));
   else h+=`<button class="addsp" id="addsp">Add special</button>`;
   $('#pad').innerHTML=h;
 }
@@ -799,15 +819,19 @@ document.addEventListener('click',ev=>{
 
 /* ---------- edit dialog ---------- */
 let editing=null;
+function fillBk(L,e){const def=L==='b'?'lu':catBk(CAT[e.cat]?e.cat:'other');
+  $('#eBk').innerHTML=`<option value="">Default (${BK[def].n})</option>`+['es','da','lu'].map(b=>`<option value="${b}">${BK[b].n}</option>`).join('');
+  $('#eBk').value=e.bk&&BK[e.bk]?e.bk:'';}
+$('#eC').addEventListener('change',()=>{if(!$('#eBk').value)fillBk($('#eL').value,{cat:$('#eC').value});});
 $('#eC').innerHTML=CATS.map(c=>`<option value="${c.id}">${c.n}</option>`).join('');
 document.addEventListener('click',ev=>{
   const r=ev.target.closest('.row[data-id]'); if(!r)return;
   const L=r.dataset.l, e=S.x[L].find(x=>String(x.id)===r.dataset.id); if(!e)return;
   editing={L,id:e.id};
   $('#eA').value=e.amt; $('#eD').value=e.date; $('#eL').value=L; $('#eC').value=catOf(e); $('#eN').value=e.note||'';
-  $('#eSt').value=e.st==='p'?'p':'f'; $('#eCw').hidden=L!=='d'; $('#eStw').hidden=L!=='b'; $('#dlg').showModal();
+  fillBk(L,e); $('#eSt').value=e.st==='p'?'p':'f'; $('#eCw').hidden=L!=='d'; $('#eStw').hidden=L!=='b'; $('#dlg').showModal();
 });
-$('#eL').onchange=()=>{$('#eCw').hidden=$('#eL').value!=='d';$('#eStw').hidden=$('#eL').value!=='b';};
+$('#eL').onchange=()=>{fillBk($('#eL').value,{cat:$('#eC').value,bk:$('#eBk').value});$('#eCw').hidden=$('#eL').value!=='d';$('#eStw').hidden=$('#eL').value!=='b';};
 $('#eX').onclick=()=>$('#dlg').close();
 $('#eDel').onclick=()=>{mutate([{op:'del',id:editing.id}]);$('#dlg').close();render();toast('Entry deleted',false);};
 $('#eS').onclick=()=>{
@@ -816,13 +840,14 @@ $('#eS').onclick=()=>{
   const old=S.x[editing.L].find(e=>e.id===editing.id);
   const L=$('#eL').value, e={id:old.id,date:dt,amt:r2(a),note:$('#eN').value.trim()};
   if(L==='d')e.cat=$('#eC').value; else e.st=$('#eSt').value;
+  if($('#eBk').value)e.bk=$('#eBk').value;
   mutate([{op:'put',L,e}]); $('#dlg').close(); flashId=e.id; render(); toast('Changes saved',false);
 };
 
 /* ---------- settings actions ---------- */
 $('#tD').onchange=ev=>{const v=+ev.target.value;if(v>=0){mutate([{op:'t',t:{d:v}}]);toast('Daily budget saved',false);}};
-$('#tI').onchange=ev=>{const v=+ev.target.value;if(v>=0){mutate([{op:'t',t:{inc:v}}]);toast('Income saved',false);}};
-$('#tF').onchange=ev=>{const v=+ev.target.value;if(v>=0){mutate([{op:'t',t:{fix:v}}]);toast('Fixed costs saved',false);}};
+document.querySelectorAll('[data-t]').forEach(i=>i.onchange=ev=>{const v=+ev.target.value;if(isFinite(v)){mutate([{op:'t',t:{[i.dataset.t]:v}}]);toast('Saved',false);}});
+$('#mapF').addEventListener('change',ev=>{const s=ev.target.closest('[data-map]');if(!s)return;mutate([{op:'t',t:{map:Object.assign({},S.t.map,{[s.dataset.map]:s.value})}}]);buildPad();toast(`${CAT[s.dataset.map].n} now counts as ${BK[s.value].n}`,false);});
 $('#tB').onchange=ev=>{const v=+ev.target.value;if(v>=0){mutate([{op:'t',t:{b:v}}]);toast('Specials target saved',false);}};
 $('#exp').onclick=async()=>{
   const j=JSON.stringify(S); $('#io').value=j;
@@ -847,7 +872,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){if(entryD
 
 setLed('d'); drawAmt(); drawDate(); applyMin();
 if(!lastRaw&&!S_NOTE) saveLocal();
-updWarn(); badge(); connect();
+updWarn(); badge(); if(!CAN_SYNC) migrate(); connect();
 render(); fitDock();
 </script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});</script>
