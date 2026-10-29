@@ -222,6 +222,91 @@ dialog .btns{justify-content:space-between;margin-top:16px}
 [hidden]{display:none!important}
 main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* plan tab: budget simulator (gross → tax → spending → savings), scoped to #v-plan */
+#v-plan{--pl-tax:#5A6170;--pl-soc:#7A8190;--pl-forced:#2E6B73;--pl-save:var(--good);--pl-def:var(--warn)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #v-plan{--pl-tax:#6A7283;--pl-soc:#8A92A3;--pl-forced:#3F8C96}}
+:root[data-theme="dark"] #v-plan{--pl-tax:#6A7283;--pl-soc:#8A92A3;--pl-forced:#3F8C96}
+#v-plan .pl-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 4px}
+#v-plan .pl-tg{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 11px 0 5px;border-radius:999px;background:var(--key);font-size:13.5px;font-weight:600;color:var(--mut);cursor:pointer;user-select:none}
+#v-plan .pl-tg input{position:absolute;opacity:0;pointer-events:none}
+#v-plan .pl-tg i{width:30px;height:18px;border-radius:999px;background:var(--line);position:relative;flex:none;transition:background .15s}
+#v-plan .pl-tg i::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--surf);box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+#v-plan .pl-tg input:checked+i{background:var(--acc)}
+#v-plan .pl-tg input:checked+i::after{transform:translateX(12px)}
+#v-plan .pl-tg input:checked~span{color:var(--ink)}
+#v-plan .pl-tg input:focus-visible+i{outline:2px solid var(--acc);outline-offset:2px}
+#v-plan .pl-tg small{font-weight:500;font-variant-numeric:tabular-nums}
+#v-plan .pl-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 4px}
+#v-plan .pl-sum div{background:var(--surf);border-radius:10px;padding:8px 10px;min-width:0}
+#v-plan .pl-sum .k{display:block;font-size:11.5px;color:var(--mut);font-weight:600}
+#v-plan .pl-sum .v{display:block;font:700 17px/1.2 var(--disp);font-variant-numeric:tabular-nums}
+#v-plan .pl-sum .s{display:block;font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#v-plan .pl-cap{font-size:12.5px;color:var(--mut);margin:2px 0 8px}
+#v-plan .pl-cap b{color:var(--ink)}
+#v-plan .pl-chart{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px}
+#v-plan .pl-ch{display:flex;justify-content:space-between;gap:6px;font-size:12.5px;font-weight:700;margin-bottom:4px}
+#v-plan .pl-ch span:last-child{color:var(--mut);font-weight:600;font-variant-numeric:tabular-nums}
+#v-plan .pl-box{display:grid;align-items:start}
+#v-plan .pl-box.l{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr)}
+#v-plan .pl-box.r{grid-template-columns:minmax(0,1.3fr) minmax(0,1fr)}
+#v-plan .pl-bar{position:relative;border-radius:8px;background:var(--surf);outline:1px solid var(--line);overflow:visible}
+#v-plan .pl-s{position:absolute;left:0;right:0;display:flex;flex-direction:column;justify-content:center;padding:0 8px;color:#fff;overflow:visible;box-shadow:inset 0 -1px 0 rgba(0,0,0,.18)}
+#v-plan .pl-s .n{font-size:11.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
+#v-plan .pl-s .a{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.15}
+#v-plan .pl-s.ext .n,#v-plan .pl-s.ext .a{display:none}
+#v-plan .pl-s.auto{background:repeating-linear-gradient(90deg,var(--c) 0 6px,color-mix(in srgb,var(--c) 86%,#fff) 6px 7px)}
+#v-plan .pl-s.save{background:repeating-linear-gradient(135deg,var(--pl-save) 0 10px,color-mix(in srgb,var(--pl-save) 85%,#000) 10px 20px)}
+#v-plan .pl-s.def{background:repeating-linear-gradient(135deg,var(--pl-def) 0 8px,color-mix(in srgb,var(--pl-def) 80%,#000) 8px 16px);opacity:.92;z-index:1}
+#v-plan .pl-h{position:absolute;left:0;right:0;bottom:-9px;height:18px;cursor:ns-resize;touch-action:none;z-index:3;display:flex;align-items:center;justify-content:center}
+#v-plan .pl-h::after{content:"";width:30px;height:5px;border-radius:3px;background:var(--ink);opacity:0;transition:opacity .15s}
+#v-plan .pl-s:hover .pl-h::after,#v-plan .pl-h:focus-visible::after,#v-plan.pl-drag .pl-h::after{opacity:.5}
+#v-plan .pl-line{position:absolute;left:-3px;right:-3px;border-top:2px dashed var(--ink);opacity:.5;pointer-events:none;z-index:4}
+#v-plan .pl-lb{position:relative;min-width:0}
+#v-plan .pl-x{position:absolute;left:0;right:0;height:16px;display:flex;align-items:center;gap:4px;font-size:11px;line-height:1;white-space:nowrap;padding:0 6px}
+#v-plan .l .pl-x{justify-content:flex-end}
+#v-plan .pl-x .d{width:7px;height:7px;border-radius:2px;flex:none}
+#v-plan .l .pl-x .d{order:3}
+#v-plan .pl-x .t{overflow:hidden;text-overflow:ellipsis;min-width:0;color:var(--mut)}
+#v-plan .pl-x .v{font-weight:700;font-variant-numeric:tabular-nums;flex:none}
+#v-plan .pl-apply{margin:14px 0 4px;padding:12px 14px;border-radius:12px;background:var(--surf);border-left:3px solid var(--acc)}
+#v-plan .pl-apply p{margin:0}
+#v-plan .pl-diff{display:grid;grid-template-columns:1fr auto auto;gap:3px 12px;font-size:13px;margin:8px 0;font-variant-numeric:tabular-nums}
+#v-plan .pl-diff .o{color:var(--mut);text-align:right;text-decoration:line-through}
+#v-plan .pl-diff .o.same{text-decoration:none}
+#v-plan .pl-diff .n{text-align:right;font-weight:700}
+#v-plan details{border-top:1px solid var(--line);margin-top:14px;padding-top:10px}
+#v-plan summary{cursor:pointer;font:700 15px var(--disp);list-style:none;display:flex;align-items:center;gap:8px}
+#v-plan summary::-webkit-details-marker{display:none}
+#v-plan summary::before{content:"";width:6px;height:6px;border-right:2px solid var(--mut);border-bottom:2px solid var(--mut);transform:rotate(-45deg);transition:transform .15s}
+#v-plan details[open]>summary::before{transform:rotate(45deg)}
+#v-plan details[open]>summary{margin-bottom:8px}
+#v-plan .pl-rows{display:grid;gap:5px}
+#v-plan .pl-r{display:grid;gap:5px;align-items:center}
+#v-plan .pl-r.i{grid-template-columns:8px minmax(0,1fr) 96px 74px 26px}
+#v-plan .pl-r.o{grid-template-columns:8px minmax(0,1fr) 96px 74px 26px}
+#v-plan .pl-r.p{grid-template-columns:8px minmax(0,1fr) 96px 74px 26px;padding-left:12px}
+#v-plan .pl-r.off{opacity:.42}
+#v-plan .pl-r .sw{width:8px;height:22px;border-radius:2px}
+#v-plan .pl-r .pn{font-size:13px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#v-plan .pl-r input,#v-plan .pl-r select,#v-plan .pl-set input{height:34px;min-width:0;width:100%;border:1px solid var(--line);border-radius:8px;background:var(--surf);padding:0 7px;font-size:13.5px}
+#v-plan .pl-r input.m,#v-plan .pl-set input{text-align:right;font-variant-numeric:tabular-nums}
+#v-plan .pl-r .ded{display:flex;align-items:center;justify-content:center;height:34px;border:1px solid var(--line);border-radius:8px;font-size:11px;font-weight:600;color:var(--mut);cursor:pointer;gap:3px}
+#v-plan .pl-r .ded input{width:auto;height:auto;margin:0;accent-color:var(--good)}
+#v-plan .pl-r .x{height:34px;border-radius:8px;color:var(--mut);font-size:17px}
+#v-plan .pl-r .x:hover{color:var(--warn)}
+#v-plan .pl-add{margin-top:6px;font-size:13px;font-weight:600;color:var(--acc)}
+#v-plan .pl-set{display:grid;gap:6px}
+#v-plan .pl-set label{display:grid;grid-template-columns:1fr 90px;gap:8px;align-items:center;font-size:13.5px}
+#v-plan .pl-set small{display:block;color:var(--mut);font-size:11.5px}
+#v-plan table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:10px}
+#v-plan td{padding:3px 0;border-bottom:1px solid var(--line)}
+#v-plan td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;padding-left:8px}
+#v-plan tr.t td{font-weight:700;border-bottom:2px solid var(--ink)}
+#v-plan tr.h td{color:var(--mut);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding-top:10px}
+@media (max-width:420px){#v-plan .pl-r.i,#v-plan .pl-r.o,#v-plan .pl-r.p{grid-template-columns:8px minmax(0,1fr) 84px 66px 24px}}
+@media (prefers-reduced-motion:reduce){#v-plan *{transition:none!important}}
+@media (max-width:480px){.tabs button{padding:6px 9px}.syncb{font-size:0;gap:0}}
+@media (max-width:370px){.tabs button{padding:6px 7px;font-size:13px}}
 </style>
 </head>
 <body>
@@ -230,6 +315,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <button data-view="month" class="on">Month</button>
     <button data-view="specials">Specials</button>
     <button data-view="history">History</button>
+    <button data-view="plan">Plan</button>
     <button data-view="settings">Settings</button>
     <span class="syncb" id="syncb"></span>
   </nav>
@@ -281,6 +367,58 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
   </section>
 
   <section id="v-history" hidden></section>
+
+  <section id="v-plan" hidden>
+    <div class="pl-ctl">
+      <div class="segc" id="plYr" role="group" aria-label="Tax year"><button data-y="2026">2026 tax</button><button data-y="2028">2028 tax</button></div>
+      <label class="pl-tg" for="plMove"><input id="plMove" type="checkbox"><i></i><span>City move <small id="plMoveA"></small></span></label>
+      <label class="pl-tg" for="plNet"><input id="plNet" type="checkbox"><i></i><span>Net view</span></label>
+    </div>
+    <div class="big"><span class="amt" id="plTot"></span><span class="of">saved a month</span></div>
+    <p class="pl-cap" id="plSplit"></p>
+    <div class="pl-sum">
+      <div><span class="k">Gross income</span><span class="v" id="plIn"></span><span class="s" id="plInS"></span></div>
+      <div><span class="k">Tax + social</span><span class="v" id="plGov"></span><span class="s" id="plGovS"></span></div>
+      <div><span class="k">Spending</span><span class="v" id="plOut"></span><span class="s" id="plOutS"></span></div>
+    </div>
+    <div class="pl-chart">
+      <div><div class="pl-ch"><span>Income</span><span id="plHi"></span></div><div class="pl-box l"><div class="pl-lb" id="plLi"></div><div class="pl-bar" id="plBi"></div></div></div>
+      <div><div class="pl-ch"><span>Where it goes</span><span id="plHo"></span></div><div class="pl-box r"><div class="pl-bar" id="plBo"></div><div class="pl-lb" id="plLo"></div></div></div>
+    </div>
+    <p class="hint">Drag a block's bottom edge (€25 steps). Striped blocks are calculated.</p>
+
+    <div class="pl-apply" id="plApply"></div>
+
+    <details open>
+      <summary>Edit amounts</summary>
+      <h3 style="margin:4px 0 6px">Income per month</h3>
+      <div class="pl-rows" id="plRi"></div>
+      <button class="pl-add" id="plAddI">+ Add income</button>
+      <h3 style="margin:16px 0 6px">Outgoings per month</h3>
+      <div class="pl-rows" id="plRo"></div>
+      <button class="pl-add" id="plAddO">+ Add outgoing</button>
+      <p class="hint">The second column sets where a row lands in Ledger: Fixed (in Essentials), Daily (your daily budget), Specials (specials target), Rent (subtracted from net rent). Forced savings scales its parts together; the city move keeps its own values (default: mortgage €400, rest €0).</p>
+    </details>
+
+    <details>
+      <summary>Tax settings &amp; workings</summary>
+      <div class="pl-set">
+        <label for="plIdx"><span>Salary indexation by 2028<small>% on salary and SSM; one tranche = 2.5%</small></span><input id="plIdx" type="number" step="0.5"></label>
+        <label for="plSsm"><span>Social minimum wage<small>€ per month</small></span><input id="plSsm" type="number" step="1"></label>
+        <label for="plExp"><span>Freelance business costs<small>€ per month</small></span><input id="plExp" type="number" step="25"></label>
+        <label for="plMut"><span>Mutualité rate<small>% of self-employed income</small></span><input id="plMut" type="number" step="0.01"></label>
+        <label for="plRf"><span>Rental costs deducted<small>% of gross rent</small></span><input id="plRf" type="number" step="1"></label>
+        <label for="plExtra"><span>Other deductions<small>€ per year</small></span><input id="plExtra" type="number" step="50"></label>
+      </div>
+      <table id="plWork"></table>
+    </details>
+
+    <details>
+      <summary>How it's calculated</summary>
+      <p class="hint">Estimate only. 2026: tax class 1 scale (unchanged since 2025). 2028: class U scale from Bill 8676, adopted 28 Oct 2026 (0% up to €26,650, ten brackets). Indexation raises salary and the SSM. 7% solidarity surcharge (9% above €150k). Social: employee 8% pension + 3.05% health; self-employed 16% + 6.1% + 0.75% accident + mutualité; 1.4% dependency; base capped at 5× SSM. Forfaits €540 (salary) and €480 (special expenses). S-Pension deduction capped at €4,500/yr. Tax credits, the self-employed minimum base and advance lag are left out. In net view each income loses its own social contributions and a share of income tax in proportion to its taxable amount. Portfolio growth is shown on both sides: untaxed income, then reinvested. The plan is saved with your Ledger data and syncs like the rest.</p>
+      <button class="btn dng" id="plReset" style="margin-top:6px">Reset plan to starting values</button>
+    </details>
+  </section>
 
   <section id="v-settings" hidden>
     <h2>Settings</h2>
@@ -746,7 +884,7 @@ function renderSettings(){
   const sy={on:'Synced to your Claude account (private to you), so it survives Safari clearing storage and works across devices.',connecting:'Connecting to your Claude account…',error:`Account sync failed (${syncErr}); changes are queued and retried on reload.`,off:CAN_SYNC?'Account sync unavailable in this view; saving on this device only.':'Self-hosted copy: saving on this device only.'}[SYNC];
   $('#stat').textContent=`${S.x.d.length} daily entries and ${S.x.b.length} specials. ${sy} ${loc}${PENDING.length?` ${PENDING.length} change(s) waiting to sync.`:''}`;
 }
-function render(){ if(view==='month')renderMonth(); else if(view==='specials')renderSpecials(); else if(view==='history')renderHistory(); else renderSettings(); }
+function render(){ if(view==='month')renderMonth(); else if(view==='specials')renderSpecials(); else if(view==='history')renderHistory(); else if(view==='plan')renderPlan(); else renderSettings(); }
 
 /* ---------- entry dock ---------- */
 function buildPad(){
@@ -830,7 +968,7 @@ document.addEventListener('keydown',ev=>{
 /* ---------- navigation ---------- */
 function setView(v){
   view=v;
-  for(const s of['month','specials','history','settings'])$('#v-'+s).hidden=s!==v;
+  for(const s of['month','specials','history','plan','settings'])$('#v-'+s).hidden=s!==v;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   $('#dock').hidden=v!=='month'; fitDock(); render(); window.scrollTo(0,0);
 }
@@ -926,6 +1064,226 @@ setLed('d'); drawAmt(); drawDate(); applyMin();
 if(!lastRaw&&!S_NOTE) saveLocal();
 updWarn(); badge(); if(!CAN_SYNC) migrate(); connect();
 render(); fitDock();
+</script>
+<script>
+/* ---------- plan tab: budget simulator, stored in S.t.plan and synced with the rest ---------- */
+(function(){
+const q=s=>document.querySelector(s);
+const E=n=>(n<0?'−':'')+'€'+Math.abs(Math.round(n)).toLocaleString('en-IE');
+const BR1=[[13230,0],[15435,.08],[17640,.09],[19845,.10],[22050,.11],[24255,.12],[26550,.14],[28845,.16],[31140,.18],[33435,.20],[35730,.22],[38025,.24],[40320,.26],[42615,.28],[44910,.30],[47205,.32],[49500,.34],[51795,.36],[54090,.38],[117450,.39],[176160,.40],[234870,.41],[Infinity,.42]];
+const BRU=[[26650,0],[31500,.11],[35500,.14],[39400,.19],[44400,.25],[49500,.32],[117500,.39],[176200,.40],[234800,.41],[Infinity,.42]];
+function tariff(x,u){x=Math.floor(x/50)*50;let t=0,lo=0;for(const[hi,r]of(u?BRU:BR1)){if(x>lo)t+=(Math.min(x,hi)-lo)*r;lo=hi}return t}
+function calc(p){
+  const ceil=5*p.ssm, salB=Math.min(p.sal,ceil);
+  const empPH=salB*(.08+.0305), empDep=Math.max(0,p.sal-p.ssm/4)*.014;
+  const self=Math.max(0,p.free-p.exp), selfB=Math.min(self,Math.max(0,ceil-salB));
+  const selfPH=selfB*(.16+.061+.0075+p.mut/100), selfDep=Math.max(0,self-(p.sal>0?0:p.ssm/4))*.014;
+  const fo=p.sal>0?540:0, netSal=12*(p.sal-empPH)-fo, netSelf=12*(self-selfPH), netRent=12*p.rent*(1-p.rf/100);
+  const taxable=Math.max(0,netSal+netSelf+netRent-480-p.ded), base=tariff(taxable,p.u), sol=base*(taxable>150000?.09:.07);
+  return {social:empPH+empDep+selfPH+selfDep,empPH,empDep,selfPH,selfDep,self,fo,netSal,netSelf,netRent,taxable,base,sol,tax:(base+sol)/12};
+}
+
+/* state */
+const DEF={inc:[['Freelance',4400,'self'],['Uni job',2500,'sal'],['Portfolio growth',1600,'none','port'],['Differdange rent',1375,'rent','move']],
+  out:[['City rent',1800,'rent','move'],['Fixed costs',700,'fixed'],['Everyday spending',1325,'daily'],['Specials & travel',500,'specials'],['AI subscriptions',90,'fixed']],
+  forced:[['Mortgage',612,false],['Loan from mum',200,false],['S-Pension',375,true]],
+  set:{ssm:2704,exp:0,mut:.72,extra:0,rf:35,yr:2028,idx:2.5,net:false,move:false}};
+const ROLES={fixed:'Fixed',daily:'Daily',specials:'Specials',rent:'Rent'};
+let uid=1;
+function fresh(){
+  const P={inc:DEF.inc.map(([n,a,t,g])=>({id:uid++,name:n,amt:a,type:t,tg:g||''})),
+    out:DEF.out.map(([n,a,r,g])=>({id:uid++,name:n,amt:a,role:r,ded:false,tg:g||''})),set:{...DEF.set}};
+  const f={id:uid++,name:'Forced savings',role:'forced',tg:'',ded:false,parts:DEF.forced.map(([n,a,d])=>({name:n,base:a,ded:d}))};
+  f.amt=f.parts.reduce((t,p)=>t+p.base,0);P.out.push(f);return P;
+}
+let P=null, dirty=false, drag=null, C=null, scaleMax=1, saveT=null;
+function load(){
+  if(dirty&&P)return;
+  const s=S.t.plan;
+  P=s&&s.inc&&s.out?JSON.parse(JSON.stringify(s)):fresh();
+  P.set={...DEF.set,...P.set};
+  for(const r of[...P.inc,...P.out])uid=Math.max(uid,(+r.id||0)+1);
+}
+function persist(){dirty=true;clearTimeout(saveT);saveT=setTimeout(()=>{dirty=false;mutate([{op:'t',t:{plan:JSON.parse(JSON.stringify(P))}}]);},700);}
+
+const on=r=>!r.tg||r.tg==='port'||(r.tg==='move'&&P.set.move);
+const AI=()=>P.inc.filter(on), AO=()=>P.out.filter(on);
+const Y28=()=>+P.set.yr===2028, NET=()=>!!P.set.net;
+const bsum=r=>r.parts.reduce((t,p)=>t+p.base,0)||1;
+const eff=(r,p)=>p.base*r.amt/bsum(r);
+const sumA=a=>a.reduce((t,r)=>t+r.amt,0);
+const PG=()=>P.inc.filter(r=>r.tg==='port').reduce((t,r)=>t+r.amt,0);
+
+function compute(){
+  const by=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+r.amt,0);
+  const ix=Y28()?by('sal')*(+P.set.idx||0)/100:0, sal=by('sal')+ix, free=by('self'), rent=by('rent');
+  const ssm=(+P.set.ssm||0)*(Y28()?1+(+P.set.idx||0)/100:1);
+  const dedRows=AO().reduce((t,r)=>t+(r.parts?r.parts.filter(p=>p.ded).reduce((u,p)=>u+Math.min(eff(r,p)*12,4500),0):(r.ded?r.amt*12:0)),0);
+  const c=calc({sal,free,rent,rf:+P.set.rf||0,exp:+P.set.exp||0,ssm,mut:+P.set.mut||0,ded:dedRows+(+P.set.extra||0),u:Y28()});
+  Object.assign(c,{ix,sal,free,rent,dedRows});
+  const tA=c.base+c.sol, ps=Math.max(0,c.netSal), pf=Math.max(0,c.netSelf), pr=Math.max(0,c.netRent), T=ps+pf+pr||1;
+  const fct=(g,soc,tp)=>g>0?Math.max(0,1-(soc*12+tA*tp/T)/(g*12)):1;
+  c.f={sal:fct(sal,c.empPH+c.empDep,ps),self:fct(free,c.selfPH+c.selfDep,pf),rent:fct(rent,0,pr),none:1};
+  c.gross=sumA(AI())+ix;
+  c.net=c.gross-c.tax-c.social;
+  return c;
+}
+const F=r=>NET()?(C.f[r.type]??1):1;
+function rescale(){scaleMax=Math.max(NET()?C.net:C.gross,(NET()?0:C.tax+C.social)+sumA(AO())+PG())*1.06||1000}
+const H=()=>Math.max(380,Math.min(540,innerHeight*.6));
+const IC=['#2F4BD8','#4F6FE0','#7F96EA','#2F7FB5','#A9B8F2'], OC=['#9A6A43','#B7791F','#8A3B6E','#C4473F','#7D8896','#B5476E','#C99214'];
+
+/* bars */
+let MAP=[];
+function seg(bar,name,amt,y,hh,bg,cls){
+  const d=document.createElement('div');d.className='pl-s'+(cls?' '+cls:'');d.style.top=y+'px';d.style.height=hh+'px';
+  if(bg){if(cls&&cls.includes('auto'))d.style.setProperty('--c',bg);else d.style.background=bg;}
+  d.dataset.c=bg||'';d.dataset.n=name;d.dataset.a=amt;d.title=name+': '+E(amt);
+  d.innerHTML='<span class="n"></span><span class="a">'+E(amt)+'</span>';d.querySelector('.n').textContent=name;
+  if(hh<30)d.classList.add('ext');bar.append(d);return d;
+}
+function rowSeg(bar,r,y,px,bg,side,disp){
+  const a=disp??r.amt,hh=a*px,d=seg(bar,r.name,a,y,hh,bg);MAP.push([y,hh,a]);
+  const h=document.createElement('div');h.className='pl-h';h.tabIndex=0;h.setAttribute('role','slider');h.setAttribute('aria-label','Resize '+r.name);h.setAttribute('aria-valuenow',Math.round(r.amt));
+  h.dataset.id=r.id;h.dataset.side=side;d.append(h);return y+hh;
+}
+function labels(bar,box,h){
+  box.innerHTML='';let last=-99;
+  const it=[...bar.querySelectorAll('.pl-s.ext')].map(d=>({d,c:parseFloat(d.style.top)+parseFloat(d.style.height)/2})).sort((a,b)=>a.c-b.c);
+  for(const x of it){const top=Math.max(x.c-8,last+1);last=top+16;
+    const l=document.createElement('div');l.className='pl-x';l.style.top=top+'px';
+    l.innerHTML='<span class="d" style="background:'+(x.d.dataset.c||'var(--mut)')+'"></span><span class="t"></span><span class="v">'+E(+x.d.dataset.a)+'</span>';
+    l.querySelector('.t').textContent=x.d.dataset.n;box.append(l);}
+  box.style.height=Math.max(h,last)+'px';
+}
+function bars(){
+  const Bi=q('#plBi'),Bo=q('#plBo'),h=H(),px=h/scaleMax,gov=NET()?0:C.tax+C.social,inc=NET()?C.net:C.gross,out=sumA(AO()),pg=PG(),res=inc-gov-out-pg;
+  Bi.innerHTML='';Bo.innerHTML='';MAP=[];
+  let y=0;P.inc.forEach((r,i)=>{if(on(r))y=rowSeg(Bi,r,y,px,r.tg==='port'?'#5D8FA8':IC[i%IC.length],'inc',r.amt*F(r));});
+  const ixd=C.ix*(NET()?C.f.sal:1);if(ixd>0){seg(Bi,'Indexation +'+P.set.idx+'%',ixd,y,ixd*px,'#A9B8F2','auto').style.color='var(--ink)';y+=ixd*px;}
+  const yIn=y;MAP=[];y=0;
+  if(!NET())for(const[n,a,c]of[['Income tax',C.tax,'var(--pl-tax)'],['Social contributions',C.social,'var(--pl-soc)']]){seg(Bo,n,a,y,a*px,c,'auto');MAP.push([y,a*px,a]);y+=a*px;}
+  P.out.forEach((r,i)=>{if(on(r))y=rowSeg(Bo,r,y,px,r.parts?'var(--pl-forced)':OC[i%OC.length],'out');});
+  if(pg>0){seg(Bo,'Portfolio growth (reinvested)',pg,y,pg*px,'#5D8FA8','auto');MAP.push([y,pg*px,pg]);y+=pg*px;}
+  if(res>0){seg(Bo,'Free savings',res,y,res*px,'var(--pl-save)','save');y+=res*px;}
+  const lineY=res>=0?y:inc*px, ln=document.createElement('div');ln.className='pl-line';ln.style.top=lineY+'px';Bo.append(ln);
+  if(res<0)seg(Bo,'Over by',-res,inc*px,-res*px,'var(--pl-def)','def');
+  const bh=Math.max(h,yIn,y,lineY);Bi.style.height=Bo.style.height=bh+'px';
+  labels(Bi,q('#plLi'),bh);labels(Bo,q('#plLo'),bh);
+  const fz=AO().filter(r=>r.parts).reduce((t,r)=>t+r.amt,0);
+  q('#plTot').textContent=E(res+fz+pg);
+  q('#plSplit').innerHTML=res>=0?`<b>${E(res)}</b> free · <b>${E(fz)}</b> forced · <b>${E(pg)}</b> portfolio growth · ${Math.round((res+fz+pg)/(C.gross||1)*100)}% of gross`:`<b style="color:var(--warn)">${E(-res)} short</b> of income each month`;
+  q('#plIn').textContent=E(C.gross);q('#plInS').textContent=E(C.net)+' net';
+  q('#plGov').textContent=E(C.tax+C.social);q('#plGovS').textContent=Math.round((C.tax+C.social)/(C.gross||1)*100)+'% · '+(Y28()?'2028':'2026');
+  q('#plOut').textContent=E(out);q('#plOutS').textContent=E(out*12)+'/yr';
+  q('#plHi').textContent=E(inc)+(NET()?' net':' gross');q('#plHo').textContent=E(inc);
+  const mi=P.inc.filter(r=>r.tg==='move').reduce((t,r)=>t+r.amt,0),mo=P.out.filter(r=>r.tg==='move').reduce((t,r)=>t+r.amt,0);
+  q('#plMoveA').textContent='+'+E(mi)+' / −'+E(mo);
+}
+
+/* what the plan means for Ledger's own targets */
+function target(){
+  const nOf=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+r.amt*C.f[t],0);
+  const role=k=>AO().filter(r=>r.role===k).reduce((s,r)=>s+r.amt,0);
+  const inc=nOf('sal')+C.ix*C.f.sal+nOf('self'), nr=nOf('rent')-role('rent'), fs=role('forced'), fix=role('fixed'), d=role('daily'), b=role('specials');
+  const tot={es:0,da:0,lu:0};
+  for(let k=1;k<=3;k++)for(const e of inM('d',addM(curM(),-k)))tot[bucketOf(e,'d')]+=e.amt;
+  let T=tot.es+tot.da+tot.lu, sh;
+  if(T>0)sh={es:tot.es/T,da:tot.da/T,lu:tot.lu/T};
+  else{const o={es:Math.max(0,(+S.t.bE||0)-(+S.t.fix||0)),da:Math.max(0,+S.t.bD||0),lu:Math.max(0,(+S.t.bL||0)-(+S.t.b||0))},t2=o.es+o.da+o.lu;sh=t2?{es:o.es/t2,da:o.da/t2,lu:o.lu/t2}:{es:1/3,da:1/3,lu:1/3};}
+  const R=Math.round;
+  return {t:{inc:R(inc),nr:R(nr),fs:R(fs),fix:R(fix),d:R(d),b:R(b),bE:R(fix+d*sh.es),bD:R(d*sh.da),bL:R(d*sh.lu+b)},from3:T>0};
+}
+const TL=[['inc','Income (take-home)'],['nr','Net rent'],['fs','F.savings'],['fix','Fixed costs'],['d','Daily spending budget'],['b','Specials target'],['bE','Essentials budget'],['bD','Daily bucket'],['bL','Luxury budget']];
+function apply(){
+  const {t,from3}=target(), ch=TL.filter(([k])=>Math.round(+S.t[k]||0)!==t[k]);
+  const el=q('#plApply');
+  if(!ch.length){el.innerHTML='<p><b>Ledger budgets match this plan.</b></p><p class="hint" style="margin:2px 0 0">Your Month view uses these numbers.</p>';return;}
+  el.innerHTML=`<p><b>Use this plan as your Ledger budget</b></p>
+    <div class="pl-diff">${TL.map(([k,n])=>{const o=Math.round(+S.t[k]||0),same=o===t[k];return `<span>${n}</span><span class="o ${same?'same':''}">${same?'':E(o)}</span><span class="n">${E(t[k])}</span>`;}).join('')}</div>
+    <p class="hint" style="margin:0 0 8px">Daily spending is split into Essentials / Daily / Luxury by ${from3?'your last 3 months of entries':'your current bucket ratios'}. PF cash is left as is.</p>
+    <button class="btn pri" id="plGo">Update ${ch.length} budget${ch.length>1?'s':''}</button>`;
+  q('#plGo').onclick=()=>{const {t}=target();mutate([{op:'t',t}]);toast('Budgets updated from Plan',false);apply();};
+}
+
+/* editors */
+function inputs(){
+  const Ri=q('#plRi'),Ro=q('#plRo');Ri.innerHTML='';Ro.innerHTML='';
+  P.inc.forEach((r,i)=>{
+    const row=document.createElement('div');row.className='pl-r i'+(on(r)?'':' off');
+    row.innerHTML=`<span class="sw" style="background:${r.tg==='port'?'#5D8FA8':IC[i%IC.length]}"></span><input aria-label="Income name"><select aria-label="Tax treatment"><option value="sal">Salary</option><option value="self">Self-empl.</option><option value="rent">Rental</option><option value="none">Not taxed</option></select><input class="m" id="plA${r.id}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><button class="x" aria-label="Remove">×</button>`;
+    const [n,t,a]=row.querySelectorAll('input,select');n.value=r.name;t.value=r.type;a.value=r.amt;
+    n.oninput=()=>{r.name=n.value;bars();persist();};t.onchange=()=>{r.type=t.value;upd();};a.oninput=()=>{r.amt=Math.max(0,+a.value||0);upd();};
+    row.querySelector('.x').onclick=()=>{P.inc=P.inc.filter(x=>x!==r);inputs();upd();};Ri.append(row);
+  });
+  P.out.forEach((r,i)=>{
+    const row=document.createElement('div');row.className='pl-r o'+(on(r)?'':' off');
+    if(r.parts){
+      row.innerHTML=`<span class="sw" style="background:var(--pl-forced)"></span><input aria-label="Name" style="font-weight:600"><span class="pn" style="text-align:center">F.savings</span><input class="m" id="plA${r.id}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><span></span>`;
+      const [n,a]=row.querySelectorAll('input');n.value=r.name;a.value=Math.round(r.amt);
+      n.oninput=()=>{r.name=n.value;bars();persist();};a.oninput=()=>{r.amt=Math.max(0,+a.value||0);syncParts(r);upd();};Ro.append(row);
+      r.parts.forEach((p,j)=>{const pr=document.createElement('div');pr.className='pl-r p';
+        pr.innerHTML=`<span></span><span class="pn"></span><label class="ded"><input type="checkbox">deduct</label><input class="m" id="plP${r.id}_${j}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><span></span>`;
+        pr.querySelector('.pn').textContent=p.name;const [d,pa]=pr.querySelectorAll('input');d.checked=p.ded;pa.value=Math.round(eff(r,p));
+        d.onchange=()=>{p.ded=d.checked;upd();};
+        pa.oninput=()=>{r.parts.forEach(x=>x.base=eff(r,x));p.base=Math.max(0,+pa.value||0);r.amt=r.parts.reduce((t,x)=>t+x.base,0);const m=q('#plA'+r.id);if(m)m.value=Math.round(r.amt);upd();};
+        Ro.append(pr);});
+      return;
+    }
+    row.innerHTML=`<span class="sw" style="background:${OC[i%OC.length]}"></span><input aria-label="Outgoing name"><select aria-label="Ledger bucket">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select><input class="m" id="plA${r.id}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><button class="x" aria-label="Remove">×</button>`;
+    const [n,s,a]=row.querySelectorAll('input,select');n.value=r.name;s.value=r.role;a.value=r.amt;
+    n.oninput=()=>{r.name=n.value;bars();persist();};s.onchange=()=>{r.role=s.value;upd();};a.oninput=()=>{r.amt=Math.max(0,+a.value||0);upd();};
+    row.querySelector('.x').onclick=()=>{P.out=P.out.filter(x=>x!==r);inputs();upd();};Ro.append(row);
+  });
+}
+function syncParts(r){if(r.parts)r.parts.forEach((p,j)=>{const el=q(`#plP${r.id}_${j}`);if(el&&document.activeElement!==el)el.value=Math.round(eff(r,p));});}
+function syncIn(r){const el=q('#plA'+r.id);if(el&&document.activeElement!==el)el.value=Math.round(r.amt);syncParts(r);}
+function work(){
+  const c=C,r=(l,v,k='')=>`<tr class="${k}"><td>${l}</td><td class="n">${v}</td></tr>`;
+  q('#plWork').innerHTML=`<tr class="h"><td colspan="2">Per year</td></tr>`+
+    r('Social: employee',E((c.empPH+c.empDep)*12))+r('Social: self-employed',E((c.selfPH+c.selfDep)*12))+r('Total social',E(c.social*12),'t')+
+    r(c.ix?`Salary (incl. ${P.set.idx}% indexation)`:'Salary',E(c.sal*12))+r('Self-employed profit',E(c.self*12))+(c.rent?r(`Rent net of ${P.set.rf}% costs`,E(c.netRent)):'')+
+    r('− Deductible social',E(-(c.empPH+c.selfPH)*12))+r('− Forfaits',E(-(c.fo+480)))+r('− Deductions',E(-(c.dedRows+(+P.set.extra||0))))+
+    r('Taxable income',E(c.taxable),'t')+r(Y28()?'Scale tax · 2028 class U':'Scale tax · class 1',E(c.base))+r('Solidarity surcharge',E(c.sol))+
+    r(`Income tax · ${c.taxable?((c.base+c.sol)/c.taxable*100).toFixed(1):0}% average`,E(c.base+c.sol),'t');
+}
+function upd(){C=compute();rescale();bars();work();apply();persist();}
+function moveSwitch(to){
+  for(const r of P.out){if(!r.parts)continue;
+    const cur={amt:r.amt,bases:r.parts.map(p=>p.base)};
+    const t=to?(r.mv||{amt:400,bases:r.parts.map(p=>/mortgage/i.test(p.name)?400:0)}):(r.norm||cur);
+    if(to)r.norm=cur;else r.mv=cur;
+    r.amt=t.amt;r.parts.forEach((p,j)=>p.base=t.bases[j]??0);}
+  if(to){P.set.yrPrev=P.set.yr;P.set.yr=2028}else if(P.set.yrPrev)P.set.yr=P.set.yrPrev;
+}
+function controls(){
+  q('#plMove').checked=!!P.set.move;q('#plNet').checked=NET();
+  q('#plYr').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.y===+P.set.yr));
+  for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra']]){const el=q(id);if(document.activeElement!==el)el.value=P.set[k];}
+  q('#plIdx').closest('label').style.opacity=Y28()?1:.45;
+}
+window.renderPlan=function(){if(drag)return;load();C=compute();rescale();controls();inputs();bars();work();apply();};
+
+/* wiring (once) */
+q('#plYr').onclick=e=>{const b=e.target.closest('button');if(!b)return;P.set.yr=+b.dataset.y;controls();upd();};
+q('#plMove').onchange=e=>{P.set.move=e.target.checked;moveSwitch(P.set.move);controls();inputs();upd();};
+q('#plNet').onchange=e=>{P.set.net=e.target.checked;upd();};
+for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra']])q(id).oninput=e=>{P.set[k]=+e.target.value||0;upd();};
+q('#plAddI').onclick=()=>{P.inc.push({id:uid++,name:'New income',amt:200,type:'self',tg:''});inputs();upd();};
+q('#plAddO').onclick=()=>{const i=P.out.findIndex(r=>r.parts);P.out.splice(i<0?P.out.length:i,0,{id:uid++,name:'New outgoing',amt:100,role:'daily',ded:false,tg:''});inputs();upd();};
+q('#plReset').onclick=e=>{const b=e.target;if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Tap again to reset the plan';setTimeout(()=>{b.dataset.arm='';b.textContent='Reset plan to starting values';},3000);return;}
+  b.dataset.arm='';b.textContent='Reset plan to starting values';P=fresh();controls();inputs();upd();};
+const V=q('#v-plan'), find=(id,side)=>(side==='inc'?P.inc:P.out).find(r=>r.id==id);
+V.addEventListener('pointerdown',e=>{const h=e.target.closest('.pl-h');if(!h)return;e.preventDefault();const r=find(h.dataset.id,h.dataset.side);
+  drag={r,y0:e.clientY,a0:r.amt,f:h.dataset.side==='inc'?Math.max(.2,F(r)):1};V.classList.add('pl-drag');try{h.setPointerCapture(e.pointerId)}catch(_){} });
+V.addEventListener('pointermove',e=>{if(!drag)return;const px=H()/scaleMax,v=Math.max(0,Math.round((drag.a0+(e.clientY-drag.y0)/px/drag.f)/25)*25);
+  if(v!==drag.r.amt){drag.r.amt=v;C=compute();bars();syncIn(drag.r);}});
+const end=()=>{if(!drag)return;drag=null;V.classList.remove('pl-drag');upd();};
+V.addEventListener('pointerup',end);V.addEventListener('pointercancel',end);
+V.addEventListener('keydown',e=>{const h=e.target.closest('.pl-h');if(!h)return;const k=['ArrowDown','ArrowRight'].includes(e.key)?1:['ArrowUp','ArrowLeft'].includes(e.key)?-1:0;if(!k)return;
+  e.preventDefault();const r=find(h.dataset.id,h.dataset.side);r.amt=Math.max(0,r.amt+k*(e.shiftKey?100:25));syncIn(r);upd();q(`#v-plan .pl-h[data-id="${r.id}"][data-side="${h.dataset.side}"]`)?.focus();});
+addEventListener('resize',()=>{if(!V.hidden&&!drag&&C)bars();});
+})();
 </script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});</script>
 </body>
