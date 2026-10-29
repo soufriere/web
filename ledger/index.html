@@ -330,7 +330,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
       <h1 id="mTitle"></h1>
       <button id="nextM" aria-label="Next month">›</button>
     </div>
-    <div class="big"><span class="amt" id="mSpent"></span><span class="of">of <span id="mTarget" class="num"></span> daily budget</span></div>
+    <div class="big"><span class="amt" id="mSpent"></span><span class="of">of <span id="mTarget" class="num"></span> Everyday budget<span id="mMoved"></span></span></div>
     <div class="track" id="track"><div class="seg base" id="sBase"></div><div class="seg ovr" id="sOvr"></div><div class="end" id="sEnd"></div><div class="tick" id="sTick"></div></div>
     <p class="pace" id="pace"></p>
     <button class="dtl" id="dtl" aria-expanded="false" aria-controls="catsWrap">DETAILS</button>
@@ -742,7 +742,7 @@ function renderMonth(){
   const day=viewM===cm?new Date().getDate():viewM<cm?dim:0;
   const lim=T*day/dim, max=Math.max(T,spent,1);
   $('#mSpent').textContent=fmt0(spent);
-  $('#mTarget').textContent=fmt0(T);
+  $('#mTarget').textContent=fmt0(T); $('#mMoved').textContent=moved?` (${fmt0(T+moved)} in Plan − ${fmt0(moved)} moved to specials)`:'';
   const base=Math.min(spent,lim), ovr=Math.max(0,spent-lim);
   $('#sBase').style.width=(base/max*100)+'%';
   $('#sOvr').style.left=(base/max*100)+'%'; $('#sOvr').style.width=(ovr/max*100)+'%';
