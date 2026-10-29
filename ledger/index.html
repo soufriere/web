@@ -335,7 +335,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <p class="pace" id="pace"></p>
     <button class="dtl" id="dtl" aria-expanded="false" aria-controls="catsWrap">DETAILS</button>
     <div id="catsWrap" hidden><div class="cats" id="cats"></div>
-    <p class="cap" id="catCap"></p></div>
+    <p class="cap" id="catCap"></p><p class="cap" id="mixCap"></p></div>
     <div class="spec" id="spec"></div>
     <div id="filter"></div>
     <div id="list"></div>
@@ -372,6 +372,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <div class="pl-ctl">
       <div class="segc" id="plYr" role="group" aria-label="Tax year"><button data-y="2026">2026 tax</button><button data-y="2028">2028 tax</button></div>
       <label class="pl-tg" for="plMove"><input id="plMove" type="checkbox"><i></i><span>City move <small id="plMoveA"></small></span></label>
+      <label class="pl-tg" for="plPfT"><input id="plPfT" type="checkbox"><i></i><span>Portfolio draw <small id="plPfL"></small></span></label>
       <label class="pl-tg" for="plNet"><input id="plNet" type="checkbox"><i></i><span>Net view</span></label>
     </div>
     <div class="big"><span class="amt" id="plTot"></span><span class="of">saved a month</span></div>
@@ -397,7 +398,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
       <h3 style="margin:16px 0 6px">Outgoings per month</h3>
       <div class="pl-rows" id="plRo"></div>
       <button class="pl-add" id="plAddO">+ Add outgoing</button>
-      <p class="hint">The second column sets where a row lands in Ledger: Fixed (in Essentials), Daily (your daily budget), Specials (specials target), Rent (subtracted from net rent). Forced savings scales its parts together; the city move keeps its own values (default: mortgage €400, rest €0).</p>
+      <p class="hint">The second column is the block the row belongs to, the same blocks as the Month bar: Housing, Fixed, Everyday (your daily budget) or Specials. Forced savings scales its parts together; the city move keeps its own values (default: mortgage €400, rest €0).</p>
     </details>
 
     <details>
@@ -408,6 +409,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
         <label for="plExp"><span>Freelance business costs<small>€ per month</small></span><input id="plExp" type="number" step="25"></label>
         <label for="plMut"><span>Mutualité rate<small>% of self-employed income</small></span><input id="plMut" type="number" step="0.01"></label>
         <label for="plRf"><span>Rental costs deducted<small>% of gross rent</small></span><input id="plRf" type="number" step="1"></label>
+        <label for="plPfA"><span>Portfolio draw<small>€ per month, counted as income when switched on</small></span><input id="plPfA" type="number" step="25"></label>
         <label for="plExtra"><span>Other deductions<small>€ per year</small></span><input id="plExtra" type="number" step="50"></label>
       </div>
       <table id="plWork"></table>
@@ -422,6 +424,10 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 
   <section id="v-settings" hidden>
     <h2>Settings</h2>
+    <h3>Budget</h3>
+    <div id="budRO"></div>
+    <p class="hint">These come from the Plan tab, the one place budgets are set. <button id="toPlan" style="color:var(--acc);font-weight:600;text-decoration:underline">Open Plan</button></p>
+    <div hidden>
     <h3>Monthly targets</h3>
     <div class="fld"><span>Daily spending budget</span><input id="tD" type="number" inputmode="decimal" min="0" step="1"></div>
     <div class="fld"><span>Specials target (year total ÷ 12)</span><input id="tB" type="number" inputmode="decimal" min="0" step="1"></div>
@@ -435,9 +441,10 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <div class="fld"><span>Daily budget</span><input data-t="bD" type="number" inputmode="decimal" min="0" step="1"></div>
     <div class="fld"><span>Luxury budget (incl. specials ÷ 12)</span><input data-t="bL" type="number" inputmode="decimal" min="0" step="1"></div>
     <p class="hint">Leftover = income + net rent + PF cash − F.savings − Essentials − Daily − Luxury. Consumption = Essentials + Daily + Luxury.</p>
+    </div>
     <h3>Category buckets</h3>
     <div id="mapF"></div>
-    <p class="hint">Food is healthy food, Treats is pleasure food. Any single entry or special can be moved to another bucket in its edit dialog; specials default to Luxury.</p>
+    <p class="hint">These buckets only drive the Mix line under Details (needs vs. wants); the budget bar uses the Plan's blocks. Food is healthy food, Treats is pleasure food. Any single entry or special can be moved to another bucket in its edit dialog; specials default to Luxury.</p>
     <h3>Backup</h3>
     <p class="hint">Data lives in this browser only. Export regularly; the format matches your old tracker's export, so either can import the other.</p>
     <div class="btns"><button class="btn pri" id="exp">Copy backup</button><label class="btn" style="display:inline-flex;align-items:center;cursor:pointer">Import file<input type="file" id="impF" accept=".json,application/json" hidden></label><button class="btn" id="impP">Import pasted text</button></div>
@@ -572,7 +579,8 @@ function mutate(ops){
 const trs=()=>Array.isArray(S.t.tr)?S.t.tr:[];
 const trM=m=>r2(trs().filter(x=>x.m===m).reduce((a,x)=>a+x.amt,0));
 const trY=y=>r2(trs().filter(x=>x.m.startsWith(y)).reduce((a,x)=>a+x.amt,0));
-const budgetFor=m=>Math.max(0,(+S.t.d||0)-trM(m));
+const planB=()=>window.planBudget?window.planBudget():null;
+const budgetFor=m=>Math.max(0,(planB()?planB().daily:(+S.t.d||0))-trM(m));
 
 /* ---------- one-time migration to budget buckets ---------- */
 function migrate(){
@@ -767,9 +775,10 @@ function renderMonth(){
      <span class="bar"><i style="width:${tot[c.id]/cmax*100}%;background:${c.c}"></i>${prev.length&&day?`<u style="left:calc(${avg[c.id]/cmax*100}% - 1px)"></u>`:''}</span>
      <span class="v">${fmt0(tot[c.id])}</span></button>`).join('');
   $('#catCap').textContent = prev.length&&day&&rows.length ? `Ticks: your typical spend by ${viewM===cm?'this day':'month end'} (average of the previous ${prev.length} month${prev.length>1?'s':''}). Tap a category to filter.` : '';
+  if(window.renderMix)renderMix(d);
 
   // specials: whole calendar-year total spread over 12 months
-  const yr=viewM.slice(0,4), yAll=S.x.b.filter(e=>e.date.startsWith(yr)), yB=sum(yAll), yPj=sum(yAll.filter(e=>e.st==='p')), perM=yB/12, TB=(+S.t.b||0)+trY(yr)/12;
+  const yr=viewM.slice(0,4), yAll=S.x.b.filter(e=>e.date.startsWith(yr)), yB=sum(yAll), yPj=sum(yAll.filter(e=>e.st==='p')), perM=yB/12, TB=(planB()?planB().specials:(+S.t.b||0))+trY(yr)/12;
   $('#spec').innerHTML=`<p class="l1"><span>Specials this month</span><span class="num">${fmt(sum(b))}</span></p>
     <p class="l2">${yr} total ${fmt0(yB)}, which is <span class="${perM>TB?'w':''}">${fmt0(perM)}/mo</span> against a ${fmt0(TB)} target${yPj?`, incl. ${fmt0(yPj)} projected`:''}. <button id="seeSpec" style="color:var(--plum);font-weight:600;text-decoration:underline">Open specials</button></p>`;
 
@@ -811,7 +820,7 @@ function resetSDate(){const d=$('#sD');d.min=viewY+'-01-01';d.max=viewY+'-12-31'
 function renderSpecials(){
   const [lo,hi]=yRange(); const y=viewY;
   $('#yTitle').textContent=`Specials ${y}`; $('#prevY').disabled=+y<=lo; $('#nextY').disabled=+y>=hi;
-  const all=S.x.b.filter(e=>e.date.startsWith(y)), tot=sum(all), pj=sum(all.filter(isPj)), fin=r2(tot-pj), mv=trY(y), TY=(+S.t.b||0)*12+mv, TB=TY/12;
+  const all=S.x.b.filter(e=>e.date.startsWith(y)), tot=sum(all), pj=sum(all.filter(isPj)), fin=r2(tot-pj), mv=trY(y), TY=(planB()?planB().specials:(+S.t.b||0))*12+mv, TB=TY/12;
   $('#yTot').textContent=fmt0(tot); $('#yOf').innerHTML=`<span class="num">${fmt0(tot/12)}</span>/mo of ${fmt0(TB)}`;
   const max=Math.max(TY,tot,1), f=Math.max(0,fin), q=Math.max(0,pj);
   $('#yF').style.width=(f/max*100)+'%'; $('#yP').style.left=(f/max*100)+'%'; $('#yP').style.width=(q/max*100)+'%';
@@ -876,6 +885,7 @@ function renderHistory(){
 
 /* ---------- settings ---------- */
 function renderSettings(){
+  if(window.renderBudRO)renderBudRO();
   $('#tD').value=S.t.d; $('#tB').value=S.t.b;
   document.querySelectorAll('[data-t]').forEach(i=>{i.value=S.t[i.dataset.t]??0;});
   $('#mapF').innerHTML=CATS.map(c=>`<div class="fld"><span style="display:flex;align-items:center;gap:7px"><span class="dot" style="background:${c.c}"></span>${c.n}</span><select data-map="${c.id}" style="height:38px;border:1px solid var(--line);border-radius:9px;background:var(--surf);padding:0 8px">${['es','da','lu'].map(b=>`<option value="${b}" ${catBk(c.id)===b?'selected':''}>${BK[b].n}</option>`).join('')}</select></div>`).join('');
@@ -972,6 +982,7 @@ function setView(v){
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   $('#dock').hidden=v!=='month'; fitDock(); render(); window.scrollTo(0,0);
 }
+document.addEventListener('click',ev=>{if(ev.target.id==='toPlan')setView('plan');});
 $('#tabs').onclick=ev=>{const b=ev.target.closest('button');if(b)setView(b.dataset.view);};
 $('#prevM').onclick=()=>{viewM=addM(viewM,-1);catF=null;render();};
 $('#nextM').onclick=()=>{if(viewM<curM()){viewM=addM(viewM,1);catF=null;render();}};
@@ -1087,8 +1098,10 @@ function calc(p){
 const DEF={inc:[['Freelance',4400,'self'],['Uni job',2500,'sal'],['Portfolio growth',1600,'none','port'],['Differdange rent',1375,'rent','move']],
   out:[['City rent',1800,'rent','move'],['Fixed costs',700,'fixed'],['Everyday spending',1325,'daily'],['Specials & travel',500,'specials'],['AI subscriptions',90,'fixed']],
   forced:[['Mortgage',612,false],['Loan from mum',200,false],['S-Pension',375,true]],
-  set:{ssm:2704,exp:0,mut:.72,extra:0,rf:35,yr:2028,idx:2.5,net:false,move:false}};
-const ROLES={fixed:'Fixed',daily:'Daily',specials:'Specials',rent:'Rent'};
+  set:{ssm:2704,exp:0,mut:.72,extra:0,rf:35,yr:2028,idx:2.5,net:false,move:false,pf:false,pfAmt:200}};
+const ROLES={rent:'Housing',fixed:'Fixed',daily:'Everyday',specials:'Specials'};
+const RC={rent:'#8B5A3C',fixed:'#C08A1E',daily:'var(--acc)',specials:'var(--plum)',forced:'var(--pl-forced)'};
+const RN={rent:'Housing',fixed:'Fixed',daily:'Everyday',specials:'Specials',forced:'Forced savings'};
 let uid=1;
 function fresh(){
   const P={inc:DEF.inc.map(([n,a,t,g])=>({id:uid++,name:n,amt:a,type:t,tg:g||''})),
@@ -1112,7 +1125,8 @@ const Y28=()=>+P.set.yr===2028, NET=()=>!!P.set.net;
 const bsum=r=>r.parts.reduce((t,p)=>t+p.base,0)||1;
 const eff=(r,p)=>p.base*r.amt/bsum(r);
 const sumA=a=>a.reduce((t,r)=>t+r.amt,0);
-const PG=()=>P.inc.filter(r=>r.tg==='port').reduce((t,r)=>t+r.amt,0);
+const DRAW=()=>P.set.pf?Math.max(0,+P.set.pfAmt||0):0;
+const PG=()=>Math.max(0,P.inc.filter(r=>r.tg==='port').reduce((t,r)=>t+r.amt,0)-DRAW());
 
 function compute(){
   const by=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+r.amt,0);
@@ -1131,7 +1145,7 @@ function compute(){
 const F=r=>NET()?(C.f[r.type]??1):1;
 function rescale(){scaleMax=Math.max(NET()?C.net:C.gross,(NET()?0:C.tax+C.social)+sumA(AO())+PG())*1.06||1000}
 const H=()=>Math.max(380,Math.min(540,innerHeight*.6));
-const IC=['#2F4BD8','#4F6FE0','#7F96EA','#2F7FB5','#A9B8F2'], OC=['#9A6A43','#B7791F','#8A3B6E','#C4473F','#7D8896','#B5476E','#C99214'];
+const IC=['#3F5368','#5B7088','#7D90A6','#6D7F95','#9AAABB'], OC=['#9A6A43','#B7791F','#8A3B6E','#C4473F','#7D8896','#B5476E','#C99214'];
 
 /* bars */
 let MAP=[];
@@ -1163,8 +1177,8 @@ function bars(){
   const ixd=C.ix*(NET()?C.f.sal:1);if(ixd>0){seg(Bi,'Indexation +'+P.set.idx+'%',ixd,y,ixd*px,'#A9B8F2','auto').style.color='var(--ink)';y+=ixd*px;}
   const yIn=y;MAP=[];y=0;
   if(!NET())for(const[n,a,c]of[['Income tax',C.tax,'var(--pl-tax)'],['Social contributions',C.social,'var(--pl-soc)']]){seg(Bo,n,a,y,a*px,c,'auto');MAP.push([y,a*px,a]);y+=a*px;}
-  P.out.forEach((r,i)=>{if(on(r))y=rowSeg(Bo,r,y,px,r.parts?'var(--pl-forced)':OC[i%OC.length],'out');});
-  if(pg>0){seg(Bo,'Portfolio growth (reinvested)',pg,y,pg*px,'#5D8FA8','auto');MAP.push([y,pg*px,pg]);y+=pg*px;}
+  P.out.forEach((r,i)=>{if(on(r))y=rowSeg(Bo,r,y,px,RC[r.role]||OC[i%OC.length],'out');});
+  if(pg>0){seg(Bo,P.set.pf?'Growth reinvested':'Portfolio growth (reinvested)',pg,y,pg*px,'#5D8FA8','auto');MAP.push([y,pg*px,pg]);y+=pg*px;}
   if(res>0){seg(Bo,'Free savings',res,y,res*px,'var(--pl-save)','save');y+=res*px;}
   const lineY=res>=0?y:inc*px, ln=document.createElement('div');ln.className='pl-line';ln.style.top=lineY+'px';Bo.append(ln);
   if(res<0)seg(Bo,'Over by',-res,inc*px,-res*px,'var(--pl-def)','def');
@@ -1178,7 +1192,7 @@ function bars(){
   q('#plOut').textContent=E(out);q('#plOutS').textContent=E(out*12)+'/yr';
   q('#plHi').textContent=E(inc)+(NET()?' net':' gross');q('#plHo').textContent=E(inc);
   const mi=P.inc.filter(r=>r.tg==='move').reduce((t,r)=>t+r.amt,0),mo=P.out.filter(r=>r.tg==='move').reduce((t,r)=>t+r.amt,0);
-  q('#plMoveA').textContent='+'+E(mi)+' / −'+E(mo);
+  q('#plMoveA').textContent='+'+E(mi)+' / −'+E(mo);q('#plPfL').textContent=E(+P.set.pfAmt||0);
 }
 
 /* what the plan means for Ledger's own targets */
@@ -1196,15 +1210,22 @@ function target(){
 }
 const TL=[['inc','Income (take-home)'],['nr','Net rent'],['fs','F.savings'],['fix','Fixed costs'],['d','Daily spending budget'],['b','Specials target'],['bE','Essentials budget'],['bD','Daily bucket'],['bL','Luxury budget']];
 function apply(){
-  const {t,from3}=target(), ch=TL.filter(([k])=>Math.round(+S.t[k]||0)!==t[k]);
-  const el=q('#plApply');
-  if(!ch.length){el.innerHTML='<p><b>Ledger budgets match this plan.</b></p><p class="hint" style="margin:2px 0 0">Your Month view uses these numbers.</p>';return;}
-  el.innerHTML=`<p><b>Use this plan as your Ledger budget</b></p>
-    <div class="pl-diff">${TL.map(([k,n])=>{const o=Math.round(+S.t[k]||0),same=o===t[k];return `<span>${n}</span><span class="o ${same?'same':''}">${same?'':E(o)}</span><span class="n">${E(t[k])}</span>`;}).join('')}</div>
-    <p class="hint" style="margin:0 0 8px">Daily spending is split into Essentials / Daily / Luxury by ${from3?'your last 3 months of entries':'your current bucket ratios'}. PF cash is left as is.</p>
-    <button class="btn pri" id="plGo">Update ${ch.length} budget${ch.length>1?'s':''}</button>`;
-  q('#plGo').onclick=()=>{const {t}=target();mutate([{op:'t',t}]);toast('Budgets updated from Plan',false);apply();};
+  const B=window.planBudget(), el=q('#plApply'), free=B.inc-B.housing-B.fixed-B.daily-B.specials-B.forced;
+  const rows=[['Net income',B.inc,'var(--ink)'],...(B.move?[['Net housing cost',B.housing,RC.rent]]:[]),['Fixed',B.fixed,RC.fixed],['Everyday',B.daily,RC.daily],['Specials',B.specials,RC.specials],['Forced savings',B.forced,RC.forced],[free>=0?'Free savings':'Short',Math.abs(free),free>=0?'var(--good)':'var(--warn)']];
+  el.innerHTML=`<p><b>Your Month view follows this plan</b></p><div class="pl-diff">${rows.map(([n,a,c])=>`<span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${c};margin-right:6px"></i>${n}</span><span></span><span class="n">${E(a)}</span>`).join('')}</div><p class="hint" style="margin:0">Net income is salary + freelance after tax${B.pf?' + portfolio draw':''}, ${B.yr} rules.${B.move?` Net housing cost = city rent ${E(B.rentOut)} − Differdange rent ${E(B.rentIn)} after tax.`:''} Rent and portfolio only count when their switch is on.</p>`;
 }
+
+/* the budget the Month view uses: same blocks, rent and portfolio only when switched on */
+function budgetOf(PP){
+  const keep=P;P=PP;P.set={...DEF.set,...P.set};
+  try{const c=compute(),nOf=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+r.amt*c.f[t],0),role=k=>AO().filter(r=>r.role===k).reduce((s,r)=>s+r.amt,0);
+    const rentIn=P.set.move?nOf('rent'):0, draw=DRAW();
+    const rentOut=role('rent'),work=nOf('sal')+c.ix*c.f.sal+nOf('self');
+    return {work,rentIn,rentOut,draw,inc:work+draw+Math.max(0,rentIn-rentOut),
+      housing:Math.max(0,rentOut-rentIn),fixed:role('fixed'),daily:role('daily'),specials:role('specials'),forced:role('forced'),move:!!P.set.move,pf:!!P.set.pf,yr:+P.set.yr};}
+  finally{P=keep;}
+}
+window.planBudget=function(){const s=S.t.plan;return budgetOf(s&&s.inc&&s.out?JSON.parse(JSON.stringify(dirty&&P?P:s)):fresh());};
 
 /* editors */
 function inputs(){
@@ -1230,7 +1251,7 @@ function inputs(){
         Ro.append(pr);});
       return;
     }
-    row.innerHTML=`<span class="sw" style="background:${OC[i%OC.length]}"></span><input aria-label="Outgoing name"><select aria-label="Ledger bucket">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select><input class="m" id="plA${r.id}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><button class="x" aria-label="Remove">×</button>`;
+    row.innerHTML=`<span class="sw" style="background:${RC[r.role]||OC[i%OC.length]}"></span><input aria-label="Outgoing name"><select aria-label="Ledger bucket">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select><input class="m" id="plA${r.id}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><button class="x" aria-label="Remove">×</button>`;
     const [n,s,a]=row.querySelectorAll('input,select');n.value=r.name;s.value=r.role;a.value=r.amt;
     n.oninput=()=>{r.name=n.value;bars();persist();};s.onchange=()=>{r.role=s.value;upd();};a.oninput=()=>{r.amt=Math.max(0,+a.value||0);upd();};
     row.querySelector('.x').onclick=()=>{P.out=P.out.filter(x=>x!==r);inputs();upd();};Ro.append(row);
@@ -1247,7 +1268,7 @@ function work(){
     r('Taxable income',E(c.taxable),'t')+r(Y28()?'Scale tax · 2028 class U':'Scale tax · class 1',E(c.base))+r('Solidarity surcharge',E(c.sol))+
     r(`Income tax · ${c.taxable?((c.base+c.sol)/c.taxable*100).toFixed(1):0}% average`,E(c.base+c.sol),'t');
 }
-function upd(){C=compute();rescale();bars();work();apply();persist();}
+function upd(){persist();C=compute();rescale();bars();work();apply();}
 function moveSwitch(to){
   for(const r of P.out){if(!r.parts)continue;
     const cur={amt:r.amt,bases:r.parts.map(p=>p.base)};
@@ -1257,9 +1278,9 @@ function moveSwitch(to){
   if(to){P.set.yrPrev=P.set.yr;P.set.yr=2028}else if(P.set.yrPrev)P.set.yr=P.set.yrPrev;
 }
 function controls(){
-  q('#plMove').checked=!!P.set.move;q('#plNet').checked=NET();
+  q('#plMove').checked=!!P.set.move;q('#plPfT').checked=!!P.set.pf;q('#plPfL').textContent=E(+P.set.pfAmt||0);q('#plNet').checked=NET();
   q('#plYr').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.y===+P.set.yr));
-  for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra']]){const el=q(id);if(document.activeElement!==el)el.value=P.set[k];}
+  for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra'],['pfAmt','#plPfA']]){const el=q(id);if(document.activeElement!==el)el.value=P.set[k];}
   q('#plIdx').closest('label').style.opacity=Y28()?1:.45;
 }
 window.renderPlan=function(){if(drag)return;load();C=compute();rescale();controls();inputs();bars();work();apply();};
@@ -1268,7 +1289,8 @@ window.renderPlan=function(){if(drag)return;load();C=compute();rescale();control
 q('#plYr').onclick=e=>{const b=e.target.closest('button');if(!b)return;P.set.yr=+b.dataset.y;controls();upd();};
 q('#plMove').onchange=e=>{P.set.move=e.target.checked;moveSwitch(P.set.move);controls();inputs();upd();};
 q('#plNet').onchange=e=>{P.set.net=e.target.checked;upd();};
-for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra']])q(id).oninput=e=>{P.set[k]=+e.target.value||0;upd();};
+q('#plPfT').onchange=e=>{P.set.pf=e.target.checked;controls();upd();};
+for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra'],['pfAmt','#plPfA']])q(id).oninput=e=>{P.set[k]=+e.target.value||0;upd();};
 q('#plAddI').onclick=()=>{P.inc.push({id:uid++,name:'New income',amt:200,type:'self',tg:''});inputs();upd();};
 q('#plAddO').onclick=()=>{const i=P.out.findIndex(r=>r.parts);P.out.splice(i<0?P.out.length:i,0,{id:uid++,name:'New outgoing',amt:100,role:'daily',ded:false,tg:''});inputs();upd();};
 q('#plReset').onclick=e=>{const b=e.target;if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Tap again to reset the plan';setTimeout(()=>{b.dataset.arm='';b.textContent='Reset plan to starting values';},3000);return;}
@@ -1283,6 +1305,32 @@ V.addEventListener('pointerup',end);V.addEventListener('pointercancel',end);
 V.addEventListener('keydown',e=>{const h=e.target.closest('.pl-h');if(!h)return;const k=['ArrowDown','ArrowRight'].includes(e.key)?1:['ArrowUp','ArrowLeft'].includes(e.key)?-1:0;if(!k)return;
   e.preventDefault();const r=find(h.dataset.id,h.dataset.side);r.amt=Math.max(0,r.amt+k*(e.shiftKey?100:25));syncIn(r);upd();q(`#v-plan .pl-h[data-id="${r.id}"][data-side="${h.dataset.side}"]`)?.focus();});
 addEventListener('resize',()=>{if(!V.hidden&&!drag&&C)bars();});
+
+/* Month view: one bar in the Plan's blocks */
+const MC={ho:['Net housing','#8B5A3C','#fff'],fx:['Fixed','#C08A1E','#fff'],ev:['Everyday','var(--acc)','var(--acc-ink)'],sp:['Specials','var(--plum)','var(--acc-ink)'],fs:['Forced','#2E6B73','#fff']};
+renderCtx=function(){
+  const el=q('#ctx'),B=window.planBudget();el.hidden=false;
+  const cm=curM(),dim=daysIn(viewM),day=viewM===cm?new Date().getDate():dim,k=viewM===cm&&day<dim?dim/day:1,yr=viewM.slice(0,4);
+  const plan={ho:B.housing,fx:B.fixed,ev:budgetFor(viewM),sp:B.specials+trY(yr)/12,fs:B.forced};
+  const v=ctxPlan?plan:{...plan,ev:sum(inM('d',viewM))*k,sp:sum(S.x.b.filter(e=>e.date.startsWith(yr)))/12};
+  const used=Object.values(v).reduce((a,b)=>a+b,0),free=B.inc-used,pct=x=>Math.round(x/(B.inc||1)*100);
+  const segs=Object.keys(MC).filter(key=>v[key]>0).map(key=>[MC[key][0],v[key],MC[key][1],MC[key][2]]);
+  segs.push([free>=0?`Free ${pct(free)}%`:'Short',Math.abs(free),free>=0?'var(--good)':'var(--warn)','var(--acc-ink)']);
+  const over=ctxPlan?[]:[['ev','Everyday'],['sp','Specials']].filter(([key])=>v[key]>plan[key]+.5).map(([key,n])=>`${n} <span class="w">${fmt0(v[key]-plan[key])} over</span>`);
+  const src=['salary + freelance',B.pf?'portfolio draw':''].filter(Boolean).join(' + ');
+  el.innerHTML=`<span class="cbar">${segs.map(([n,x,c,ink])=>`<i style="flex:${x} 1 0;background:${c};color:${ink}${n==='Net housing'?';min-width:78px':''}" title="${n} ${fmt0(x)}"><s>${n}</s><b>${fmt0(x)}</b></i>`).join('')}</span>
+   <span class="ccap" style="display:block">Net income <b class="num">${fmt0(B.inc)}</b> (${src}, ${B.yr} tax)${B.move?`. Net housing = rent ${fmt0(B.rentOut)} − Differdange ${fmt0(B.rentIn)} after tax`:''}. ${ctxPlan?'Plan':(k>1?`This month, projected from ${day} days`:'This month')}${over.length?'. '+over.join(', '):''}. <u>${ctxPlan?'Show this month':'Show plan'}</u></span>`;
+  el.querySelectorAll('.cbar i').forEach(i=>{if(i.scrollWidth>i.clientWidth)i.classList.add('tight');if(i.scrollWidth>i.clientWidth)i.classList.add('tiny');});
+};
+window.renderMix=function(d){
+  const el=q('#mixCap');if(!el)return;const t={es:0,da:0,lu:0};for(const e of d)t[bucketOf(e,'d')]+=e.amt;const T=t.es+t.da+t.lu;
+  el.innerHTML=T>0?`Mix this month: ${['es','da','lu'].map(b=>`<span style="color:${BK[b].c};font-weight:600">${BK[b].n}</span> ${Math.round(t[b]/T*100)}%`).join(' · ')}`:'';
+};
+window.renderBudRO=function(){
+  const el=q('#budRO');if(!el)return;const B=window.planBudget(),free=B.inc-B.housing-B.fixed-B.daily-B.specials-B.forced;
+  el.innerHTML=[['Net income',B.inc],...(B.move?[['Net housing cost',B.housing]]:[]),['Fixed',B.fixed],['Everyday (daily budget)',B.daily],['Specials (per month)',B.specials],['Forced savings',B.forced],['Free savings',free]].map(([n,a])=>`<div class="fld"><span>${n}</span><b class="num">${fmt0(a)}</b></div>`).join('');
+};
+if(typeof render==='function')render();
 })();
 </script>
 <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});</script>
