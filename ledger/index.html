@@ -307,6 +307,11 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 @media (prefers-reduced-motion:reduce){#v-plan *{transition:none!important}}
 @media (max-width:480px){.tabs button{padding:6px 9px}.syncb{font-size:0;gap:0}}
 @media (max-width:370px){.tabs button{padding:6px 7px;font-size:13px}}
+#v-plan .pl-pf{display:inline-flex;align-items:center;gap:0;border-radius:999px;background:var(--key)}
+#v-plan .pl-pf .pl-tg{background:none}
+#v-plan .pl-pfa{display:inline-flex;align-items:center;gap:3px;padding:0 10px 0 2px;font-size:13.5px;font-weight:600;color:var(--ink)}
+#v-plan .pl-pfa.off{color:var(--mut)}
+#v-plan .pl-pfa input{width:58px;height:26px;border:1px solid var(--line);border-radius:7px;background:var(--surf);padding:0 6px;text-align:right;font-size:13.5px;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -372,7 +377,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <div class="pl-ctl">
       <div class="segc" id="plYr" role="group" aria-label="Tax year"><button data-y="2026">2026 tax</button><button data-y="2028">2028 tax</button></div>
       <label class="pl-tg" for="plMove"><input id="plMove" type="checkbox"><i></i><span>City move <small id="plMoveA"></small></span></label>
-      <label class="pl-tg" for="plPfT"><input id="plPfT" type="checkbox"><i></i><span>Portfolio draw <small id="plPfL"></small></span></label>
+      <span class="pl-pf"><label class="pl-tg" for="plPfT"><input id="plPfT" type="checkbox"><i></i><span>Cash from portfolio</span></label><label class="pl-pfa" for="plPfA">€<input id="plPfA" type="number" inputmode="decimal" step="25" min="0" aria-label="Monthly amount taken from the portfolio">/mo</label></span>
       <label class="pl-tg" for="plNet"><input id="plNet" type="checkbox"><i></i><span>Net view</span></label>
     </div>
     <div class="big"><span class="amt" id="plTot"></span><span class="of">saved a month</span></div>
@@ -409,7 +414,6 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
         <label for="plExp"><span>Freelance business costs<small>€ per month</small></span><input id="plExp" type="number" step="25"></label>
         <label for="plMut"><span>Mutualité rate<small>% of self-employed income</small></span><input id="plMut" type="number" step="0.01"></label>
         <label for="plRf"><span>Rental costs deducted<small>% of gross rent</small></span><input id="plRf" type="number" step="1"></label>
-        <label for="plPfA"><span>Portfolio draw<small>€ per month, counted as income when switched on</small></span><input id="plPfA" type="number" step="25"></label>
         <label for="plExtra"><span>Other deductions<small>€ per year</small></span><input id="plExtra" type="number" step="50"></label>
       </div>
       <table id="plWork"></table>
@@ -1125,8 +1129,9 @@ const Y28=()=>+P.set.yr===2028, NET=()=>!!P.set.net;
 const bsum=r=>r.parts.reduce((t,p)=>t+p.base,0)||1;
 const eff=(r,p)=>p.base*r.amt/bsum(r);
 const sumA=a=>a.reduce((t,r)=>t+r.amt,0);
-const DRAW=()=>P.set.pf?Math.max(0,+P.set.pfAmt||0):0;
-const PG=()=>Math.max(0,P.inc.filter(r=>r.tg==='port').reduce((t,r)=>t+r.amt,0)-DRAW());
+const GROW=()=>P.inc.filter(r=>r.tg==='port').reduce((t,r)=>t+r.amt,0);
+const DRAW=()=>P.set.pf?Math.min(Math.max(0,+P.set.pfAmt||0),GROW()):0;
+const PG=()=>GROW()-DRAW();
 
 function compute(){
   const by=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+r.amt,0);
@@ -1173,13 +1178,19 @@ function labels(bar,box,h){
 function bars(){
   const Bi=q('#plBi'),Bo=q('#plBo'),h=H(),px=h/scaleMax,gov=NET()?0:C.tax+C.social,inc=NET()?C.net:C.gross,out=sumA(AO()),pg=PG(),res=inc-gov-out-pg;
   Bi.innerHTML='';Bo.innerHTML='';MAP=[];
-  let y=0;P.inc.forEach((r,i)=>{if(on(r))y=rowSeg(Bi,r,y,px,r.tg==='port'?'#5D8FA8':IC[i%IC.length],'inc',r.amt*F(r));});
+  let y=0;P.inc.forEach((r,i)=>{if(on(r)&&r.tg!=='port')y=rowSeg(Bi,r,y,px,IC[i%IC.length],'inc',r.amt*F(r));});
   const ixd=C.ix*(NET()?C.f.sal:1);if(ixd>0){seg(Bi,'Indexation +'+P.set.idx+'%',ixd,y,ixd*px,'#A9B8F2','auto').style.color='var(--ink)';y+=ixd*px;}
+  const draw=DRAW();
+  for(const r of P.inc){if(r.tg!=='port')continue;
+    if(draw>0){seg(Bi,'Portfolio cash',draw,y,draw*px,'#2F7F9E');y+=draw*px;}
+    y=rowSeg(Bi,r,y,px,'#5D8FA8','inc',Math.max(0,r.amt-draw));}
   const yIn=y;MAP=[];y=0;
   if(!NET())for(const[n,a,c]of[['Income tax',C.tax,'var(--pl-tax)'],['Social contributions',C.social,'var(--pl-soc)']]){seg(Bo,n,a,y,a*px,c,'auto');MAP.push([y,a*px,a]);y+=a*px;}
   P.out.forEach((r,i)=>{if(on(r))y=rowSeg(Bo,r,y,px,RC[r.role]||OC[i%OC.length],'out');});
-  if(pg>0){seg(Bo,P.set.pf?'Growth reinvested':'Portfolio growth (reinvested)',pg,y,pg*px,'#5D8FA8','auto');MAP.push([y,pg*px,pg]);y+=pg*px;}
+  const pgSeg=()=>{if(pg>0){seg(Bo,'Portfolio growth (reinvested)',pg,y,pg*px,'#5D8FA8','auto');MAP.push([y,pg*px,pg]);y+=pg*px;}};
+  if(res<0)pgSeg();
   if(res>0){seg(Bo,'Free savings',res,y,res*px,'var(--pl-save)','save');y+=res*px;}
+  if(res>=0)pgSeg();
   const lineY=res>=0?y:inc*px, ln=document.createElement('div');ln.className='pl-line';ln.style.top=lineY+'px';Bo.append(ln);
   if(res<0)seg(Bo,'Over by',-res,inc*px,-res*px,'var(--pl-def)','def');
   const bh=Math.max(h,yIn,y,lineY);Bi.style.height=Bo.style.height=bh+'px';
@@ -1192,7 +1203,7 @@ function bars(){
   q('#plOut').textContent=E(out);q('#plOutS').textContent=E(out*12)+'/yr';
   q('#plHi').textContent=E(inc)+(NET()?' net':' gross');q('#plHo').textContent=E(inc);
   const mi=P.inc.filter(r=>r.tg==='move').reduce((t,r)=>t+r.amt,0),mo=P.out.filter(r=>r.tg==='move').reduce((t,r)=>t+r.amt,0);
-  q('#plMoveA').textContent='+'+E(mi)+' / −'+E(mo);q('#plPfL').textContent=E(+P.set.pfAmt||0);
+  q('#plMoveA').textContent='+'+E(mi)+' / −'+E(mo);
 }
 
 /* what the plan means for Ledger's own targets */
@@ -1230,9 +1241,9 @@ window.planBudget=function(){const s=S.t.plan;return budgetOf(s&&s.inc&&s.out?JS
 /* editors */
 function inputs(){
   const Ri=q('#plRi'),Ro=q('#plRo');Ri.innerHTML='';Ro.innerHTML='';
-  P.inc.forEach((r,i)=>{
+  [...P.inc.filter(r=>r.tg!=='port'),...P.inc.filter(r=>r.tg==='port')].forEach((r,i)=>{
     const row=document.createElement('div');row.className='pl-r i'+(on(r)?'':' off');
-    row.innerHTML=`<span class="sw" style="background:${r.tg==='port'?'#5D8FA8':IC[i%IC.length]}"></span><input aria-label="Income name"><select aria-label="Tax treatment"><option value="sal">Salary</option><option value="self">Self-empl.</option><option value="rent">Rental</option><option value="none">Not taxed</option></select><input class="m" id="plA${r.id}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><button class="x" aria-label="Remove">×</button>`;
+    row.innerHTML=`<span class="sw" style="background:${r.tg==='port'?'#5D8FA8':IC[P.inc.indexOf(r)%IC.length]}"></span><input aria-label="Income name"><select aria-label="Tax treatment"><option value="sal">Salary</option><option value="self">Self-empl.</option><option value="rent">Rental</option><option value="none">Not taxed</option></select><input class="m" id="plA${r.id}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><button class="x" aria-label="Remove">×</button>`;
     const [n,t,a]=row.querySelectorAll('input,select');n.value=r.name;t.value=r.type;a.value=r.amt;
     n.oninput=()=>{r.name=n.value;bars();persist();};t.onchange=()=>{r.type=t.value;upd();};a.oninput=()=>{r.amt=Math.max(0,+a.value||0);upd();};
     row.querySelector('.x').onclick=()=>{P.inc=P.inc.filter(x=>x!==r);inputs();upd();};Ri.append(row);
@@ -1278,7 +1289,7 @@ function moveSwitch(to){
   if(to){P.set.yrPrev=P.set.yr;P.set.yr=2028}else if(P.set.yrPrev)P.set.yr=P.set.yrPrev;
 }
 function controls(){
-  q('#plMove').checked=!!P.set.move;q('#plPfT').checked=!!P.set.pf;q('#plPfL').textContent=E(+P.set.pfAmt||0);q('#plNet').checked=NET();
+  q('#plMove').checked=!!P.set.move;q('#plPfT').checked=!!P.set.pf;q('#plPfA').closest('.pl-pfa').classList.toggle('off',!P.set.pf);q('#plNet').checked=NET();
   q('#plYr').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.y===+P.set.yr));
   for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra'],['pfAmt','#plPfA']]){const el=q(id);if(document.activeElement!==el)el.value=P.set[k];}
   q('#plIdx').closest('label').style.opacity=Y28()?1:.45;
@@ -1290,6 +1301,7 @@ q('#plYr').onclick=e=>{const b=e.target.closest('button');if(!b)return;P.set.yr=
 q('#plMove').onchange=e=>{P.set.move=e.target.checked;moveSwitch(P.set.move);controls();inputs();upd();};
 q('#plNet').onchange=e=>{P.set.net=e.target.checked;upd();};
 q('#plPfT').onchange=e=>{P.set.pf=e.target.checked;controls();upd();};
+q('#plPfA').addEventListener('focus',()=>{if(!P.set.pf){P.set.pf=true;controls();upd();}});
 for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra'],['pfAmt','#plPfA']])q(id).oninput=e=>{P.set[k]=+e.target.value||0;upd();};
 q('#plAddI').onclick=()=>{P.inc.push({id:uid++,name:'New income',amt:200,type:'self',tg:''});inputs();upd();};
 q('#plAddO').onclick=()=>{const i=P.out.findIndex(r=>r.parts);P.out.splice(i<0?P.out.length:i,0,{id:uid++,name:'New outgoing',amt:100,role:'daily',ded:false,tg:''});inputs();upd();};
