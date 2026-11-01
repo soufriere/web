@@ -75,7 +75,7 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .big .of{color:var(--mut);font-size:15px}
 .track{position:relative;height:14px;margin:14px 0 8px;background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 10%);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .track .seg{position:absolute;top:2px;bottom:2px;border-radius:2px;transition:width .35s ease,left .35s ease}
-.track .base{left:0;background:var(--acc)}
+.track .base{left:0;background:var(--c-ev)}
 .track .ovr{background:repeating-linear-gradient(135deg,var(--warn) 0 4px,color-mix(in srgb,var(--warn) 55%,transparent) 4px 8px)}
 .track .tick{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--ink);transition:left .35s ease}
 .track .end{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--mut)}
@@ -222,10 +222,15 @@ dialog .btns{justify-content:space-between;margin-top:16px}
 [hidden]{display:none!important}
 main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* budget block colours, shared by Plan and the Month bar: fixed/housing black, discretionary pink, savings green */
+:root{--c-fix:#1B1F24;--c-ho:#3A4048;--c-fix-ink:#FFFFFF;--c-ev:#D63B7A;--c-sp:#EC93B8;--c-sp-ink:#4A1230;--c-fs:#1E7046;--c-free:#2E9E5E;--c-free-ink:#FFFFFF;--c-pg:#7CC29B}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-fix:#000000;--c-ho:#2A3038;--c-fix-ink:#FFFFFF;--c-ev:#EC5F97;--c-sp:#F3A9C8;--c-sp-ink:#3A0E22;--c-fs:#3E9C6B;--c-free:#5DC08A;--c-free-ink:#0E1420;--c-pg:#8FD3AC}}
+:root[data-theme="dark"]{--c-fix:#000000;--c-ho:#2A3038;--c-fix-ink:#FFFFFF;--c-ev:#EC5F97;--c-sp:#F3A9C8;--c-sp-ink:#3A0E22;--c-fs:#3E9C6B;--c-free:#5DC08A;--c-free-ink:#0E1420;--c-pg:#8FD3AC}
+#v-plan .pl-s.save{color:var(--c-free-ink)}
 /* plan tab: budget simulator (gross → tax → spending → savings), scoped to #v-plan */
-#v-plan{--pl-tax:#5A6170;--pl-soc:#7A8190;--pl-forced:#2E6B73;--pl-save:var(--good);--pl-def:var(--warn)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #v-plan{--pl-tax:#6A7283;--pl-soc:#8A92A3;--pl-forced:#3F8C96}}
-:root[data-theme="dark"] #v-plan{--pl-tax:#6A7283;--pl-soc:#8A92A3;--pl-forced:#3F8C96}
+#v-plan{--pl-tax:#5A6170;--pl-soc:#7A8190;--pl-forced:var(--c-fs);--pl-save:var(--c-free);--pl-def:var(--warn)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #v-plan{--pl-tax:#6A7283;--pl-soc:#8A92A3}}
+:root[data-theme="dark"] #v-plan{--pl-tax:#6A7283;--pl-soc:#8A92A3}
 #v-plan .pl-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0 4px}
 #v-plan .pl-tg{display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 11px 0 5px;border-radius:999px;background:var(--key);font-size:13.5px;font-weight:600;color:var(--mut);cursor:pointer;user-select:none}
 #v-plan .pl-tg input{position:absolute;opacity:0;pointer-events:none}
@@ -1104,7 +1109,8 @@ const DEF={inc:[['Freelance',4400,'self'],['Uni job',2500,'sal'],['Portfolio gro
   forced:[['Mortgage',612,false],['Loan from mum',200,false],['S-Pension',375,true]],
   set:{ssm:2704,exp:0,mut:.72,extra:0,rf:35,yr:2028,idx:2.5,net:false,move:false,pf:false,pfAmt:200}};
 const ROLES={rent:'Housing',fixed:'Fixed',daily:'Everyday',specials:'Specials'};
-const RC={rent:'#8B5A3C',fixed:'#C08A1E',daily:'var(--acc)',specials:'var(--plum)',forced:'var(--pl-forced)'};
+const RC={rent:'var(--c-ho)',fixed:'var(--c-fix)',daily:'var(--c-ev)',specials:'var(--c-sp)',forced:'var(--c-fs)'};
+const INK={'var(--c-fix)':'var(--c-fix-ink)','var(--c-ho)':'var(--c-fix-ink)','var(--c-sp)':'var(--c-sp-ink)'};
 const RN={rent:'Housing',fixed:'Fixed',daily:'Everyday',specials:'Specials',forced:'Forced savings'};
 let uid=1;
 function fresh(){
@@ -1157,7 +1163,7 @@ let MAP=[];
 function seg(bar,name,amt,y,hh,bg,cls){
   const d=document.createElement('div');d.className='pl-s'+(cls?' '+cls:'');d.style.top=y+'px';d.style.height=hh+'px';
   if(bg){if(cls&&cls.includes('auto'))d.style.setProperty('--c',bg);else d.style.background=bg;}
-  d.dataset.c=bg||'';d.dataset.n=name;d.dataset.a=amt;d.title=name+': '+E(amt);
+  d.dataset.c=bg||'';if(INK[bg])d.style.color=INK[bg];d.dataset.n=name;d.dataset.a=amt;d.title=name+': '+E(amt);
   d.innerHTML='<span class="n"></span><span class="a">'+E(amt)+'</span>';d.querySelector('.n').textContent=name;
   if(hh<30)d.classList.add('ext');bar.append(d);return d;
 }
@@ -1187,7 +1193,7 @@ function bars(){
   const yIn=y;MAP=[];y=0;
   if(!NET())for(const[n,a,c]of[['Income tax',C.tax,'var(--pl-tax)'],['Social contributions',C.social,'var(--pl-soc)']]){seg(Bo,n,a,y,a*px,c,'auto');MAP.push([y,a*px,a]);y+=a*px;}
   P.out.forEach((r,i)=>{if(on(r))y=rowSeg(Bo,r,y,px,RC[r.role]||OC[i%OC.length],'out');});
-  const pgSeg=()=>{if(pg>0){seg(Bo,'Portfolio growth (reinvested)',pg,y,pg*px,'#5D8FA8','auto');MAP.push([y,pg*px,pg]);y+=pg*px;}};
+  const pgSeg=()=>{if(pg>0){seg(Bo,'Portfolio growth (reinvested)',pg,y,pg*px,'var(--c-pg)','auto');MAP.push([y,pg*px,pg]);y+=pg*px;}};
   if(res<0)pgSeg();
   if(res>0){seg(Bo,'Free savings',res,y,res*px,'var(--pl-save)','save');y+=res*px;}
   if(res>=0)pgSeg();
@@ -1222,7 +1228,7 @@ function target(){
 const TL=[['inc','Income (take-home)'],['nr','Net rent'],['fs','F.savings'],['fix','Fixed costs'],['d','Daily spending budget'],['b','Specials target'],['bE','Essentials budget'],['bD','Daily bucket'],['bL','Luxury budget']];
 function apply(){
   const B=window.planBudget(), el=q('#plApply'), free=B.inc-B.housing-B.fixed-B.daily-B.specials-B.forced;
-  const rows=[['Net income',B.inc,'var(--ink)'],...(B.move?[['Net housing cost',B.housing,RC.rent]]:[]),['Fixed',B.fixed,RC.fixed],['Everyday',B.daily,RC.daily],['Specials',B.specials,RC.specials],['Forced savings',B.forced,RC.forced],[free>=0?'Free savings':'Short',Math.abs(free),free>=0?'var(--good)':'var(--warn)']];
+  const rows=[['Net income',B.inc,'var(--ink)'],...(B.move?[['Net housing cost',B.housing,RC.rent]]:[]),['Fixed',B.fixed,RC.fixed],['Everyday',B.daily,RC.daily],['Specials',B.specials,RC.specials],['Forced savings',B.forced,RC.forced],[free>=0?'Free savings':'Short',Math.abs(free),free>=0?'var(--c-free)':'var(--warn)']];
   el.innerHTML=`<p><b>Your Month view follows this plan</b></p><div class="pl-diff">${rows.map(([n,a,c])=>`<span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${c};margin-right:6px"></i>${n}</span><span></span><span class="n">${E(a)}</span>`).join('')}</div><p class="hint" style="margin:0">Net income is salary + freelance after tax${B.pf?' + portfolio draw':''}, ${B.yr} rules.${B.move?` Net housing cost = city rent ${E(B.rentOut)} − Differdange rent ${E(B.rentIn)} after tax.`:''} Rent and portfolio only count when their switch is on.</p>`;
 }
 
@@ -1319,7 +1325,7 @@ V.addEventListener('keydown',e=>{const h=e.target.closest('.pl-h');if(!h)return;
 addEventListener('resize',()=>{if(!V.hidden&&!drag&&C)bars();});
 
 /* Month view: one bar in the Plan's blocks */
-const MC={ho:['Net housing','#8B5A3C','#fff'],fx:['Fixed','#C08A1E','#fff'],ev:['Everyday','var(--acc)','var(--acc-ink)'],sp:['Specials','var(--plum)','var(--acc-ink)'],fs:['Forced','#2E6B73','#fff']};
+const MC={ho:['Net housing','var(--c-ho)','var(--c-fix-ink)'],fx:['Fixed','var(--c-fix)','var(--c-fix-ink)'],ev:['Everyday','var(--c-ev)','#fff'],sp:['Specials','var(--c-sp)','var(--c-sp-ink)'],fs:['Forced','var(--c-fs)','#fff']};
 renderCtx=function(){
   const el=q('#ctx'),B=window.planBudget();el.hidden=false;
   const cm=curM(),dim=daysIn(viewM),day=viewM===cm?new Date().getDate():dim,k=viewM===cm&&day<dim?dim/day:1,yr=viewM.slice(0,4);
@@ -1327,7 +1333,7 @@ renderCtx=function(){
   const v=ctxPlan?plan:{...plan,ev:sum(inM('d',viewM))*k,sp:sum(S.x.b.filter(e=>e.date.startsWith(yr)))/12};
   const used=Object.values(v).reduce((a,b)=>a+b,0),free=B.inc-used,pct=x=>Math.round(x/(B.inc||1)*100);
   const segs=Object.keys(MC).filter(key=>v[key]>0).map(key=>[MC[key][0],v[key],MC[key][1],MC[key][2]]);
-  segs.push([free>=0?`Free ${pct(free)}%`:'Short',Math.abs(free),free>=0?'var(--good)':'var(--warn)','var(--acc-ink)']);
+  segs.push([free>=0?`Free ${pct(free)}%`:'Short',Math.abs(free),free>=0?'var(--c-free)':'var(--warn)',free>=0?'var(--c-free-ink)':'#fff']);
   const over=ctxPlan?[]:[['ev','Everyday'],['sp','Specials']].filter(([key])=>v[key]>plan[key]+.5).map(([key,n])=>`${n} <span class="w">${fmt0(v[key]-plan[key])} over</span>`);
   const src=['salary + freelance',B.pf?'portfolio draw':''].filter(Boolean).join(' + ');
   el.innerHTML=`<span class="cbar">${segs.map(([n,x,c,ink])=>`<i style="flex:${x} 1 0;background:${c};color:${ink}${n==='Net housing'?';min-width:78px':''}" title="${n} ${fmt0(x)}"><s>${n}</s><b>${fmt0(x)}</b></i>`).join('')}</span>
