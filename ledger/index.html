@@ -53,6 +53,8 @@ button{cursor:pointer;border:0;background:none;padding:0}
 .ctx{display:block;width:100%;text-align:left;margin:4px 0 6px;padding:6px 0 2px}
 .ctx .cbar{display:flex;gap:3px;height:38px}
 .ctx .cbar.split{height:18px;margin-bottom:3px}
+.ctx .cbar:not(.split) i.ev{min-width:96px}
+@media (max-width:440px){.ctx .cbar{gap:2px}.ctx .cbar:not(.split) i{min-width:44px;padding:0 4px}.ctx .cbar:not(.split) i.ev{min-width:78px}}
 .ctx .cbar i .pace{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);opacity:.75;text-decoration:none}
 .ctx .cbar i b small{font-size:10.5px;font-weight:600;opacity:.8}
 .ctx .cbar i.ev.tight s{display:inline}
@@ -324,8 +326,17 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 #v-plan tr.h td{color:var(--mut);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding-top:10px}
 @media (max-width:420px){#v-plan .pl-r.i,#v-plan .pl-r.o,#v-plan .pl-r.p{grid-template-columns:8px minmax(0,1fr) 84px 66px 24px}}
 @media (prefers-reduced-motion:reduce){#v-plan *{transition:none!important}}
-@media (max-width:480px){.tabs button{padding:6px 9px}.syncb{font-size:0;gap:0}}
+@media (max-width:480px){.tabs button{padding:6px 8px;font-size:13.5px}.syncb{font-size:0;gap:0}}
+@media (max-width:410px){.tabs{gap:2px}.tabs button{padding:6px 6px;font-size:13px;letter-spacing:-.01em}}
+.tabs{overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tabs button{flex:none}
 @media (max-width:370px){.tabs button{padding:6px 7px;font-size:13px}}
+#v-fixed .fxr{display:grid;grid-template-columns:minmax(0,1fr) 84px 66px 30px;gap:6px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}
+#v-fixed .fxr input,#v-fixed .fxr select{height:38px;min-width:0;width:100%;border:1px solid var(--line);border-radius:9px;background:var(--surf);padding:0 8px;font-size:15px}
+#v-fixed .fxr input.m{text-align:right;font-variant-numeric:tabular-nums}
+#v-fixed .fxr .x{height:38px;border-radius:9px;color:var(--mut);font-size:18px}
+#v-fixed .fxr .x:hover{color:var(--warn)}
+#v-fixed .fxr small{grid-column:1/-1;margin-top:-2px;color:var(--mut);font-size:12px}
+#v-fixed .fxh{display:grid;grid-template-columns:minmax(0,1fr) 84px 66px 30px;gap:6px;font-size:12px;font-weight:600;color:var(--mut);padding:10px 0 2px}
 #v-plan .pl-pf{display:inline-flex;align-items:center;gap:0;border-radius:999px;background:var(--key)}
 #v-plan .pl-pf .pl-tg{background:none}
 #v-plan .pl-pfa{display:inline-flex;align-items:center;gap:3px;padding:0 10px 0 2px;font-size:13.5px;font-weight:600;color:var(--ink)}
@@ -340,6 +351,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <button data-view="specials">Specials</button>
     <button data-view="history">History</button>
     <button data-view="plan">Plan</button>
+    <button data-view="fixed">Fixed</button>
     <button data-view="settings">Settings</button>
     <span class="syncb" id="syncb"></span>
   </nav>
@@ -450,6 +462,14 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
       <p class="hint">Estimate only. 2026: tax class 1 scale (unchanged since 2025). 2028: class U scale from Bill 8676, adopted 28 Oct 2026 (0% up to €26,650, ten brackets). Indexation raises salary and the SSM. 7% solidarity surcharge (9% above €150k). Social: employee 8% pension + 3.05% health; self-employed 16% + 6.1% + 0.75% accident + mutualité; 1.4% dependency; base capped at 5× SSM. Forfaits €540 (salary) and €480 (special expenses). S-Pension deduction capped at €4,500/yr. Tax credits, the self-employed minimum base and advance lag are left out. In net view each income loses its own social contributions and a share of income tax in proportion to its taxable amount. Portfolio growth is shown on both sides: untaxed income, then reinvested. The plan is saved with your Ledger data and syncs like the rest.</p>
       <button class="btn dng" id="plReset" style="margin-top:6px">Reset plan to starting values</button>
     </details>
+  </section>
+
+  <section id="v-fixed" hidden>
+    <h2>Fixed costs</h2>
+    <div class="big"><span class="amt" id="fxTot"></span><span class="of">a month · <span id="fxYr" class="num"></span> a year</span></div>
+    <p class="hint">Subscriptions, insurance, utilities, phone… anything that comes back every month or year. Yearly items count ÷ 12. The total is the black Fixed block in Plan and on the Month bar.</p>
+    <div id="fxList"></div>
+    <button class="btn" id="fxAdd" style="margin-top:10px">+ Add fixed cost</button>
   </section>
 
   <section id="v-settings" hidden>
@@ -924,7 +944,7 @@ function renderSettings(){
   const sy={on:'Synced to your Claude account (private to you), so it survives Safari clearing storage and works across devices.',connecting:'Connecting to your Claude account…',error:`Account sync failed (${syncErr}); changes are queued and retried on reload.`,off:CAN_SYNC?'Account sync unavailable in this view; saving on this device only.':'Self-hosted copy: saving on this device only.'}[SYNC];
   $('#stat').textContent=`${S.x.d.length} daily entries and ${S.x.b.length} specials. ${sy} ${loc}${PENDING.length?` ${PENDING.length} change(s) waiting to sync.`:''}`;
 }
-function render(){ if(view==='month')renderMonth(); else if(view==='specials')renderSpecials(); else if(view==='history')renderHistory(); else if(view==='plan')renderPlan(); else renderSettings(); }
+function render(){ if(view==='month')renderMonth(); else if(view==='specials')renderSpecials(); else if(view==='history')renderHistory(); else if(view==='plan')renderPlan(); else if(view==='fixed')renderFixed(); else renderSettings(); }
 
 /* ---------- entry dock ---------- */
 function buildPad(){
@@ -1008,7 +1028,7 @@ document.addEventListener('keydown',ev=>{
 /* ---------- navigation ---------- */
 function setView(v){
   view=v;
-  for(const s of['month','specials','history','plan','settings'])$('#v-'+s).hidden=s!==v;
+  for(const s of['month','specials','history','plan','fixed','settings'])$('#v-'+s).hidden=s!==v;
   document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
   $('#dock').hidden=v!=='month'; fitDock(); render(); window.scrollTo(0,0);
 }
@@ -1129,7 +1149,7 @@ const DEF={inc:[['Freelance',4400,'self'],['Uni job',2500,'sal'],['Portfolio gro
   out:[['City rent',1800,'rent','move'],['Fixed costs',700,'fixed'],['Everyday spending',1325,'daily'],['Specials & travel',500,'specials'],['AI subscriptions',90,'fixed']],
   forced:[['Mortgage',612,false],['Loan from mum',200,false],['S-Pension',375,true]],
   set:{ssm:2704,exp:0,mut:.72,extra:0,rf:35,yr:2028,idx:2.5,idxPa:1.25,flPa:0,inflPa:2,spPa:1.5,ret:7,loanLeft:14000,net:false,move:false,pf:false,pfAmt:200}};
-const ROLES={rent:'Housing',fixed:'Fixed',daily:'Everyday',specials:'Specials'};
+const ROLES={rent:'Housing',daily:'Everyday',specials:'Specials'};
 const RC={rent:'var(--c-ho)',fixed:'var(--c-fix)',daily:'var(--c-ev)',specials:'var(--c-sp)',forced:'var(--c-fs)'};
 const INK={'var(--c-fix)':'var(--c-fix-ink)','var(--c-ho)':'var(--c-fix-ink)','var(--c-sp)':'var(--c-sp-ink)'};
 const RN={rent:'Housing',fixed:'Fixed',daily:'Everyday',specials:'Specials',forced:'Forced savings'};
@@ -1141,11 +1161,24 @@ function fresh(){
   f.amt=f.parts.reduce((t,p)=>t+p.base,0);P.out.push(f);return P;
 }
 let P=null, dirty=false, drag=null, C=null, scaleMax=1, saveT=null;
+/* Fixed costs live in their own tab (S.t.fixed); the plan carries one linked Fixed row with their monthly total */
+const FX=()=>Array.isArray(S.t.fixed)?S.t.fixed:null;
+const fxMonthly=list=>list.reduce((t,f)=>t+(+f.amt||0)/(f.per==='y'?12:1),0);
+function linkFixed(pp){
+  const had=FX();let list=had;
+  if(!list)list=pp.out.filter(r=>r.role==='fixed'&&!r.linked).map((r,i)=>({id:Date.now()+i,name:r.name,amt:+r.amt||0,per:'m'}));
+  pp.out=pp.out.filter(r=>!(r.role==='fixed'&&!r.linked));
+  let row=pp.out.find(r=>r.linked);
+  if(!row){row={id:-1,name:'Fixed costs',role:'fixed',ded:false,tg:'',linked:true};const i=pp.out.findIndex(r=>r.role!=='rent');pp.out.splice(i<0?pp.out.length:i,0,row);}
+  row.amt=fxMonthly(list);
+  return list;
+}
 function load(){
-  if(dirty&&P)return;
+  if(dirty&&P){linkFixed(P);return;}
   const s=S.t.plan;
   P=s&&s.inc&&s.out?JSON.parse(JSON.stringify(s)):fresh();
   P.set={...DEF.set,...P.set};
+  const migr=!FX(),list=linkFixed(P);if(migr)mutate([{op:'t',t:{fixed:list}}]);
   for(const r of[...P.inc,...P.out])uid=Math.max(uid,(+r.id||0)+1);
 }
 function persist(){dirty=true;clearTimeout(saveT);saveT=setTimeout(()=>{dirty=false;mutate([{op:'t',t:{plan:JSON.parse(JSON.stringify(P))}}]);},700);}
@@ -1202,6 +1235,7 @@ function seg(bar,name,amt,y,hh,bg,cls){
 }
 function rowSeg(bar,r,y,px,bg,side,disp){
   const a=disp??A(r),hh=a*px,d=seg(bar,r.name,a,y,hh,bg);MAP.push([y,hh,a]);
+  if(r.linked)return y+hh;
   const h=document.createElement('div');h.className='pl-h';h.tabIndex=0;h.setAttribute('role','slider');h.setAttribute('aria-label','Resize '+r.name);h.setAttribute('aria-valuenow',Math.round(r.amt));
   h.dataset.id=r.id;h.dataset.side=side;d.append(h);return y+hh;
 }
@@ -1280,7 +1314,7 @@ function budgetOf(PP){
       housing:Math.max(0,rentOut-rentIn),fixed:role('fixed'),daily:role('daily'),specials:role('specials'),forced:role('forced'),pg:PG(),move:!!P.set.move,pf:!!P.set.pf,yr:+P.set.yr};}
   finally{P=keep;}
 }
-window.planBudget=function(y){const s=S.t.plan,pp=s&&s.inc&&s.out?JSON.parse(JSON.stringify(dirty&&P?P:s)):fresh();if(y)pp.set={...pp.set,yr:Math.min(2032,Math.max(2026,y))};return budgetOf(pp);};
+window.planBudget=function(y){const s=S.t.plan,pp=s&&s.inc&&s.out?JSON.parse(JSON.stringify(dirty&&P?P:s)):fresh();linkFixed(pp);if(y)pp.set={...pp.set,yr:Math.min(2032,Math.max(2026,y))};return budgetOf(pp);};
 
 /* editors */
 function inputs(){
@@ -1305,6 +1339,10 @@ function inputs(){
         pa.oninput=()=>{r.parts.forEach(x=>x.base=eff(r,x));p.base=Math.max(0,+pa.value||0);r.amt=r.parts.reduce((t,x)=>t+x.base,0);const m=q('#plA'+r.id);if(m)m.value=Math.round(r.amt);upd();};
         Ro.append(pr);});
       return;
+    }
+    if(r.linked){
+      row.innerHTML=`<span class="sw" style="background:${RC.fixed}"></span><span style="font-size:13.5px;font-weight:600">Fixed costs</span><button class="pl-add" style="margin:0">Fixed tab →</button><input class="m" type="number" readonly aria-label="Monthly total from the Fixed tab"><span></span>`;
+      row.querySelector('input').value=Math.round(r.amt);row.querySelector('button').onclick=()=>setView('fixed');Ro.append(row);return;
     }
     row.innerHTML=`<span class="sw" style="background:${RC[r.role]||OC[i%OC.length]}"></span><input aria-label="Outgoing name"><select aria-label="Ledger bucket">${Object.entries(ROLES).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select><input class="m" id="plA${r.id}" type="number" inputmode="decimal" step="25" aria-label="Monthly amount"><button class="x" aria-label="Remove">×</button>`;
     const [n,s,a]=row.querySelectorAll('input,select');n.value=r.name;s.value=r.role;a.value=r.amt;
@@ -1386,7 +1424,7 @@ renderCtx=function(){
   const evTxt=evOver?`Everyday <span class="w">${fmt0(act.ev-plan.ev)} over plan</span>. `:'';
   const spTxt=ov('sp')?`Specials <span class="w">${fmt0(act.sp-plan.sp)} over plan</span>. `:'';
   const src=['salary + freelance',B.pf?'portfolio draw':''].filter(Boolean).join(' + ');
-  el.innerHTML=`<span class="cbar split" title="Spent ${fmt0(spent)} · saved ${fmt0(saved)}"><i style="flex:${spent} 1 0;background:var(--c-ev);color:#fff"><b>Spent ${pct(spent)}%</b></i><i style="flex:${saved} 1 0;background:var(--c-free);color:var(--c-free-ink)"><b>Saved ${pct(saved)}%</b></i></span><span class="cbar">${segs.map(([n,x,c,ink,o,lbl,extra])=>`<i style="flex:${x} 1 0;background:${c};color:${ink}${n==='Net housing'?';min-width:78px':''}${n==='Everyday'?';min-width:96px;position:relative" class="ev':''}${o?';box-shadow:inset 0 0 0 2px var(--warn)':''}" title="${n} ${fmt0(x)}${o?' (actual, above plan)':''}"><s>${n}</s><b>${lbl||fmt0(x)}</b>${extra||''}</i>`).join('')}</span>
+  el.innerHTML=`<span class="cbar split" title="Spent ${fmt0(spent)} · saved ${fmt0(saved)}"><i style="flex:${spent} 1 0;background:var(--c-ev);color:#fff"><b>Spent ${pct(spent)}%</b></i><i style="flex:${saved} 1 0;background:var(--c-free);color:var(--c-free-ink)"><b>Saved ${pct(saved)}%</b></i></span><span class="cbar">${segs.map(([n,x,c,ink,o,lbl,extra])=>`<i style="flex:${x} 1 0;background:${c};color:${ink}${n==='Net housing'?';min-width:78px':''}${n==='Everyday'?';position:relative" class="ev':''}${o?';box-shadow:inset 0 0 0 2px var(--warn)':''}" title="${n} ${fmt0(x)}${o?' (actual, above plan)':''}"><s>${n}</s><b>${lbl||fmt0(x)}</b>${extra||''}</i>`).join('')}</span>
    <span class="ccap" style="display:block">${evTxt}${spTxt}Net income <b class="num">${fmt0(B.inc)}</b> (${src}, ${B.yr} tax)${B.pg>0?` + portfolio growth <b class="num">${fmt0(B.pg)}</b> reinvested`:''}${B.move?`. Net housing = rent ${fmt0(B.rentOut)} − Differdange ${fmt0(B.rentIn)} after tax`:''}.</span>`;
   el.querySelectorAll('.cbar:not(.split) i').forEach(i=>{if(i.scrollWidth>i.clientWidth)i.classList.add('tight');if(i.scrollWidth>i.clientWidth)i.classList.add('tiny');});
   {const bl=[...el.querySelectorAll('.cbar:not(.split) i')],sp=el.querySelectorAll('.cbar.split i'),nS=['ho','fx','ev','sp'].filter(k=>v[k]>0).length;
@@ -1402,6 +1440,29 @@ window.renderBudRO=function(){
   const el=q('#budRO');if(!el)return;const B=window.planBudget(+curM().slice(0,4)),free=B.inc-B.housing-B.fixed-B.daily-B.specials-B.forced;
   el.innerHTML=[['Net income',B.inc],...(B.move?[['Net housing cost',B.housing]]:[]),['Fixed',B.fixed],['Everyday (daily budget)',B.daily],['Specials (per month)',B.specials],['Forced savings',B.forced],['Free savings',free]].map(([n,a])=>`<div class="fld"><span>${n}</span><b class="num">${fmt0(a)}</b></div>`).join('');
 };
+/* Fixed tab */
+let fxT=null,fxEdit=null;
+function fxSave(){clearTimeout(fxT);fxT=setTimeout(()=>{mutate([{op:'t',t:{fixed:fxEdit}}]);fxEdit=null;},600);}
+function fxTotals(list){const m=fxMonthly(list);q('#fxTot').textContent=fmt0(m);q('#fxYr').textContent=fmt0(m*12);}
+window.renderFixed=function(force){
+  if(!force&&fxEdit&&q('#fxList').contains(document.activeElement))return fxTotals(fxEdit);
+  if(!FX()){const pp=S.t.plan&&S.t.plan.out?JSON.parse(JSON.stringify(S.t.plan)):fresh();mutate([{op:'t',t:{fixed:linkFixed(pp)}}]);}
+  const list=fxEdit||JSON.parse(JSON.stringify(FX()||[]));
+  if(!fxEdit)list.sort((a,b)=>(+b.amt||0)/(b.per==='y'?12:1)-(+a.amt||0)/(a.per==='y'?12:1));
+  fxTotals(list);
+  const box=q('#fxList');box.innerHTML=list.length?'<div class="fxh"><span>Name</span><span style="text-align:right">Amount</span><span>Per</span><span></span></div>':'<p class="empty">No fixed costs yet. Add your subscriptions, insurance and bills.</p>';
+  list.forEach(f=>{
+    const r=document.createElement('div');r.className='fxr';
+    r.innerHTML=`<input aria-label="Name" placeholder="e.g. Phone plan"><input class="m" type="number" inputmode="decimal" step="0.01" min="0" aria-label="Amount"><select aria-label="How often"><option value="m">/ mo</option><option value="y">/ yr</option></select><button class="x" aria-label="Remove">×</button>${f.per==='y'?`<small>= ${fmt(r2((+f.amt||0)/12))} a month</small>`:''}`;
+    const [n,a,p]=r.querySelectorAll('input,select');n.value=f.name||'';a.value=f.amt??'';p.value=f.per==='y'?'y':'m';
+    const touch=()=>{fxEdit=list;fxTotals(list);fxSave();};
+    n.oninput=()=>{f.name=n.value;touch();};a.oninput=()=>{f.amt=Math.max(0,+a.value||0);touch();};
+    p.onchange=()=>{f.per=p.value;touch();renderFixed(true);};
+    r.querySelector('.x').onclick=()=>{list.splice(list.indexOf(f),1);fxEdit=list;fxSave();renderFixed(true);toast(`Removed ${f.name||'item'}`,false);};
+    box.append(r);
+  });
+};
+q('#fxAdd').onclick=()=>{const list=fxEdit||JSON.parse(JSON.stringify(FX()||[]));list.push({id:Date.now(),name:'',amt:0,per:'m'});fxEdit=list;fxSave();renderFixed(true);const ins=q('#fxList').querySelectorAll('.fxr input:first-child');ins[ins.length-1]?.focus();};
 if(typeof render==='function')render();
 })();
 </script>
