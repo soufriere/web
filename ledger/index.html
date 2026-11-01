@@ -386,7 +386,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 
   <section id="v-plan" hidden>
     <div class="pl-ctl">
-      <div class="segc" id="plYr" role="group" aria-label="Tax year"><button data-y="2026">2026 tax</button><button data-y="2028">2028 tax</button></div>
+      <div class="segc" id="plYr" role="group" aria-label="Tax year"><button data-y="2026">2026</button><button data-y="2028">2028</button><button data-y="2030">2030</button><button data-y="2032">2032</button></div>
       <label class="pl-tg" for="plMove"><input id="plMove" type="checkbox"><i></i><span>City move <small id="plMoveA"></small></span></label>
       <span class="pl-pf"><label class="pl-tg" for="plPfT"><input id="plPfT" type="checkbox"><i></i><span>Cash from portfolio</span></label><label class="pl-pfa" for="plPfA">€<input id="plPfA" type="number" inputmode="decimal" step="25" min="0" aria-label="Monthly amount taken from the portfolio">/mo</label></span>
       <label class="pl-tg" for="plNet"><input id="plNet" type="checkbox"><i></i><span>Net view</span></label>
@@ -421,7 +421,13 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <details>
       <summary>Tax settings &amp; workings</summary>
       <div class="pl-set">
-        <label for="plIdx"><span>Salary indexation by 2028<small>% on salary and SSM; one tranche = 2.5%</small></span><input id="plIdx" type="number" step="0.5"></label>
+        <p class="hint" style="margin:0">Projection: amounts are entered as today's (2026). Later years grow by these rates each year.</p>
+        <label for="plIdx"><span>Salary indexation<small>% per year, on salary and SSM (1.25 ≈ one 2.5% tranche every 2 years)</small></span><input id="plIdx" type="number" step="0.25"></label>
+        <label for="plFl"><span>Freelance growth<small>% per year</small></span><input id="plFl" type="number" step="0.5"></label>
+        <label for="plInfl"><span>Rents &amp; fixed costs<small>% per year (city rent, Differdange rent, fixed)</small></span><input id="plInfl" type="number" step="0.5"></label>
+        <label for="plSp"><span>Everyday &amp; specials<small>% per year</small></span><input id="plSp" type="number" step="0.5"></label>
+        <label for="plRet"><span>Portfolio return<small>% per year, grows the portfolio growth block</small></span><input id="plRet" type="number" step="0.5"></label>
+        <label for="plLoan"><span>Mum loan left (Nov 2026)<small>€; the loan payment stops once it's repaid</small></span><input id="plLoan" type="number" step="100"></label>
         <label for="plSsm"><span>Social minimum wage<small>€ per month</small></span><input id="plSsm" type="number" step="1"></label>
         <label for="plExp"><span>Freelance business costs<small>€ per month</small></span><input id="plExp" type="number" step="25"></label>
         <label for="plMut"><span>Mutualité rate<small>% of self-employed income</small></span><input id="plMut" type="number" step="0.01"></label>
@@ -1114,7 +1120,7 @@ function calc(p){
 const DEF={inc:[['Freelance',4400,'self'],['Uni job',2500,'sal'],['Portfolio growth',1600,'none','port'],['Differdange rent',1375,'rent','move']],
   out:[['City rent',1800,'rent','move'],['Fixed costs',700,'fixed'],['Everyday spending',1325,'daily'],['Specials & travel',500,'specials'],['AI subscriptions',90,'fixed']],
   forced:[['Mortgage',612,false],['Loan from mum',200,false],['S-Pension',375,true]],
-  set:{ssm:2704,exp:0,mut:.72,extra:0,rf:35,yr:2028,idx:2.5,net:false,move:false,pf:false,pfAmt:200}};
+  set:{ssm:2704,exp:0,mut:.72,extra:0,rf:35,yr:2028,idx:2.5,idxPa:1.25,flPa:0,inflPa:2,spPa:1.5,ret:7,loanLeft:14000,net:false,move:false,pf:false,pfAmt:200}};
 const ROLES={rent:'Housing',fixed:'Fixed',daily:'Everyday',specials:'Specials'};
 const RC={rent:'var(--c-ho)',fixed:'var(--c-fix)',daily:'var(--c-ev)',specials:'var(--c-sp)',forced:'var(--c-fs)'};
 const INK={'var(--c-fix)':'var(--c-fix-ink)','var(--c-ho)':'var(--c-fix-ink)','var(--c-sp)':'var(--c-sp-ink)'};
@@ -1138,19 +1144,31 @@ function persist(){dirty=true;clearTimeout(saveT);saveT=setTimeout(()=>{dirty=fa
 
 const on=r=>!r.tg||r.tg==='port'||(r.tg==='move'&&P.set.move);
 const AI=()=>P.inc.filter(on), AO=()=>P.out.filter(on);
-const Y28=()=>+P.set.yr===2028, NET=()=>!!P.set.net;
+const Y28=()=>+P.set.yr>=2028, NET=()=>!!P.set.net;
 const bsum=r=>r.parts.reduce((t,p)=>t+p.base,0)||1;
 const eff=(r,p)=>p.base*r.amt/bsum(r);
-const sumA=a=>a.reduce((t,r)=>t+r.amt,0);
-const GROW=()=>P.inc.filter(r=>r.tg==='port').reduce((t,r)=>t+r.amt,0);
+/* projection: amounts are entered as today's (2026); later years grow by the rates in Tax settings */
+const NY=()=>Math.max(0,(+P.set.yr||2026)-2026);
+const gr=pct=>Math.pow(1+(+pct||0)/100,NY());
+const IXF=()=>gr(P.set.idxPa)-1;
+function partF(r,p){if(!NY()||!/mum|mom|loan/i.test(p.name))return 1;const pay=eff(r,p);if(!pay)return 1;
+  const rem=(+P.set.loanLeft||0)-pay*Math.max(0,NY()*12-10);return Math.max(0,Math.min(pay*12,rem))/(pay*12);}
+function A(r){
+  if(r.parts)return r.parts.reduce((t,p)=>t+eff(r,p)*partF(r,p),0);
+  if(r.role)return r.amt*({rent:gr(P.set.inflPa),fixed:gr(P.set.inflPa),daily:gr(P.set.spPa),specials:gr(P.set.spPa)}[r.role]||1);
+  if(r.tg==='port')return r.amt*gr(P.set.ret);
+  return r.amt*({self:gr(P.set.flPa),rent:gr(P.set.inflPa)}[r.type]||1);
+}
+const sumA=a=>a.reduce((t,r)=>t+A(r),0);
+const GROW=()=>P.inc.filter(r=>r.tg==='port').reduce((t,r)=>t+A(r),0);
 const DRAW=()=>P.set.pf?Math.min(Math.max(0,+P.set.pfAmt||0),GROW()):0;
 const PG=()=>GROW()-DRAW();
 
 function compute(){
-  const by=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+r.amt,0);
-  const ix=Y28()?by('sal')*(+P.set.idx||0)/100:0, sal=by('sal')+ix, free=by('self'), rent=by('rent');
-  const ssm=(+P.set.ssm||0)*(Y28()?1+(+P.set.idx||0)/100:1);
-  const dedRows=AO().reduce((t,r)=>t+(r.parts?r.parts.filter(p=>p.ded).reduce((u,p)=>u+Math.min(eff(r,p)*12,4500),0):(r.ded?r.amt*12:0)),0);
+  const by=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+A(r),0);
+  const ix=by('sal')*IXF(), sal=by('sal')+ix, free=by('self'), rent=by('rent');
+  const ssm=(+P.set.ssm||0)*(1+IXF());
+  const dedRows=AO().reduce((t,r)=>t+(r.parts?r.parts.filter(p=>p.ded).reduce((u,p)=>u+Math.min(eff(r,p)*partF(r,p)*12,4500),0):(r.ded?A(r)*12:0)),0);
   const c=calc({sal,free,rent,rf:+P.set.rf||0,exp:+P.set.exp||0,ssm,mut:+P.set.mut||0,ded:dedRows+(+P.set.extra||0),u:Y28()});
   Object.assign(c,{ix,sal,free,rent,dedRows});
   const tA=c.base+c.sol, ps=Math.max(0,c.netSal), pf=Math.max(0,c.netSelf), pr=Math.max(0,c.netRent), T=ps+pf+pr||1;
@@ -1175,7 +1193,7 @@ function seg(bar,name,amt,y,hh,bg,cls){
   if(hh<30)d.classList.add('ext');bar.append(d);return d;
 }
 function rowSeg(bar,r,y,px,bg,side,disp){
-  const a=disp??r.amt,hh=a*px,d=seg(bar,r.name,a,y,hh,bg);MAP.push([y,hh,a]);
+  const a=disp??A(r),hh=a*px,d=seg(bar,r.name,a,y,hh,bg);MAP.push([y,hh,a]);
   const h=document.createElement('div');h.className='pl-h';h.tabIndex=0;h.setAttribute('role','slider');h.setAttribute('aria-label','Resize '+r.name);h.setAttribute('aria-valuenow',Math.round(r.amt));
   h.dataset.id=r.id;h.dataset.side=side;d.append(h);return y+hh;
 }
@@ -1191,12 +1209,12 @@ function labels(bar,box,h){
 function bars(){
   const Bi=q('#plBi'),Bo=q('#plBo'),h=H(),px=h/scaleMax,gov=NET()?0:C.tax+C.social,inc=NET()?C.net:C.gross,out=sumA(AO()),pg=PG(),res=inc-gov-out-pg;
   Bi.innerHTML='';Bo.innerHTML='';MAP=[];
-  let y=0;P.inc.forEach((r,i)=>{if(on(r)&&r.tg!=='port')y=rowSeg(Bi,r,y,px,IC[i%IC.length],'inc',r.amt*F(r));});
-  const ixd=C.ix*(NET()?C.f.sal:1);if(ixd>0){seg(Bi,'Indexation +'+P.set.idx+'%',ixd,y,ixd*px,'#A9B8F2','auto').style.color='var(--ink)';y+=ixd*px;}
+  let y=0;P.inc.forEach((r,i)=>{if(on(r)&&r.tg!=='port')y=rowSeg(Bi,r,y,px,IC[i%IC.length],'inc',A(r)*F(r));});
+  const ixd=C.ix*(NET()?C.f.sal:1);if(ixd>0){seg(Bi,'Indexation +'+(IXF()*100).toFixed(1)+'%',ixd,y,ixd*px,'#A9B8F2','auto').style.color='var(--ink)';y+=ixd*px;}
   const draw=DRAW();
   for(const r of P.inc){if(r.tg!=='port')continue;
     if(draw>0){seg(Bi,'Portfolio cash',draw,y,draw*px,'#2F7F9E');y+=draw*px;}
-    y=rowSeg(Bi,r,y,px,'#5D8FA8','inc',Math.max(0,r.amt-draw));}
+    y=rowSeg(Bi,r,y,px,'#5D8FA8','inc',Math.max(0,A(r)-draw));}
   const yIn=y;MAP=[];y=0;
   if(!NET())for(const[n,a,c]of[['Income tax',C.tax,'var(--pl-tax)'],['Social contributions',C.social,'var(--pl-soc)']]){seg(Bo,n,a,y,a*px,c,'auto');MAP.push([y,a*px,a]);y+=a*px;}
   P.out.forEach((r,i)=>{if(on(r))y=rowSeg(Bo,r,y,px,RC[r.role]||OC[i%OC.length],'out');});
@@ -1208,27 +1226,27 @@ function bars(){
   if(res<0)seg(Bo,'Over by',-res,inc*px,-res*px,'var(--pl-def)','def');
   const bh=Math.max(h,yIn,y,lineY);Bi.style.height=Bo.style.height=bh+'px';
   labels(Bi,q('#plLi'),bh);labels(Bo,q('#plLo'),bh);
-  { const Bp=q('#plBp'),fz=AO().filter(r=>r.parts).reduce((t,r)=>t+r.amt,0),cons=out-fz,sv=fz+Math.max(0,res)+pg,base=inc||1;
+  { const Bp=q('#plBp'),fz=AO().filter(r=>r.parts).reduce((t,r)=>t+A(r),0),cons=out-fz,sv=fz+Math.max(0,res)+pg,base=inc||1;
     const parts=[...(gov>0?[['tax',gov,'var(--pl-tax)']]:[]),['spent',cons,'var(--c-ev)'],['saved',sv,'var(--c-free)'],...(res<0?[['short',-res,'var(--pl-def)']]:[])];
     Bp.innerHTML='';Bp.style.height=bh+'px';let yy=0;
     for(const[n,a,c]of parts){const hh=a*px,d=document.createElement('div');d.className='pl-p'+(hh<36?' sm':'')+(hh<20?' xs':'');d.style.top=yy+'px';d.style.height=hh+'px';d.style.background=c;
       if(n==='saved')d.style.color='var(--c-free-ink)';d.innerHTML=hh>=14?`<b>${Math.round(a/base*100)}%</b><s>${n}</s>`:'';d.title=`${n} ${Math.round(a/base*100)}% · ${E(a)}`;Bp.append(d);yy+=hh;}
     Bp.setAttribute('aria-label',parts.map(([n,a])=>`${n} ${Math.round(a/base*100)}%`).join(', ')); }
-  const fz=AO().filter(r=>r.parts).reduce((t,r)=>t+r.amt,0);
+  const fz=AO().filter(r=>r.parts).reduce((t,r)=>t+A(r),0);
   q('#plTot').textContent=E(res+fz+pg);
   q('#plSplit').innerHTML=res>=0?`<b>${E(res)}</b> free · <b>${E(fz)}</b> forced · <b>${E(pg)}</b> portfolio growth · ${Math.round((res+fz+pg)/(C.gross||1)*100)}% of gross`:`<b style="color:var(--warn)">${E(-res)} short</b> of income each month`;
   q('#plIn').textContent=E(C.gross);q('#plInS').textContent=E(C.net)+' net';
-  q('#plGov').textContent=E(C.tax+C.social);q('#plGovS').textContent=Math.round((C.tax+C.social)/(C.gross||1)*100)+'% · '+(Y28()?'2028':'2026');
+  q('#plGov').textContent=E(C.tax+C.social);q('#plGovS').textContent=Math.round((C.tax+C.social)/(C.gross||1)*100)+'% · '+P.set.yr;
   q('#plOut').textContent=E(out);q('#plOutS').textContent=E(out*12)+'/yr';
   q('#plHi').textContent=E(inc)+(NET()?' net':' gross');q('#plHo').textContent=E(inc);
-  const mi=P.inc.filter(r=>r.tg==='move').reduce((t,r)=>t+r.amt,0),mo=P.out.filter(r=>r.tg==='move').reduce((t,r)=>t+r.amt,0);
+  const mi=P.inc.filter(r=>r.tg==='move').reduce((t,r)=>t+A(r),0),mo=P.out.filter(r=>r.tg==='move').reduce((t,r)=>t+A(r),0);
   q('#plMoveA').textContent='+'+E(mi)+' / −'+E(mo);
 }
 
 /* what the plan means for Ledger's own targets */
 function target(){
-  const nOf=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+r.amt*C.f[t],0);
-  const role=k=>AO().filter(r=>r.role===k).reduce((s,r)=>s+r.amt,0);
+  const nOf=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+A(r)*C.f[t],0);
+  const role=k=>AO().filter(r=>r.role===k).reduce((s,r)=>s+A(r),0);
   const inc=nOf('sal')+C.ix*C.f.sal+nOf('self'), nr=nOf('rent')-role('rent'), fs=role('forced'), fix=role('fixed'), d=role('daily'), b=role('specials');
   const tot={es:0,da:0,lu:0};
   for(let k=1;k<=3;k++)for(const e of inM('d',addM(curM(),-k)))tot[bucketOf(e,'d')]+=e.amt;
@@ -1248,7 +1266,7 @@ function apply(){
 /* the budget the Month view uses: same blocks, rent and portfolio only when switched on */
 function budgetOf(PP){
   const keep=P;P=PP;P.set={...DEF.set,...P.set};
-  try{const c=compute(),nOf=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+r.amt*c.f[t],0),role=k=>AO().filter(r=>r.role===k).reduce((s,r)=>s+r.amt,0);
+  try{const c=compute(),nOf=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+A(r)*c.f[t],0),role=k=>AO().filter(r=>r.role===k).reduce((s,r)=>s+A(r),0);
     const rentIn=P.set.move?nOf('rent'):0, draw=DRAW();
     const rentOut=role('rent'),work=nOf('sal')+c.ix*c.f.sal+nOf('self');
     return {work,rentIn,rentOut,draw,inc:work+draw+Math.max(0,rentIn-rentOut),
@@ -1293,9 +1311,9 @@ function work(){
   const c=C,r=(l,v,k='')=>`<tr class="${k}"><td>${l}</td><td class="n">${v}</td></tr>`;
   q('#plWork').innerHTML=`<tr class="h"><td colspan="2">Per year</td></tr>`+
     r('Social: employee',E((c.empPH+c.empDep)*12))+r('Social: self-employed',E((c.selfPH+c.selfDep)*12))+r('Total social',E(c.social*12),'t')+
-    r(c.ix?`Salary (incl. ${P.set.idx}% indexation)`:'Salary',E(c.sal*12))+r('Self-employed profit',E(c.self*12))+(c.rent?r(`Rent net of ${P.set.rf}% costs`,E(c.netRent)):'')+
+    r(c.ix?`Salary (incl. ${(IXF()*100).toFixed(1)}% indexation)`:'Salary',E(c.sal*12))+r('Self-employed profit',E(c.self*12))+(c.rent?r(`Rent net of ${P.set.rf}% costs`,E(c.netRent)):'')+
     r('− Deductible social',E(-(c.empPH+c.selfPH)*12))+r('− Forfaits',E(-(c.fo+480)))+r('− Deductions',E(-(c.dedRows+(+P.set.extra||0))))+
-    r('Taxable income',E(c.taxable),'t')+r(Y28()?'Scale tax · 2028 class U':'Scale tax · class 1',E(c.base))+r('Solidarity surcharge',E(c.sol))+
+    r('Taxable income',E(c.taxable),'t')+r(Y28()?`Scale tax · ${P.set.yr} class U`:'Scale tax · class 1',E(c.base))+r('Solidarity surcharge',E(c.sol))+
     r(`Income tax · ${c.taxable?((c.base+c.sol)/c.taxable*100).toFixed(1):0}% average`,E(c.base+c.sol),'t');
 }
 function upd(){persist();C=compute();rescale();bars();work();apply();}
@@ -1305,13 +1323,13 @@ function moveSwitch(to){
     const t=to?(r.mv||{amt:400,bases:r.parts.map(p=>/mortgage/i.test(p.name)?400:0)}):(r.norm||cur);
     if(to)r.norm=cur;else r.mv=cur;
     r.amt=t.amt;r.parts.forEach((p,j)=>p.base=t.bases[j]??0);}
-  if(to){P.set.yrPrev=P.set.yr;P.set.yr=2028}else if(P.set.yrPrev)P.set.yr=P.set.yrPrev;
+  if(to){P.set.yrPrev=P.set.yr;if(+P.set.yr<2028)P.set.yr=2028}else if(P.set.yrPrev)P.set.yr=P.set.yrPrev;
 }
 function controls(){
   q('#plMove').checked=!!P.set.move;q('#plPfT').checked=!!P.set.pf;q('#plPfA').closest('.pl-pfa').classList.toggle('off',!P.set.pf);q('#plNet').checked=NET();
   q('#plYr').querySelectorAll('button').forEach(b=>b.classList.toggle('on',+b.dataset.y===+P.set.yr));
-  for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra'],['pfAmt','#plPfA']]){const el=q(id);if(document.activeElement!==el)el.value=P.set[k];}
-  q('#plIdx').closest('label').style.opacity=Y28()?1:.45;
+  for(const[k,id]of[['idxPa','#plIdx'],['flPa','#plFl'],['inflPa','#plInfl'],['spPa','#plSp'],['ret','#plRet'],['loanLeft','#plLoan'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra'],['pfAmt','#plPfA']]){const el=q(id);if(document.activeElement!==el)el.value=P.set[k];}
+  
 }
 window.renderPlan=function(){if(drag)return;load();C=compute();rescale();controls();inputs();bars();work();apply();};
 
@@ -1321,14 +1339,14 @@ q('#plMove').onchange=e=>{P.set.move=e.target.checked;moveSwitch(P.set.move);con
 q('#plNet').onchange=e=>{P.set.net=e.target.checked;upd();};
 q('#plPfT').onchange=e=>{P.set.pf=e.target.checked;controls();upd();};
 q('#plPfA').addEventListener('focus',()=>{if(!P.set.pf){P.set.pf=true;controls();upd();}});
-for(const[k,id]of[['idx','#plIdx'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra'],['pfAmt','#plPfA']])q(id).oninput=e=>{P.set[k]=+e.target.value||0;upd();};
+for(const[k,id]of[['idxPa','#plIdx'],['flPa','#plFl'],['inflPa','#plInfl'],['spPa','#plSp'],['ret','#plRet'],['loanLeft','#plLoan'],['ssm','#plSsm'],['exp','#plExp'],['mut','#plMut'],['rf','#plRf'],['extra','#plExtra'],['pfAmt','#plPfA']])q(id).oninput=e=>{P.set[k]=+e.target.value||0;upd();};
 q('#plAddI').onclick=()=>{P.inc.push({id:uid++,name:'New income',amt:200,type:'self',tg:''});inputs();upd();};
 q('#plAddO').onclick=()=>{const i=P.out.findIndex(r=>r.parts);P.out.splice(i<0?P.out.length:i,0,{id:uid++,name:'New outgoing',amt:100,role:'daily',ded:false,tg:''});inputs();upd();};
 q('#plReset').onclick=e=>{const b=e.target;if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Tap again to reset the plan';setTimeout(()=>{b.dataset.arm='';b.textContent='Reset plan to starting values';},3000);return;}
   b.dataset.arm='';b.textContent='Reset plan to starting values';P=fresh();controls();inputs();upd();};
 const V=q('#v-plan'), find=(id,side)=>(side==='inc'?P.inc:P.out).find(r=>r.id==id);
 V.addEventListener('pointerdown',e=>{const h=e.target.closest('.pl-h');if(!h)return;e.preventDefault();const r=find(h.dataset.id,h.dataset.side);
-  drag={r,y0:e.clientY,a0:r.amt,f:h.dataset.side==='inc'?Math.max(.2,F(r)):1};V.classList.add('pl-drag');try{h.setPointerCapture(e.pointerId)}catch(_){} });
+  drag={r,y0:e.clientY,a0:r.amt,f:(h.dataset.side==='inc'?Math.max(.2,F(r)):1)*(r.amt>0?Math.max(.2,A(r)/r.amt):1)};V.classList.add('pl-drag');try{h.setPointerCapture(e.pointerId)}catch(_){} });
 V.addEventListener('pointermove',e=>{if(!drag)return;const px=H()/scaleMax,v=Math.max(0,Math.round((drag.a0+(e.clientY-drag.y0)/px/drag.f)/25)*25);
   if(v!==drag.r.amt){drag.r.amt=v;C=compute();bars();syncIn(drag.r);}});
 const end=()=>{if(!drag)return;drag=null;V.classList.remove('pl-drag');upd();};
