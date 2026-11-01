@@ -340,7 +340,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 <main class="wrap">
   <div class="warnbar" id="warnbar" hidden></div>
   <section id="v-month">
-    <button class="ctx" id="ctx" aria-label="Monthly income context. Tap to switch between this month and plan"></button>
+    <div class="ctx" id="ctx" role="group" aria-label="Monthly budget: plan, or actual where actual is higher"></div>
     <div class="monthnav">
       <button id="prevM" aria-label="Previous month">‹</button>
       <h1 id="mTitle"></h1>
@@ -601,8 +601,8 @@ function mutate(ops){
 const trs=()=>Array.isArray(S.t.tr)?S.t.tr:[];
 const trM=m=>r2(trs().filter(x=>x.m===m).reduce((a,x)=>a+x.amt,0));
 const trY=y=>r2(trs().filter(x=>x.m.startsWith(y)).reduce((a,x)=>a+x.amt,0));
-const planB=()=>window.planBudget?window.planBudget():null;
-const budgetFor=m=>Math.max(0,(planB()?planB().daily:(+S.t.d||0))-trM(m));
+const planB=y=>window.planBudget?window.planBudget(y?+String(y).slice(0,4):undefined):null;
+const budgetFor=m=>Math.max(0,(planB(m)?planB(m).daily:(+S.t.d||0))-trM(m));
 
 /* ---------- one-time migration to budget buckets ---------- */
 function migrate(){
@@ -751,7 +751,7 @@ function renderCtx(){
    <span class="ccap" style="display:block">Consumption <b class="num">${pct(con)}%</b> of ${fmt0(I)} income${ctxPlan?'':` (plan ${pct(plan.es+plan.da+plan.lu)}%)`}${over.length?'. '+over.join(', '):''}. ${cap}. <u>${ctxPlan?'Show this month':'Show plan'}</u></span>`;
   el.querySelectorAll('.cbar i').forEach(i=>{ if(i.scrollWidth>i.clientWidth) i.classList.add('tight'); if(i.scrollWidth>i.clientWidth) i.classList.add('tiny'); });
 }
-$('#ctx').onclick=()=>{ctxPlan=!ctxPlan;renderCtx();};
+$('#ctx').onclick=null;
 
 /* ---------- month view ---------- */
 function renderMonth(){
@@ -800,7 +800,7 @@ function renderMonth(){
   if(window.renderMix)renderMix(d);
 
   // specials: whole calendar-year total spread over 12 months
-  const yr=viewM.slice(0,4), yAll=S.x.b.filter(e=>e.date.startsWith(yr)), yB=sum(yAll), yPj=sum(yAll.filter(e=>e.st==='p')), perM=yB/12, TB=(planB()?planB().specials:(+S.t.b||0))+trY(yr)/12;
+  const yr=viewM.slice(0,4), yAll=S.x.b.filter(e=>e.date.startsWith(yr)), yB=sum(yAll), yPj=sum(yAll.filter(e=>e.st==='p')), perM=yB/12, TB=(planB(yr)?planB(yr).specials:(+S.t.b||0))+trY(yr)/12;
   $('#spec').innerHTML=`<p class="l1"><span>Specials this month</span><span class="num">${fmt(sum(b))}</span></p>
     <p class="l2">${yr} total ${fmt0(yB)}, which is <span class="${perM>TB?'w':''}">${fmt0(perM)}/mo</span> against a ${fmt0(TB)} target${yPj?`, incl. ${fmt0(yPj)} projected`:''}. <button id="seeSpec" style="color:var(--plum);font-weight:600;text-decoration:underline">Open specials</button></p>`;
 
@@ -842,7 +842,7 @@ function resetSDate(){const d=$('#sD');d.min=viewY+'-01-01';d.max=viewY+'-12-31'
 function renderSpecials(){
   const [lo,hi]=yRange(); const y=viewY;
   $('#yTitle').textContent=`Specials ${y}`; $('#prevY').disabled=+y<=lo; $('#nextY').disabled=+y>=hi;
-  const all=S.x.b.filter(e=>e.date.startsWith(y)), tot=sum(all), pj=sum(all.filter(isPj)), fin=r2(tot-pj), mv=trY(y), TY=(planB()?planB().specials:(+S.t.b||0))*12+mv, TB=TY/12;
+  const all=S.x.b.filter(e=>e.date.startsWith(y)), tot=sum(all), pj=sum(all.filter(isPj)), fin=r2(tot-pj), mv=trY(y), TY=(planB(y)?planB(y).specials:(+S.t.b||0))*12+mv, TB=TY/12;
   $('#yTot').textContent=fmt0(tot); $('#yOf').innerHTML=`<span class="num">${fmt0(tot/12)}</span>/mo of ${fmt0(TB)}`;
   const max=Math.max(TY,tot,1), f=Math.max(0,fin), q=Math.max(0,pj);
   $('#yF').style.width=(f/max*100)+'%'; $('#yP').style.left=(f/max*100)+'%'; $('#yP').style.width=(q/max*100)+'%';
@@ -1257,9 +1257,9 @@ function target(){
 }
 const TL=[['inc','Income (take-home)'],['nr','Net rent'],['fs','F.savings'],['fix','Fixed costs'],['d','Daily spending budget'],['b','Specials target'],['bE','Essentials budget'],['bD','Daily bucket'],['bL','Luxury budget']];
 function apply(){
-  const B=window.planBudget(), el=q('#plApply'), free=B.inc-B.housing-B.fixed-B.daily-B.specials-B.forced;
+  const B=window.planBudget(+curM().slice(0,4)), el=q('#plApply'), free=B.inc-B.housing-B.fixed-B.daily-B.specials-B.forced;
   const rows=[['Net income',B.inc,'var(--ink)'],...(B.move?[['Net housing cost',B.housing,RC.rent]]:[]),['Fixed',B.fixed,RC.fixed],['Everyday',B.daily,RC.daily],['Specials',B.specials,RC.specials],['Forced savings',B.forced,RC.forced],[free>=0?'Free savings':'Short',Math.abs(free),free>=0?'var(--c-free)':'var(--warn)']];
-  el.innerHTML=`<p><b>Your Month view follows this plan</b></p><div class="pl-diff">${rows.map(([n,a,c])=>`<span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${c};margin-right:6px"></i>${n}</span><span></span><span class="n">${E(a)}</span>`).join('')}</div><p class="hint" style="margin:0">Net income is salary + freelance after tax${B.pf?' + portfolio draw':''}, ${B.yr} rules.${B.move?` Net housing cost = city rent ${E(B.rentOut)} − Differdange rent ${E(B.rentIn)} after tax.`:''} Rent and portfolio only count when their switch is on.</p>`;
+  el.innerHTML=`<p><b>Your Month view (${B.yr}) follows this plan</b></p><div class="pl-diff">${rows.map(([n,a,c])=>`<span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${c};margin-right:6px"></i>${n}</span><span></span><span class="n">${E(a)}</span>`).join('')}</div><p class="hint" style="margin:0">Net income is salary + freelance after tax${B.pf?' + portfolio draw':''}, ${B.yr} rules.${B.move?` Net housing cost = city rent ${E(B.rentOut)} − Differdange rent ${E(B.rentIn)} after tax.`:''} Rent and portfolio only count when their switch is on.</p>`;
 }
 
 /* the budget the Month view uses: same blocks, rent and portfolio only when switched on */
@@ -1272,7 +1272,7 @@ function budgetOf(PP){
       housing:Math.max(0,rentOut-rentIn),fixed:role('fixed'),daily:role('daily'),specials:role('specials'),forced:role('forced'),move:!!P.set.move,pf:!!P.set.pf,yr:+P.set.yr};}
   finally{P=keep;}
 }
-window.planBudget=function(){const s=S.t.plan;return budgetOf(s&&s.inc&&s.out?JSON.parse(JSON.stringify(dirty&&P?P:s)):fresh());};
+window.planBudget=function(y){const s=S.t.plan,pp=s&&s.inc&&s.out?JSON.parse(JSON.stringify(dirty&&P?P:s)):fresh();if(y)pp.set={...pp.set,yr:Math.min(2032,Math.max(2026,y))};return budgetOf(pp);};
 
 /* editors */
 function inputs(){
@@ -1357,17 +1357,18 @@ addEventListener('resize',()=>{if(!V.hidden&&!drag&&C)bars();});
 /* Month view: one bar in the Plan's blocks */
 const MC={ho:['Net housing','var(--c-ho)','var(--c-fix-ink)'],fx:['Fixed','var(--c-fix)','var(--c-fix-ink)'],ev:['Everyday','var(--c-ev)','#fff'],sp:['Specials','var(--c-sp)','var(--c-sp-ink)'],fs:['Forced','var(--c-fs)','#fff']};
 renderCtx=function(){
-  const el=q('#ctx'),B=window.planBudget();el.hidden=false;
+  const el=q('#ctx'),B=window.planBudget(+viewM.slice(0,4));el.hidden=false;
   const cm=curM(),dim=daysIn(viewM),day=viewM===cm?new Date().getDate():dim,k=viewM===cm&&day<dim?dim/day:1,yr=viewM.slice(0,4);
   const plan={ho:B.housing,fx:B.fixed,ev:budgetFor(viewM),sp:B.specials+trY(yr)/12,fs:B.forced};
-  const v=ctxPlan?plan:{...plan,ev:sum(inM('d',viewM))*k,sp:sum(S.x.b.filter(e=>e.date.startsWith(yr)))/12};
+  const act={ev:sum(inM('d',viewM))*k,sp:sum(S.x.b.filter(e=>e.date.startsWith(yr)))/12};
+  const v={...plan,ev:Math.max(plan.ev,act.ev),sp:Math.max(plan.sp,act.sp)}, ov=key=>act[key]>plan[key]+.5;
   const used=Object.values(v).reduce((a,b)=>a+b,0),free=B.inc-used,pct=x=>Math.round(x/(B.inc||1)*100);
-  const segs=Object.keys(MC).filter(key=>v[key]>0).map(key=>[MC[key][0],v[key],MC[key][1],MC[key][2]]);
+  const segs=Object.keys(MC).filter(key=>v[key]>0).map(key=>[MC[key][0]+(ov(key)?' ▲':''),v[key],MC[key][1],MC[key][2],ov(key)]);
   segs.push([free>=0?`Free ${pct(free)}%`:'Short',Math.abs(free),free>=0?'var(--c-free)':'var(--warn)',free>=0?'var(--c-free-ink)':'#fff']);
-  const over=ctxPlan?[]:[['ev','Everyday'],['sp','Specials']].filter(([key])=>v[key]>plan[key]+.5).map(([key,n])=>`${n} <span class="w">${fmt0(v[key]-plan[key])} over</span>`);
+  const over=[['ev','Everyday'],['sp','Specials']].filter(([key])=>ov(key)).map(([key,n])=>`${n} <span class="w">${fmt0(act[key]-plan[key])} over plan</span>`);
   const src=['salary + freelance',B.pf?'portfolio draw':''].filter(Boolean).join(' + ');
-  el.innerHTML=`<span class="cbar">${segs.map(([n,x,c,ink])=>`<i style="flex:${x} 1 0;background:${c};color:${ink}${n==='Net housing'?';min-width:78px':''}" title="${n} ${fmt0(x)}"><s>${n}</s><b>${fmt0(x)}</b></i>`).join('')}</span>
-   <span class="ccap" style="display:block">Net income <b class="num">${fmt0(B.inc)}</b> (${src}, ${B.yr} tax)${B.move?`. Net housing = rent ${fmt0(B.rentOut)} − Differdange ${fmt0(B.rentIn)} after tax`:''}. ${ctxPlan?'Plan':(k>1?`This month, projected from ${day} days`:'This month')}${over.length?'. '+over.join(', '):''}. <u>${ctxPlan?'Show this month':'Show plan'}</u></span>`;
+  el.innerHTML=`<span class="cbar">${segs.map(([n,x,c,ink,o])=>`<i style="flex:${x} 1 0;background:${c};color:${ink}${n==='Net housing'?';min-width:78px':''}${o?';box-shadow:inset 0 0 0 2px var(--warn)':''}" title="${n} ${fmt0(x)}${o?' (actual, above plan)':''}"><s>${n}</s><b>${fmt0(x)}</b></i>`).join('')}</span>
+   <span class="ccap" style="display:block">Net income <b class="num">${fmt0(B.inc)}</b> (${src}, ${B.yr} tax)${B.move?`. Net housing = rent ${fmt0(B.rentOut)} − Differdange ${fmt0(B.rentIn)} after tax`:''}. Plan amounts; a block shows actual spending (${k>1?`projected from ${day} days`:'this month'}) instead when it's higher${over.length?': '+over.join(', '):''}.</span>`;
   el.querySelectorAll('.cbar i').forEach(i=>{if(i.scrollWidth>i.clientWidth)i.classList.add('tight');if(i.scrollWidth>i.clientWidth)i.classList.add('tiny');});
 };
 window.renderMix=function(d){
@@ -1375,7 +1376,7 @@ window.renderMix=function(d){
   el.innerHTML=T>0?`Mix this month: ${['es','da','lu'].map(b=>`<span style="color:${BK[b].c};font-weight:600">${BK[b].n}</span> ${Math.round(t[b]/T*100)}%`).join(' · ')}`:'';
 };
 window.renderBudRO=function(){
-  const el=q('#budRO');if(!el)return;const B=window.planBudget(),free=B.inc-B.housing-B.fixed-B.daily-B.specials-B.forced;
+  const el=q('#budRO');if(!el)return;const B=window.planBudget(+curM().slice(0,4)),free=B.inc-B.housing-B.fixed-B.daily-B.specials-B.forced;
   el.innerHTML=[['Net income',B.inc],...(B.move?[['Net housing cost',B.housing]]:[]),['Fixed',B.fixed],['Everyday (daily budget)',B.daily],['Specials (per month)',B.specials],['Forced savings',B.forced],['Free savings',free]].map(([n,a])=>`<div class="fld"><span>${n}</span><b class="num">${fmt0(a)}</b></div>`).join('');
 };
 if(typeof render==='function')render();
