@@ -1157,7 +1157,7 @@ function A(r){
   if(r.parts)return r.parts.reduce((t,p)=>t+eff(r,p)*partF(r,p),0);
   if(r.role)return r.amt*({rent:gr(P.set.inflPa),fixed:gr(P.set.inflPa),daily:gr(P.set.spPa),specials:gr(P.set.spPa)}[r.role]||1);
   if(r.tg==='port')return r.amt*gr(P.set.ret);
-  return r.amt*({self:gr(P.set.flPa),rent:gr(P.set.inflPa)}[r.type]||1);
+  return r.amt*({sal:1+IXF(),self:gr(P.set.flPa),rent:gr(P.set.inflPa)}[r.type]||1);
 }
 const sumA=a=>a.reduce((t,r)=>t+A(r),0);
 const GROW=()=>P.inc.filter(r=>r.tg==='port').reduce((t,r)=>t+A(r),0);
@@ -1166,7 +1166,7 @@ const PG=()=>GROW()-DRAW();
 
 function compute(){
   const by=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+A(r),0);
-  const ix=by('sal')*IXF(), sal=by('sal')+ix, free=by('self'), rent=by('rent');
+  const sal=by('sal'), ix=sal-sal/(1+IXF()), free=by('self'), rent=by('rent');
   const ssm=(+P.set.ssm||0)*(1+IXF());
   const dedRows=AO().reduce((t,r)=>t+(r.parts?r.parts.filter(p=>p.ded).reduce((u,p)=>u+Math.min(eff(r,p)*partF(r,p)*12,4500),0):(r.ded?A(r)*12:0)),0);
   const c=calc({sal,free,rent,rf:+P.set.rf||0,exp:+P.set.exp||0,ssm,mut:+P.set.mut||0,ded:dedRows+(+P.set.extra||0),u:Y28()});
@@ -1174,7 +1174,7 @@ function compute(){
   const tA=c.base+c.sol, ps=Math.max(0,c.netSal), pf=Math.max(0,c.netSelf), pr=Math.max(0,c.netRent), T=ps+pf+pr||1;
   const fct=(g,soc,tp)=>g>0?Math.max(0,1-(soc*12+tA*tp/T)/(g*12)):1;
   c.f={sal:fct(sal,c.empPH+c.empDep,ps),self:fct(free,c.selfPH+c.selfDep,pf),rent:fct(rent,0,pr),none:1};
-  c.gross=sumA(AI())+ix;
+  c.gross=sumA(AI());
   c.net=c.gross-c.tax-c.social;
   return c;
 }
@@ -1210,7 +1210,6 @@ function bars(){
   const Bi=q('#plBi'),Bo=q('#plBo'),h=H(),px=h/scaleMax,gov=NET()?0:C.tax+C.social,inc=NET()?C.net:C.gross,out=sumA(AO()),pg=PG(),res=inc-gov-out-pg;
   Bi.innerHTML='';Bo.innerHTML='';MAP=[];
   let y=0;P.inc.forEach((r,i)=>{if(on(r)&&r.tg!=='port')y=rowSeg(Bi,r,y,px,IC[i%IC.length],'inc',A(r)*F(r));});
-  const ixd=C.ix*(NET()?C.f.sal:1);if(ixd>0){seg(Bi,'Indexation +'+(IXF()*100).toFixed(1)+'%',ixd,y,ixd*px,'#A9B8F2','auto').style.color='var(--ink)';y+=ixd*px;}
   const draw=DRAW();
   for(const r of P.inc){if(r.tg!=='port')continue;
     if(draw>0){seg(Bi,'Portfolio cash',draw,y,draw*px,'#2F7F9E');y+=draw*px;}
@@ -1247,7 +1246,7 @@ function bars(){
 function target(){
   const nOf=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+A(r)*C.f[t],0);
   const role=k=>AO().filter(r=>r.role===k).reduce((s,r)=>s+A(r),0);
-  const inc=nOf('sal')+C.ix*C.f.sal+nOf('self'), nr=nOf('rent')-role('rent'), fs=role('forced'), fix=role('fixed'), d=role('daily'), b=role('specials');
+  const inc=nOf('sal')+nOf('self'), nr=nOf('rent')-role('rent'), fs=role('forced'), fix=role('fixed'), d=role('daily'), b=role('specials');
   const tot={es:0,da:0,lu:0};
   for(let k=1;k<=3;k++)for(const e of inM('d',addM(curM(),-k)))tot[bucketOf(e,'d')]+=e.amt;
   let T=tot.es+tot.da+tot.lu, sh;
@@ -1268,7 +1267,7 @@ function budgetOf(PP){
   const keep=P;P=PP;P.set={...DEF.set,...P.set};
   try{const c=compute(),nOf=t=>AI().filter(r=>r.type===t).reduce((s,r)=>s+A(r)*c.f[t],0),role=k=>AO().filter(r=>r.role===k).reduce((s,r)=>s+A(r),0);
     const rentIn=P.set.move?nOf('rent'):0, draw=DRAW();
-    const rentOut=role('rent'),work=nOf('sal')+c.ix*c.f.sal+nOf('self');
+    const rentOut=role('rent'),work=nOf('sal')+nOf('self');
     return {work,rentIn,rentOut,draw,inc:work+draw+Math.max(0,rentIn-rentOut),
       housing:Math.max(0,rentOut-rentIn),fixed:role('fixed'),daily:role('daily'),specials:role('specials'),forced:role('forced'),move:!!P.set.move,pf:!!P.set.pf,yr:+P.set.yr};}
   finally{P=keep;}
