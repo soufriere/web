@@ -52,6 +52,14 @@ button{cursor:pointer;border:0;background:none;padding:0}
 /* month hero */
 .ctx{display:block;width:100%;text-align:left;margin:4px 0 6px;padding:6px 0 2px}
 .ctx .cbar{display:flex;gap:3px;height:38px}
+.ctx .cbar.split{height:18px;margin-bottom:3px}
+.ctx .cbar i .pace{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--ink);opacity:.75;text-decoration:none}
+.ctx .cbar i b small{font-size:10.5px;font-weight:600;opacity:.8}
+.ctx .cbar i.ev.tight s{display:inline}
+.ctx .cbar i.ev.tight b small{display:none}
+#v-month .big,#v-month #track{display:none}
+.ctx .cbar.split i{min-width:0;flex-direction:row;align-items:center;gap:4px;border-radius:5px!important}
+.ctx .cbar.split i b{font-size:11px;letter-spacing:0}
 .ctx .cbar i{display:flex;flex-direction:column;justify-content:center;min-width:58px;padding:0 6px;border-radius:6px;overflow:hidden;white-space:nowrap;color:var(--surf);font-style:normal;line-height:1.15;transition:flex-grow .35s ease}
 .ctx .cbar i s{text-decoration:none;font-size:10.5px;letter-spacing:-.01em;font-weight:600;opacity:.9}
 .ctx .cbar i b{font-size:12.5px;font-weight:700;font-variant-numeric:tabular-nums}
@@ -223,9 +231,9 @@ dialog .btns{justify-content:space-between;margin-top:16px}
 main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 /* budget block colours, shared by Plan and the Month bar: fixed/housing black, discretionary pink, savings green */
-:root{--c-fix:#1B1F24;--c-ho:#3A4048;--c-fix-ink:#FFFFFF;--c-ev:#D63B7A;--c-sp:#EC93B8;--c-sp-ink:#4A1230;--c-fs:#1E7046;--c-free:#2E9E5E;--c-free-ink:#FFFFFF;--c-pg:#7CC29B}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-fix:#000000;--c-ho:#2A3038;--c-fix-ink:#FFFFFF;--c-ev:#EC5F97;--c-sp:#F3A9C8;--c-sp-ink:#3A0E22;--c-fs:#3E9C6B;--c-free:#5DC08A;--c-free-ink:#0E1420;--c-pg:#8FD3AC}}
-:root[data-theme="dark"]{--c-fix:#000000;--c-ho:#2A3038;--c-fix-ink:#FFFFFF;--c-ev:#EC5F97;--c-sp:#F3A9C8;--c-sp-ink:#3A0E22;--c-fs:#3E9C6B;--c-free:#5DC08A;--c-free-ink:#0E1420;--c-pg:#8FD3AC}
+:root{--c-fix:#1B1F24;--c-ho:#3A4048;--c-fix-ink:#FFFFFF;--c-ev:#D63B7A;--c-sp:#EC93B8;--c-sp-ink:#4A1230;--c-fs:#1E7046;--c-free:#2E9E5E;--c-free-ink:#FFFFFF;--c-pg:#7CC29B;--c-over:#D33A3A;--c-ev-empty:#F3C3D6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--c-fix:#000000;--c-ho:#2A3038;--c-fix-ink:#FFFFFF;--c-ev:#EC5F97;--c-sp:#F3A9C8;--c-sp-ink:#3A0E22;--c-fs:#3E9C6B;--c-free:#5DC08A;--c-free-ink:#0E1420;--c-pg:#8FD3AC;--c-over:#F06060;--c-ev-empty:#5A2A40}}
+:root[data-theme="dark"]{--c-fix:#000000;--c-ho:#2A3038;--c-fix-ink:#FFFFFF;--c-ev:#EC5F97;--c-sp:#F3A9C8;--c-sp-ink:#3A0E22;--c-fs:#3E9C6B;--c-free:#5DC08A;--c-free-ink:#0E1420;--c-pg:#8FD3AC;--c-over:#F06060;--c-ev-empty:#5A2A40}
 #v-plan .pl-s.save{color:var(--c-free-ink)}
 /* plan tab: budget simulator (gross → tax → spending → savings), scoped to #v-plan */
 #v-plan{--pl-tax:#5A6170;--pl-soc:#7A8190;--pl-forced:var(--c-fs);--pl-save:var(--c-free);--pl-def:var(--warn)}
@@ -1269,7 +1277,7 @@ function budgetOf(PP){
     const rentIn=P.set.move?nOf('rent'):0, draw=DRAW();
     const rentOut=role('rent'),work=nOf('sal')+nOf('self');
     return {work,rentIn,rentOut,draw,inc:work+draw+Math.max(0,rentIn-rentOut),
-      housing:Math.max(0,rentOut-rentIn),fixed:role('fixed'),daily:role('daily'),specials:role('specials'),forced:role('forced'),move:!!P.set.move,pf:!!P.set.pf,yr:+P.set.yr};}
+      housing:Math.max(0,rentOut-rentIn),fixed:role('fixed'),daily:role('daily'),specials:role('specials'),forced:role('forced'),pg:PG(),move:!!P.set.move,pf:!!P.set.pf,yr:+P.set.yr};}
   finally{P=keep;}
 }
 window.planBudget=function(y){const s=S.t.plan,pp=s&&s.inc&&s.out?JSON.parse(JSON.stringify(dirty&&P?P:s)):fresh();if(y)pp.set={...pp.set,yr:Math.min(2032,Math.max(2026,y))};return budgetOf(pp);};
@@ -1358,18 +1366,33 @@ addEventListener('resize',()=>{if(!V.hidden&&!drag&&C)bars();});
 const MC={ho:['Net housing','var(--c-ho)','var(--c-fix-ink)'],fx:['Fixed','var(--c-fix)','var(--c-fix-ink)'],ev:['Everyday','var(--c-ev)','#fff'],sp:['Specials','var(--c-sp)','var(--c-sp-ink)'],fs:['Forced','var(--c-fs)','#fff']};
 renderCtx=function(){
   const el=q('#ctx'),B=window.planBudget(+viewM.slice(0,4));el.hidden=false;
-  const cm=curM(),dim=daysIn(viewM),day=viewM===cm?new Date().getDate():dim,k=viewM===cm&&day<dim?dim/day:1,yr=viewM.slice(0,4);
+  const cm=curM(),dim=daysIn(viewM),day=viewM===cm?new Date().getDate():viewM<cm?dim:0,yr=viewM.slice(0,4);
   const plan={ho:B.housing,fx:B.fixed,ev:budgetFor(viewM),sp:B.specials+trY(yr)/12,fs:B.forced};
-  const act={ev:sum(inM('d',viewM))*k,sp:sum(S.x.b.filter(e=>e.date.startsWith(yr)))/12};
+  const act={ev:sum(inM('d',viewM)),sp:sum(S.x.b.filter(e=>e.date.startsWith(yr)))/12};
   const v={...plan,ev:Math.max(plan.ev,act.ev),sp:Math.max(plan.sp,act.sp)}, ov=key=>act[key]>plan[key]+.5;
-  const used=Object.values(v).reduce((a,b)=>a+b,0),free=B.inc-used,pct=x=>Math.round(x/(B.inc||1)*100);
-  const segs=Object.keys(MC).filter(key=>v[key]>0).map(key=>[MC[key][0]+(ov(key)?' ▲':''),v[key],MC[key][1],MC[key][2],ov(key)]);
+  const used=Object.values(v).reduce((a,b)=>a+b,0),free=B.inc-used,tot=B.inc+(B.pg||0),pct=x=>Math.round(x/(tot||1)*100);
+  const spent=v.ho+v.fx+v.ev+v.sp,saved=Math.max(0,tot-spent);
+  // Everyday fills up as you spend; red once it passes the plan. Tick = where spending should be by today.
+  const evOver=ov('ev'),fill=v.ev>0?Math.min(100,act.ev/v.ev*100):0,evCol=evOver?'var(--c-over)':'var(--c-ev)';
+  const evBg=`linear-gradient(90deg,${evCol} 0 ${fill}%,var(--c-ev-empty) ${fill}% 100%)`;
+  const tick=viewM===cm&&plan.ev>0?`<u class="pace" style="left:${Math.min(100,plan.ev*day/dim/v.ev*100)}%"></u>`:'';
+  const evInk=evOver||fill>=55?'#fff':'var(--ink)';
+  const segs=Object.keys(MC).filter(key=>v[key]>0).map(key=>key==='ev'
+    ?[MC.ev[0],v.ev,evBg,evInk,false,`${fmt0(act.ev)}<small> / ${fmt0(plan.ev)}</small>`,tick]
+    :[MC[key][0]+(ov(key)?' ▲':''),v[key],MC[key][1],MC[key][2],ov(key)]);
   segs.push([free>=0?`Free ${pct(free)}%`:'Short',Math.abs(free),free>=0?'var(--c-free)':'var(--warn)',free>=0?'var(--c-free-ink)':'#fff']);
-  const over=[['ev','Everyday'],['sp','Specials']].filter(([key])=>ov(key)).map(([key,n])=>`${n} <span class="w">${fmt0(act[key]-plan[key])} over plan</span>`);
+  if(B.pg>0)segs.push(['Growth',B.pg,'var(--c-pg)','#0E2A1B']);
+  const left=plan.ev-act.ev,dl=viewM===cm?dim-day+1:0;
+  const evTxt=evOver?`Everyday <span class="w">${fmt0(act.ev-plan.ev)} over plan</span>. `:'';
+  const spTxt=ov('sp')?`Specials <span class="w">${fmt0(act.sp-plan.sp)} over plan</span>. `:'';
   const src=['salary + freelance',B.pf?'portfolio draw':''].filter(Boolean).join(' + ');
-  el.innerHTML=`<span class="cbar">${segs.map(([n,x,c,ink,o])=>`<i style="flex:${x} 1 0;background:${c};color:${ink}${n==='Net housing'?';min-width:78px':''}${o?';box-shadow:inset 0 0 0 2px var(--warn)':''}" title="${n} ${fmt0(x)}${o?' (actual, above plan)':''}"><s>${n}</s><b>${fmt0(x)}</b></i>`).join('')}</span>
-   <span class="ccap" style="display:block">Net income <b class="num">${fmt0(B.inc)}</b> (${src}, ${B.yr} tax)${B.move?`. Net housing = rent ${fmt0(B.rentOut)} − Differdange ${fmt0(B.rentIn)} after tax`:''}. Plan amounts; a block shows actual spending (${k>1?`projected from ${day} days`:'this month'}) instead when it's higher${over.length?': '+over.join(', '):''}.</span>`;
-  el.querySelectorAll('.cbar i').forEach(i=>{if(i.scrollWidth>i.clientWidth)i.classList.add('tight');if(i.scrollWidth>i.clientWidth)i.classList.add('tiny');});
+  el.innerHTML=`<span class="cbar split" title="Spent ${fmt0(spent)} · saved ${fmt0(saved)}"><i style="flex:${spent} 1 0;background:var(--c-ev);color:#fff"><b>Spent ${pct(spent)}%</b></i><i style="flex:${saved} 1 0;background:var(--c-free);color:var(--c-free-ink)"><b>Saved ${pct(saved)}%</b></i></span><span class="cbar">${segs.map(([n,x,c,ink,o,lbl,extra])=>`<i style="flex:${x} 1 0;background:${c};color:${ink}${n==='Net housing'?';min-width:78px':''}${n==='Everyday'?';min-width:96px;position:relative" class="ev':''}${o?';box-shadow:inset 0 0 0 2px var(--warn)':''}" title="${n} ${fmt0(x)}${o?' (actual, above plan)':''}"><s>${n}</s><b>${lbl||fmt0(x)}</b>${extra||''}</i>`).join('')}</span>
+   <span class="ccap" style="display:block">${evTxt}${spTxt}Net income <b class="num">${fmt0(B.inc)}</b> (${src}, ${B.yr} tax)${B.pg>0?` + portfolio growth <b class="num">${fmt0(B.pg)}</b> reinvested`:''}${B.move?`. Net housing = rent ${fmt0(B.rentOut)} − Differdange ${fmt0(B.rentIn)} after tax`:''}.</span>`;
+  el.querySelectorAll('.cbar:not(.split) i').forEach(i=>{if(i.scrollWidth>i.clientWidth)i.classList.add('tight');if(i.scrollWidth>i.clientWidth)i.classList.add('tiny');});
+  {const bl=[...el.querySelectorAll('.cbar:not(.split) i')],sp=el.querySelectorAll('.cbar.split i'),nS=['ho','fx','ev','sp'].filter(k=>v[k]>0).length;
+   if(bl.length&&sp.length===2){const R=i=>i.getBoundingClientRect(),w=(a,z)=>Math.max(0,R(z).right-R(a).left);
+    if(nS>0){sp[0].style.flex='none';sp[0].style.width=w(bl[0],bl[nS-1])+'px';}else sp[0].hidden=true;
+    if(nS<bl.length){sp[1].style.flex='none';sp[1].style.width=w(bl[nS],bl[bl.length-1])+'px';}else sp[1].hidden=true;}}
 };
 window.renderMix=function(d){
   const el=q('#mixCap');if(!el)return;const t={es:0,da:0,lu:0};for(const e of d)t[bucketOf(e,'d')]+=e.amt;const T=t.es+t.da+t.lu;
