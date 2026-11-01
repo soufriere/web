@@ -248,7 +248,13 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
 #v-plan .pl-sum .s{display:block;font-size:11.5px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #v-plan .pl-cap{font-size:12.5px;color:var(--mut);margin:2px 0 8px}
 #v-plan .pl-cap b{color:var(--ink)}
-#v-plan .pl-chart{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:4px}
+#v-plan .pl-chart{display:grid;grid-template-columns:1fr 1fr 52px;gap:4px;margin-top:4px}
+#v-plan .pl-pbar{position:relative;border-radius:8px;overflow:hidden;outline:1px solid var(--line);background:var(--surf)}
+#v-plan .pl-p{position:absolute;left:0;right:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;line-height:1.1;box-shadow:inset 0 -1px 0 rgba(0,0,0,.18)}
+#v-plan .pl-p b{font:700 14px var(--disp);font-variant-numeric:tabular-nums}
+#v-plan .pl-p s{text-decoration:none;font-size:10px;font-weight:600;opacity:.9}
+#v-plan .pl-p.sm s{display:none}
+#v-plan .pl-p.xs b{font-size:11px}
 #v-plan .pl-ch{display:flex;justify-content:space-between;gap:6px;font-size:12.5px;font-weight:700;margin-bottom:4px}
 #v-plan .pl-ch span:last-child{color:var(--mut);font-weight:600;font-variant-numeric:tabular-nums}
 #v-plan .pl-box{display:grid;align-items:start}
@@ -395,6 +401,7 @@ main{padding-bottom:calc(var(--dockh,0px) + 24px)}
     <div class="pl-chart">
       <div><div class="pl-ch"><span>Income</span><span id="plHi"></span></div><div class="pl-box l"><div class="pl-lb" id="plLi"></div><div class="pl-bar" id="plBi"></div></div></div>
       <div><div class="pl-ch"><span>Where it goes</span><span id="plHo"></span></div><div class="pl-box r"><div class="pl-bar" id="plBo"></div><div class="pl-lb" id="plLo"></div></div></div>
+      <div><div class="pl-ch" style="justify-content:center"><span>%</span></div><div class="pl-pbar" id="plBp" role="img"></div></div>
     </div>
     <p class="hint">Drag a block's bottom edge (€25 steps). Striped blocks are calculated.</p>
 
@@ -1201,6 +1208,12 @@ function bars(){
   if(res<0)seg(Bo,'Over by',-res,inc*px,-res*px,'var(--pl-def)','def');
   const bh=Math.max(h,yIn,y,lineY);Bi.style.height=Bo.style.height=bh+'px';
   labels(Bi,q('#plLi'),bh);labels(Bo,q('#plLo'),bh);
+  { const Bp=q('#plBp'),fz=AO().filter(r=>r.parts).reduce((t,r)=>t+r.amt,0),cons=out-fz,sv=fz+Math.max(0,res)+pg,base=inc||1;
+    const parts=[...(gov>0?[['tax',gov,'var(--pl-tax)']]:[]),['spent',cons,'var(--c-ev)'],['saved',sv,'var(--c-free)'],...(res<0?[['short',-res,'var(--pl-def)']]:[])];
+    Bp.innerHTML='';Bp.style.height=bh+'px';let yy=0;
+    for(const[n,a,c]of parts){const hh=a*px,d=document.createElement('div');d.className='pl-p'+(hh<36?' sm':'')+(hh<20?' xs':'');d.style.top=yy+'px';d.style.height=hh+'px';d.style.background=c;
+      if(n==='saved')d.style.color='var(--c-free-ink)';d.innerHTML=hh>=14?`<b>${Math.round(a/base*100)}%</b><s>${n}</s>`:'';d.title=`${n} ${Math.round(a/base*100)}% · ${E(a)}`;Bp.append(d);yy+=hh;}
+    Bp.setAttribute('aria-label',parts.map(([n,a])=>`${n} ${Math.round(a/base*100)}%`).join(', ')); }
   const fz=AO().filter(r=>r.parts).reduce((t,r)=>t+r.amt,0);
   q('#plTot').textContent=E(res+fz+pg);
   q('#plSplit').innerHTML=res>=0?`<b>${E(res)}</b> free · <b>${E(fz)}</b> forced · <b>${E(pg)}</b> portfolio growth · ${Math.round((res+fz+pg)/(C.gross||1)*100)}% of gross`:`<b style="color:var(--warn)">${E(-res)} short</b> of income each month`;
